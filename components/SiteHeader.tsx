@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { getUser } from "@/lib/auth";
 import { brand } from "@/lib/brand";
 
 const menu = [
@@ -7,6 +9,25 @@ const menu = [
   { href: "/#products", label: "택일·작명" },
   { href: "/#products", label: "전문가 상담" },
 ];
+
+function LoginLink() {
+  return (
+    <Link href="/login" className="site-header__login">
+      로그인
+    </Link>
+  );
+}
+
+async function HeaderAuth() {
+  if (!(await getUser())) {
+    return <LoginLink />;
+  }
+  return (
+    <Link href="/my" className="site-header__login">
+      내 신청
+    </Link>
+  );
+}
 
 export function SiteHeader() {
   return (
@@ -28,9 +49,9 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
-        <Link href="/login" className="site-header__login">
-          로그인
-        </Link>
+        <Suspense fallback={<LoginLink />}>
+          <HeaderAuth />
+        </Suspense>
       </div>
     </header>
   );
