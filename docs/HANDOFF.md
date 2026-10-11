@@ -2,12 +2,12 @@
 
 다음 세션이 이 문서만 읽고 이어서 작업할 수 있게 유지합니다. 키와 비밀번호는 쓰지 않습니다.
 
-최종 갱신: 2026-10-11 (4단계 SQL 3차안 작성 직후)
+최종 갱신: 2026-10-11 (4단계 마이그레이션 적용·DB 검증 직후)
 
 ## 1. 현재 단계
 
-- **현재**: 3단계 승인됨(시안과 다르게 처리한 5가지 포함). **4단계 준비 중**: 사장님 검토 결과를 반영한 마이그레이션 SQL 3개(2차안)를 작성해 전문을 보여줌. **실행 전, 사장님 승인 대기**.
-- **다음**: 승인 → 사장님이 SQL Editor에서 실행 → REST 검증 → 주문 저장·삭제 요청 서버 액션, 가입 동의 시각 기록 구현.
+- **현재**: 3단계 승인됨(시안과 다르게 처리한 5가지 포함). **4단계 진행 중**: 마이그레이션 3개를 사장님이 실행했고 DB 검증을 마침(판정 69건 중 68건 통과, 아래 3번 참고). 서버 액션과 화면 연결은 아직 시작 전.
+- **다음**: 4단계 코드 구현(가입 동의 시각 기록, 사주 저장·삭제, 주문 저장, 삭제 요청, 리포트 사전신청 카드에 동의 체크박스 2개, /my 연결) → 검증 ⑩ 수행.
 - 작업 지시 원문: `지시문_sajuboss.md`(1~9단계). 디자인 기준: `design/v2/`(시안 v2). 반응형 기준: `docs/RESPONSIVE.md`.
 
 | 단계 | 내용 | 상태 | 커밋 |
@@ -17,7 +17,7 @@
 | 2 | 이메일 인증, profiles, is_admin, 관리자 경로 차단 | 승인됨, **미push** | `85ac5f0` |
 | - | 반응형 공통 규칙 + 검증 스크립트 (+ `design/v2/` 파일 추가) | **미push** | `ae366af` |
 | 3 | 시안 v2 전환(공통 스타일, 헤더·푸터, 로그인, 내 신청) + 메인·리포트 상세 + 하단 고정 바 | 승인됨, **미push** | `579ecf4` |
-| 4 | 주문 저장(orders), 삭제 요청, 약관 동의 시각 | SQL 초안 작성(미실행), 승인 대기 | SQL 초안: 이 문서가 들어간 커밋 |
+| 4 | 주문 저장(orders), 삭제 요청, 약관 동의 시각, 사주 저장 | DB 적용·검증 완료, 코드 구현 전 | SQL: `7f688e7` |
 | 5 | 신청 폼 3종 | 시작 전 | |
 | 6 | 결제·완료 화면(PG 연동 없음) | 시작 전 | |
 | 7 | 관리자 화면 | 시작 전 | |
@@ -63,9 +63,9 @@
 | 마이그레이션 파일 | 적용 여부 |
 |---|---|
 | `supabase/migrations/20261011120000_profiles.sql` | 적용됨(2026-10-11), REST 검증 30/30 통과 |
-| `supabase/migrations/20261011150000_profile_consents.sql` | **미적용**(3차안, 승인 대기). 실행 순서 1. profiles에 `age_confirmed_at`, `terms_agreed_at`, `privacy_agreed_at`, `marketing_opt_in_at` 추가 |
-| `supabase/migrations/20261011150050_saju_profiles.sql` | **미적용**(3차안, 승인 대기). 실행 순서 2. `saju_profiles` 테이블, `set_updated_at()` |
-| `supabase/migrations/20261011150100_orders.sql` | **미적용**(3차안, 승인 대기). 실행 순서 3. `orders` 테이블 |
+| `supabase/migrations/20261011150000_profile_consents.sql` | 적용됨(2026-10-11). 실행 순서 1. profiles에 `age_confirmed_at`, `terms_agreed_at`, `privacy_agreed_at`, `marketing_opt_in_at` 추가 |
+| `supabase/migrations/20261011150050_saju_profiles.sql` | 적용됨(2026-10-11). 실행 순서 2. `saju_profiles` 테이블, `set_updated_at()` |
+| `supabase/migrations/20261011150100_orders.sql` | 적용됨(2026-10-11). 실행 순서 3. `orders` 테이블 |
 
 **테이블 `public.profiles`**: `id`(auth.users FK, on delete cascade), `role`('user'|'admin', 기본 'user'), `created_at`.
 - RLS 켜짐. 정책: `profiles_select_own`, `profiles_update_own`(둘 다 본인 행, authenticated).
@@ -76,9 +76,25 @@
 - `public.handle_new_user()`: auth.users insert 트리거(`on_auth_user_created`). SECURITY DEFINER, `search_path=''`, role은 항상 'user', 메타데이터 미사용.
 - `public.is_admin()`: SECURITY DEFINER, `search_path=''`. execute는 authenticated만(PUBLIC·anon 회수).
 
-**아직 없는 것**: `orders` 테이블과 약관 동의 컬럼(위 초안 2개, 미적용), 저장된 사주 정보를 담을 곳(설계 없음, 아래 6번 참고).
+**테이블 `public.saju_profiles`**: 저장된 사주. RLS 켜짐, 정책 `saju_profiles_select_own`. authenticated는 select만, 쓰기는 service_role. 본인 사주 1개 제한(부분 unique index), 계정 삭제 시 cascade.
 
-**4단계에서 확정된 것**(사장님 결정, SQL은 미실행)
+**테이블 `public.orders`**: RLS 켜짐, 정책 `orders_select_own`(본인 + 삭제되지 않은 주문). authenticated는 컬럼 단위 select만(`admin_note`, `deleted_at` 제외), 쓰기는 service_role. 계정 삭제는 restrict.
+
+**profiles 동의 컬럼 4개**: `age_confirmed_at`, `terms_agreed_at`, `privacy_agreed_at`, `marketing_opt_in_at`. 사용자 수정 불가.
+
+**함수 `public.set_updated_at()`**: orders, saju_profiles의 updated_at 트리거.
+
+현재 세 테이블 모두 0행.
+
+**4단계 DB 검증 결과**(2026-10-11, 임시 계정 3개로 수행 후 삭제, 잔여 행 0)
+- 사전 점검 6건, ①~⑨, ⑪, ⑬~㉔ 모두 통과(거부는 42501/23514/23502/23505 정확히 일치, 허용은 행 수 일치).
+- ㉓ 확인됨: `deleted_at`이 RLS 조건에 쓰이고 열 grant에서 빠져 있어도 본인 주문의 컬럼 명시 조회는 정상(grant 변경 불필요).
+- **⑫·㉕ 코드 불일치**: 주문이 있는 계정 삭제는 막혔지만(계정·주문 그대로 남음) Auth 관리 API가 `23503`이 아니라 코드 없는 HTTP 500을 돌려줌. `23503` 자체는 REST로 확인 불가. 필요하면 SQL Editor에서 직접 확인.
+- **⑩ 미실시**: 삭제 요청 서버 함수 구현 후 확인.
+- 첫 실행 시도 때는 사전 점검이 PGRST205·42703으로 실패해 중단했고, 사장님이 다시 실행·스키마 리로드한 뒤 통과함.
+- 검증 스크립트는 저장소에 없음(세션 임시 폴더). 다시 필요하면 같은 항목으로 새로 작성.
+
+**4단계에서 확정된 것**(사장님 결정, SQL 적용됨)
 - 상품 4종: `report_2027`, `date`, `name_biz`, `name_person`. 개명은 `name_person`의 한 종류(`payload.kind`: baby/adult/rename).
 - 패키지: `name_biz`, `name_person`은 필수(basic/detail), `report_2027`, `date`는 null.
 - 상태에 `preorder` 추가: 신년 리포트 사전신청(결제 아님)에만 사용(check). 마이페이지 표시는 "사전신청 완료".
@@ -114,7 +130,7 @@
 
 ## 6. 사장님 확인·결정 대기
 
-1. **4단계 SQL 3개 승인**. 실행은 사장님이 SQL Editor에서 `profile_consents` → `saju_profiles` → `orders` 순서로.
+1. **4단계 코드 구현 진행 여부**, 그리고 ⑫·㉕(계정 삭제 오류 코드가 23503이 아닌 HTTP 500으로 나옴)를 어떻게 볼지.
 2. **push**: 사장님이 Supabase URL Configuration과 비밀번호 정책을 설정한 뒤 **"push 진행"이라고 하면** push. push 후 Vercel 배포 상태와 `https://sajuboss.com`, `/report/2027`, `/login` 응답을 확인해 보고.
 3. **리디렉션 방향**: 대표 주소는 `https://sajuboss.com`으로 결정됨. 사장님이 Vercel에서 www→apex로 바꾸기로 했으나 마지막 확인(2026-10-11) 시 아직 apex→www(308). 바뀐 뒤 방향 확인 필요.
 4. **통신판매업 신고번호**: 확인 중. `lib/brand.ts`에 `[확인 후 기재]`.
