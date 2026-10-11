@@ -91,7 +91,7 @@ export function TodayForm() {
           <select className="input" id="m-cal" name="calendar" defaultValue="solar">
             <option value="solar">양력</option>
             <option value="lunar">음력</option>
-            <option value="lunar-leap">음력(윤달)</option>
+            <option value="lunar_leap">음력(윤달)</option>
           </select>
         </div>
         <div className="field">

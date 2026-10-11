@@ -80,6 +80,6 @@ npm run check:responsive
 - 모바일 폭에서는 글자 크기 130% 상태로도 가로 넘침을 확인합니다.
 - 스크린샷을 `.responsive/`에 저장하고(커밋하지 않음), 통과/실패 경로 목록을 출력합니다. 실패가 있으면 종료 코드 1입니다.
 
-로그인이 필요한 경로(`/my`, `/login/update-password`, `/admin/orders`, `/pay/…`, `/done/…`)는 `.env.local`의 service_role 키로 **임시 테스트 계정**(무작위 `@example.com` 주소)을 만들어 확인하고, 끝나면 삭제합니다. 키가 없거나 `--no-auth`를 주면 이 경로들은 건너뜁니다.
+로그인이 필요한 경로(`/my`, `/login/update-password`, `/admin/orders`, `/pay/…`, `/done/…`)는 `.env.local`의 service_role 키로 **임시 테스트 계정**(무작위 `@example.com` 주소)을 만들어 확인하고, 끝나면 삭제합니다. `/my`의 신청 목록과 저장된 사주 화면을 보려고 임시 신청 1건과 사주 1건도 넣었다가 함께 지웁니다(정리 순서: orders → saju_profiles → 계정). 키가 없거나 `--no-auth`를 주면 이 경로들은 건너뜁니다.
 
 처음 한 번은 브라우저를 받아야 합니다: `npx playwright install chromium webkit`

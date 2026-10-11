@@ -14,3 +14,21 @@ export function formatKrw(amount: number) {
 export function formatKrwFrom(amount: number) {
   return `${formatKrw(amount)}~`;
 }
+
+// 주문 금액. 서버(lib/orders.ts)가 저장할 때 이 함수로만 계산합니다.
+export function orderAmount(
+  product: "report_2027" | "date" | "name_biz" | "name_person",
+  pkg: "basic" | "detail" | null,
+  options: { partner?: boolean } = {},
+) {
+  switch (product) {
+    case "report_2027":
+      return pricing.report2027;
+    case "date":
+      return pricing.date.base + (options.partner ? pricing.date.partnerAddon : 0);
+    case "name_biz":
+      return pkg === "detail" ? pricing.nameBiz.detail : pricing.nameBiz.basic;
+    case "name_person":
+      return pkg === "detail" ? pricing.namePerson.detail : pricing.namePerson.basic;
+  }
+}

@@ -85,16 +85,52 @@ async function createTempSession(env) {
   if (error) throw new Error(`임시 계정 생성 실패 (${error.code ?? error.status})`);
   const userId = data.user.id;
 
+  // 정리 순서: orders → saju_profiles → 계정(주문이 있으면 계정 삭제가 막힙니다).
   const cleanup = async () => {
+    await admin.from("orders").delete().eq("user_id", userId);
+    await admin.from("saju_profiles").delete().eq("user_id", userId);
     await admin.auth.admin.deleteUser(userId);
     const { data: left } = await admin.auth.admin.getUserById(userId);
-    const { data: rows } = await admin.from("profiles").select("id").eq("id", userId);
-    return !left?.user && (rows?.length ?? 0) === 0;
+    const remaining = await Promise.all(
+      [
+        admin.from("profiles").select("id").eq("id", userId),
+        admin.from("orders").select("id").eq("user_id", userId),
+        admin.from("saju_profiles").select("id").eq("user_id", userId),
+      ].map(async (query) => (await query).data?.length ?? 0),
+    );
+    return !left?.user && remaining.every((count) => count === 0);
   };
 
   try {
     const promoted = await admin.from("profiles").update({ role: "admin" }).eq("id", userId);
     if (promoted.error) throw new Error(`임시 계정 관리자 지정 실패 (${promoted.error.code})`);
+
+    // /my의 신청 목록과 저장된 사주 화면도 확인하도록 임시 데이터를 넣습니다(끝나면 삭제).
+    const now = new Date().toISOString();
+    const seededOrder = await admin.from("orders").insert({
+      user_id: userId,
+      product: "report_2027",
+      package: null,
+      status: "preorder",
+      amount_krw: 3900,
+      contact_email: email,
+      consent_privacy_at: now,
+      consent_disclaimer_at: now,
+      payload: { test: true },
+    });
+    const seededSaju = await admin.from("saju_profiles").insert({
+      user_id: userId,
+      is_self: true,
+      label: "본인",
+      birth_date: "1972-03-15",
+      calendar: "solar",
+      birth_time: null,
+      time_unknown: true,
+      gender: "female",
+    });
+    if (seededOrder.error || seededSaju.error) {
+      throw new Error(`임시 데이터 준비 실패 (${seededOrder.error?.code ?? seededSaju.error?.code})`);
+    }
 
     const jar = new Map();
     const client = createServerClient(url, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {

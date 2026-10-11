@@ -1008,3 +1008,111 @@
     padding-bottom: 64px;
   }
 }
+
+/* 4단계: 사주 입력 묶음, 사전신청 동의, 내 신청 목록 */
+.saju-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.preorder-consents {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.my-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.my-form .btn {
+  align-self: flex-start;
+}
+
+.my-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.my-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #d9a79c;
+  border-radius: 12px;
+  background: #fdf6f4;
+}
+
+.my-confirm p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.my-loading {
+  min-height: 200px;
+}
+
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.order-list-title {
+  font-size: 1.1875rem;
+}
+
+.order-list-title span {
+  font-weight: 500;
+}
+
+.order {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  align-items: center;
+  padding: 20px;
+}
+
+.order-info {
+  flex: 999 1 300px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.order-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.order-name {
+  font-size: 1.1875rem;
+}
+
+.order-delete {
+  flex: 1 1 200px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.order-delete > .btn {
+  align-self: flex-start;
+}
+
+@media (min-width: 721px) {
+  .order {
+    padding: 22px 24px;
+  }
+}

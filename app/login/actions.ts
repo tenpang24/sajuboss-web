@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { safeNext } from "@/lib/auth";
 import { brand } from "@/lib/brand";
+import { hasRequiredConsents, readSignupConsents, recordSignupConsents } from "@/lib/consents";
 import { kakaoLoginEnabled } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -11,7 +12,6 @@ export type AuthFormState = { error?: string; message?: string };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
-const REQUIRED_CONSENTS = ["agreeAge", "agreeTerms", "agreePrivacy"];
 
 // 영문·숫자 포함 8자 이상
 function passwordError(password: string) {
@@ -64,9 +64,9 @@ export async function signUp(_prev: AuthFormState, formData: FormData): Promise<
     return { error: "비밀번호 확인이 일치하지 않습니다." };
   }
 
-  // 필수 동의 3개를 서버에서도 확인합니다. 선택 동의(agreeMarketing)와 동의 시각은
-  // 아직 저장하지 않습니다(4단계에서 주문 동의와 함께 설계).
-  if (!REQUIRED_CONSENTS.every((name) => formData.get(name) === "on")) {
+  // 필수 동의 3개(만 14세 이상, 이용약관, 개인정보)를 서버에서 확인합니다. 하나라도 빠지면 가입할 수 없습니다.
+  const consents = readSignupConsents(formData);
+  if (!hasRequiredConsents(consents)) {
     return { error: "필수 약관에 모두 동의해 주세요." };
   }
 
@@ -85,6 +85,15 @@ export async function signUp(_prev: AuthFormState, formData: FormData): Promise<
       return { error: "더 안전한 비밀번호를 입력해 주세요." };
     }
     return { error: "가입을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요." };
+  }
+
+  // 가입 직후 동의 시각을 기록합니다(service_role, terms_agreed_at is null인 경우에만).
+  // 이미 가입된 이메일이면 Supabase가 identities가 빈 가짜 사용자를 돌려주므로 기록하지 않습니다.
+  // 기록에 실패해도 계정은 만들어진 상태입니다. 그 경우 신청 단계에서 막히고,
+  // 내 신청 화면에서 다시 동의할 수 있습니다.
+  const isNewAccount = Boolean(data.user && (data.user.identities?.length ?? 0) > 0);
+  if (isNewAccount && data.user) {
+    await recordSignupConsents(data.user.id, consents);
   }
 
   if (data.session) {

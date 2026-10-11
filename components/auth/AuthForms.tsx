@@ -91,7 +91,7 @@ const optionalConsent = { name: "agreeMarketing", label: "오픈·할인 소식 
 const consentNames = [...requiredConsents.map((item) => item.name), optionalConsent.name];
 
 // 약관 동의: 전체, 필수 3개, 선택 1개. 동의 시각 저장은 4단계에서 주문 동의와 함께 설계합니다.
-function ConsentBox() {
+export function ConsentBox() {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const all = consentNames.every((name) => checked[name]);
 
