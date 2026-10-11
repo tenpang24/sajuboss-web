@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>사장님 운세 메인</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0B7A5A}a:hover{color:#08604A}
+</style>
+</helmet>
+<div style="font-family:'Noto Sans KR',sans-serif;color:#13302A;background:#F6FBF8;line-height:1.6;font-size:16px">
+
+<header style="background:#FFFFFF;border-bottom:1px solid #D5E8DF">
+<div style="max-width:1200px;margin:0 auto;padding:12px 24px;min-height:48px;display:flex;flex-wrap:wrap;align-items:center;gap:12px 32px">
+<a href="Main.dc.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:#13302A">
+<svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#0B7A5A"/><circle cx="16" cy="16" r="7" fill="none" stroke="#FFD84D" stroke-width="2"/><circle cx="16" cy="16" r="2" fill="#FFD84D"/></svg>
+<span style="font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:20px">사장님 운세</span>
+<span style="font-size:12px;color:#53675F;border:1px solid #BBD6CA;border-radius:4px;padding:0 6px">가칭</span>
+</a>
+<nav aria-label="주요 메뉴" style="display:flex;flex-wrap:wrap;gap:4px 24px;flex:1 1 360px;font-size:15px">
+<a href="#today" style="color:#13302A;text-decoration:none;font-weight:500">오늘의 운세</a>
+<a href="Detail.dc.html" style="color:#13302A;text-decoration:none;font-weight:500">신년 사업운</a>
+<a href="#products" style="color:#13302A;text-decoration:none;font-weight:500">택일·작명</a>
+<a href="#products" style="color:#13302A;text-decoration:none;font-weight:500">전문가 상담</a>
+</nav>
+<div style="display:flex;align-items:center;gap:16px">
+<a href="#member" style="display:inline-flex;align-items:center;min-height:44px;padding:0 20px;background:#0B7A5A;border-radius:8px;color:#FFFFFF;text-decoration:none;font-weight:700">로그인</a>
+</div>
+</div>
+</header>
+
+<section style="background:linear-gradient(135deg,#CFF0DF 0%,#EAF8F0 55%,#F6FBF8 100%)">
+<div style="max-width:1200px;margin:0 auto;padding:72px 24px;display:flex;flex-wrap:wrap;align-items:center;gap:48px">
+<div style="flex:1 1 480px;min-width:0">
+<div style="display:inline-block;font-size:14px;font-weight:700;color:#0B6B4F;background:#FFFFFF;border:1px solid #BBD6CA;border-radius:999px;padding:2px 14px">2027 정미년 신년 시즌</div>
+<h1 style="font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:46px;line-height:1.3;color:#13302A;margin:12px 0 20px">올해 우리 가게,<br><span style="color:#0B7A5A">언제 움직이고 언제 쉴까요</span></h1>
+<p style="margin:0 0 32px;font-size:18px;color:#2F4740;max-width:520px">생년월일시로 풀어보는 사장님 전용 사업운입니다. 매일의 사업운은 무료이고, 신년 월별 리포트는 12월에 열립니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<a href="#today" style="display:inline-flex;align-items:center;min-height:48px;padding:0 24px;background:#0B7A5A;color:#FFFFFF;border-radius:999px;font-weight:700;text-decoration:none">무료로 오늘의 사업운 보기</a>
+<a href="Detail.dc.html" style="display:inline-flex;align-items:center;min-height:48px;padding:0 24px;border:1.5px solid #0B7A5A;color:#0B7A5A;border-radius:999px;font-weight:700;text-decoration:none">신년 사업운 사전신청</a>
+</div>
+<p style="margin:24px 0 0;font-size:14px;color:#53675F">참고용 풀이 · 결제 전 미리보기 · 사주 정보 삭제 가능</p>
+</div>
+<div style="flex:1 1 380px;min-width:0;max-width:480px">
+<div style="background:#FFFFFF;border:6px solid #13302A;border-radius:32px;padding:24px;display:flex;flex-direction:column;gap:20px;box-shadow:0 16px 40px rgba(11,122,90,0.18)">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+<strong style="font-size:18px">오늘의 사업운</strong>
+<span style="font-size:12px;color:#53675F;background:#E6F4EC;border-radius:999px;padding:2px 10px">예시 화면</span>
+</div>
+<div style="display:flex;gap:16px;align-items:center">
+<div style="width:96px;height:150px;flex:none;border-radius:10px;background:#0B7A5A;border:2px solid #FFD84D;display:flex;align-items:center;justify-content:center">
+<svg width="48" height="48" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 4 L28.5 18.5 L44 19 L31.5 28 L36 43 L24 34 L12 43 L16.5 28 L4 19 L19.5 18.5 Z" fill="none" stroke="#FFD84D" stroke-width="2" stroke-linejoin="round"/></svg>
+</div>
+<div style="min-width:0">
+<div style="font-size:13px;color:#53675F">오늘의 카드</div>
+<div style="font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:22px">별</div>
+<p style="margin:6px 0 0;font-size:15px;color:#2F4740">새 계획을 꺼내 보기 좋은 날입니다. 큰 지출은 하루 미루세요.</p>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;gap:12px"><span style="width:56px;font-size:14px;font-weight:500">매출운</span><div style="display:flex;gap:4px" aria-hidden="true"><div style="width:28px;height:8px;border-radius:4px;background:#0B7A5A"></div><div style="width:28px;height:8px;border-radius:4px;background:#0B7A5A"></div><div style="width:28px;height:8px;border-radius:4px;background:#0B7A5A"></div><div style="width:28px;height:8px;border-radius:4px;background:#0B7A5A"></div><div style="width:28px;height:8px;border-radius:4px;background:#D5E8DF"></div></div><span style="font-size:14px;color:#53675F">4/5</span></div>
+<div style="display:flex;align-items:center;gap:12px"><span style="width:56px;font-size:14px;font-weight:500">계약운</span><div style="display:flex;gap:4px" aria-hidden="true"><div style="width:28px;height:8px;border-radius:4px;background:#0B7A5A"></div><div style="width:28px;height:8px;border-radius:4px;background:#0B7A5A"></div><div style="width:28px;height:8px;border-radius:4px;background:#0B7A5A"></div><div style="width:28px;height:8px;border-radius:4px;background:#D5E8DF"></div><div style="width:28px;height:8px;border-radius:4px;background:#D5E8DF"></div></div><span style="font-size:14px;color:#53675F">3/5</span></div>
+<div style="display:flex;align-items:center;gap:12px"><span style="width:56px;font-size:14px;font-weight:500">관계운</span><div style="display:flex;gap:4px" aria-hidden="true"><div style="width:28px;height:8px;border-radius:4px;background:#0B7A5A"></div><div style="width:28px;height:8px;border-radius:4px;background:#0B7A5A"></div><div style="width:28px;height:8px;border-radius:4px;background:#0B7A5A"></div><div style="width:28px;height:8px;border-radius:4px;background:#0B7A5A"></div><div style="width:28px;height:8px;border-radius:4px;background:#0B7A5A"></div></div><span style="font-size:14px;color:#53675F">5/5</span></div>
+</div>
+<a href="#today" style="font-weight:700;text-decoration:none;color:#0B7A5A">내 사주로 보기 →</a>
+</div>
+</div>
+</div>
+</section>
+
+<section id="today" style="max-width:1200px;margin:0 auto;padding:64px 24px 24px">
+<div style="background:#F0FAF5;border:1px solid #D5E8DF;border-radius:20px;padding:32px">
+<h2 style="font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:28px;line-height:1.35;margin:0 0 8px">내 사주로 오늘의 사업운 확인</h2>
+<p style="margin:0 0 24px;color:#53675F">생년월일과 태어난 시각을 입력하면 절기 기준으로 사주를 세워 풀이합니다.</p>
+<form style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end">
+<div style="flex:1 1 200px">
+<label for="birth" style="display:block;font-size:14px;font-weight:500;margin-bottom:6px">생년월일</label>
+<input id="birth" type="text" placeholder="YYYY-MM-DD" style="width:100%;box-sizing:border-box;min-height:48px;border:1px solid #6F8D81;border-radius:8px;padding:0 14px;font:inherit;background:#FFFFFF;color:#13302A">
+</div>
+<div style="flex:0 1 140px">
+<label for="cal" style="display:block;font-size:14px;font-weight:500;margin-bottom:6px">달력</label>
+<select id="cal" style="width:100%;box-sizing:border-box;min-height:48px;border:1px solid #6F8D81;border-radius:8px;padding:0 10px;font:inherit;background:#FFFFFF;color:#13302A"><option>양력</option><option>음력</option></select>
+</div>
+<div style="flex:1 1 160px">
+<label for="time" style="display:block;font-size:14px;font-weight:500;margin-bottom:6px">태어난 시각</label>
+<input id="time" type="text" placeholder="HH:MM" style="width:100%;box-sizing:border-box;min-height:48px;border:1px solid #6F8D81;border-radius:8px;padding:0 14px;font:inherit;background:#FFFFFF;color:#13302A">
+</div>
+<div style="flex:0 1 140px">
+<label for="sex" style="display:block;font-size:14px;font-weight:500;margin-bottom:6px">성별</label>
+<select id="sex" style="width:100%;box-sizing:border-box;min-height:48px;border:1px solid #6F8D81;border-radius:8px;padding:0 10px;font:inherit;background:#FFFFFF;color:#13302A"><option>여성</option><option>남성</option></select>
+</div>
+<button type="button" style="min-height:48px;padding:0 28px;border:0;border-radius:999px;background:#0B7A5A;color:#FFFFFF;font:inherit;font-weight:700;cursor:pointer">오늘의 사업운 보기</button>
+</form>
+<div style="margin-top:14px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 24px;font-size:14px;color:#53675F">
+<label style="display:inline-flex;align-items:center;gap:8px"><input type="checkbox" style="width:18px;height:18px"> 태어난 시각을 몰라요</label>
+<span>입력한 정보는 풀이에만 사용하며 마이페이지에서 삭제할 수 있습니다.</span>
+</div>
+</div>
+</section>
+
+<section id="products" style="max-width:1200px;margin:0 auto;padding:64px 24px">
+<h2 style="font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:30px;line-height:1.35;margin:0 0 8px">지금 준비된 풀이</h2>
+<p style="margin:0 0 32px;color:#53675F">신년 시즌에 맞춰 순서대로 엽니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:24px">
+<div style="flex:1 1 320px;min-width:0;background:#EAF7F0;border:1px solid #CDEBDD;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:12px">
+<span style="align-self:flex-start;font-size:13px;font-weight:500;color:#0B6B4F;background:#E0F4EA;border-radius:999px;padding:2px 12px">12월 1일 오픈 예정</span>
+<h3 style="font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:22px;line-height:1.4;margin:0">신년 사업운 월별 리포트</h3>
+<p style="margin:0;color:#53675F;flex:1">12개월 흐름과 조심할 달, 확장하기 좋은 달, 개운 행동 세 가지를 한 번에 봅니다.</p>
+<div style="display:flex;align-items:baseline;gap:8px"><strong style="font-size:24px">3,900원</strong><span style="font-size:14px;color:#53675F">건당결제</span></div>
+<a href="Detail.dc.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;border-radius:999px;background:#0B7A5A;color:#FFFFFF;font-weight:700;text-decoration:none">자세히 보기</a>
+</div>
+<div style="flex:1 1 320px;min-width:0;background:#E8F2FD;border:1px solid #CFE3F7;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:12px">
+<span style="align-self:flex-start;font-size:13px;font-weight:500;color:#1F5FA8;background:#DCEBFB;border-radius:999px;padding:2px 12px">1월 초 오픈 예정</span>
+<h3 style="font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:22px;line-height:1.4;margin:0">개업택일</h3>
+<p style="margin:0;color:#53675F;flex:1">내 사주와 부딪히지 않는 후보 날짜 세 개를 선정 이유와 함께 받아봅니다.</p>
+<div style="display:flex;align-items:baseline;gap:8px"><strong style="font-size:24px">9,900원~</strong><span style="font-size:14px;color:#53675F">신청형</span></div>
+<a href="#" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;border-radius:999px;border:1.5px solid #1F5FA8;color:#1F5FA8;font-weight:700;text-decoration:none">오픈 알림 받기</a>
+</div>
+<div style="flex:1 1 320px;min-width:0;background:#F1EAFB;border:1px solid #E0D3F4;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:12px">
+<span style="align-self:flex-start;font-size:13px;font-weight:500;color:#6B3FA0;background:#E8DDF8;border-radius:999px;padding:2px 12px">사전접수 중</span>
+<h3 style="font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:22px;line-height:1.4;margin:0">상호·브랜드 작명</h3>
+<p style="margin:0;color:#53675F;flex:1">후보 다섯 개를 오행·소리·뜻으로 평가하고, 추천 한두 개를 역술가 검수와 함께 전해 드립니다.</p>
+<div style="display:flex;align-items:baseline;gap:8px"><strong style="font-size:24px">29,000원~</strong><span style="font-size:14px;color:#53675F">신청형</span></div>
+<a href="#" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;border-radius:999px;border:1.5px solid #6B3FA0;color:#6B3FA0;font-weight:700;text-decoration:none">작명 사전접수</a>
+</div>
+</div>
+</section>
+
+<section style="background:#FFFFFF;border-top:1px solid #D5E8DF;border-bottom:1px solid #D5E8DF">
+<div style="max-width:1200px;margin:0 auto;padding:64px 24px">
+<h2 style="font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:30px;line-height:1.35;margin:0 0 8px">풀이는 이렇게 만들어집니다</h2>
+<p style="margin:0 0 32px;color:#53675F">입력부터 결과까지 세 단계입니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:32px">
+<div style="flex:1 1 280px;min-width:0;display:flex;gap:16px">
+<div style="flex:none;width:40px;height:40px;border-radius:50%;background:#0B7A5A;color:#FFD84D;display:flex;align-items:center;justify-content:center;font-weight:700">1</div>
+<div><h3 style="margin:0 0 4px;font-size:18px">생년월일시 입력</h3><p style="margin:0;color:#53675F">양력·음력과 태어난 시각을 넣습니다.</p></div>
+</div>
+<div style="flex:1 1 280px;min-width:0;display:flex;gap:16px">
+<div style="flex:none;width:40px;height:40px;border-radius:50%;background:#0B7A5A;color:#FFD84D;display:flex;align-items:center;justify-content:center;font-weight:700">2</div>
+<div><h3 style="margin:0 0 4px;font-size:18px">절기 기준 사주 계산</h3><p style="margin:0;color:#53675F">입춘 같은 절기를 기준으로 사주를 세우고 일간과 오행을 읽습니다.</p></div>
+</div>
+<div style="flex:1 1 280px;min-width:0;display:flex;gap:16px">
+<div style="flex:none;width:40px;height:40px;border-radius:50%;background:#0B7A5A;color:#FFD84D;display:flex;align-items:center;justify-content:center;font-weight:700">3</div>
+<div><h3 style="margin:0 0 4px;font-size:18px">사업 상황에 맞춘 풀이</h3><p style="margin:0;color:#53675F">매출·계약·관계 항목별 문구를 조합해 월별 흐름으로 보여줍니다.</p></div>
+</div>
+</div>
+<p style="margin:32px 0 0;padding:16px 20px;background:#F6FBF8;border:1px solid #D5E8DF;border-radius:12px;font-size:15px;color:#2F4740">풀이는 규칙에 따라 자동 생성되는 참고용 자료입니다. 투자·법률·의료 판단을 대신하지 않습니다.</p>
+</div>
+</section>
+
+<section style="max-width:1200px;margin:0 auto;padding:64px 24px">
+<h2 style="font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:30px;line-height:1.35;margin:0 0 8px">사장님이 많이 묻는 고민</h2>
+<p style="margin:0 0 32px;color:#53675F">상황에 맞는 풀이로 바로 이어집니다.</p>
+<div style="display:flex;flex-wrap:wrap;gap:16px">
+<a href="#" style="flex:1 1 210px;min-width:0;background:#FFFFFF;border:1px solid #D5E8DF;border-radius:12px;padding:20px;text-decoration:none;color:#13302A;display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;color:#0B6B4F;font-weight:700">개업택일</span><strong style="font-size:17px;line-height:1.45">개업 날짜를 정하고 싶어요</strong></a>
+<a href="Detail.dc.html" style="flex:1 1 210px;min-width:0;background:#FFFFFF;border:1px solid #D5E8DF;border-radius:12px;padding:20px;text-decoration:none;color:#13302A;display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;color:#0B6B4F;font-weight:700">신년 사업운</span><strong style="font-size:17px;line-height:1.45">가게를 넓히거나 옮겨도 될까요</strong></a>
+<a href="#" style="flex:1 1 210px;min-width:0;background:#FFFFFF;border:1px solid #D5E8DF;border-radius:12px;padding:20px;text-decoration:none;color:#13302A;display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;color:#0B6B4F;font-weight:700">관계 리포트</span><strong style="font-size:17px;line-height:1.45">동업자·직원과 잘 맞을까요</strong></a>
+<a href="Detail.dc.html" style="flex:1 1 210px;min-width:0;background:#FFFFFF;border:1px solid #D5E8DF;border-radius:12px;padding:20px;text-decoration:none;color:#13302A;display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;color:#0B6B4F;font-weight:700">신년 사업운</span><strong style="font-size:17px;line-height:1.45">큰 계약을 앞두고 있어요</strong></a>
+<a href="#" style="flex:1 1 210px;min-width:0;background:#FFFFFF;border:1px solid #D5E8DF;border-radius:12px;padding:20px;text-decoration:none;color:#13302A;display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;color:#0B6B4F;font-weight:700">상호 작명</span><strong style="font-size:17px;line-height:1.45">상호를 새로 지어야 해요</strong></a>
+</div>
+</section>
+
+<section id="member" style="max-width:1200px;margin:0 auto;padding:0 24px 64px">
+<div style="background:#0A6A4E;border-radius:20px;padding:40px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:24px">
+<div style="flex:1 1 360px;min-width:0">
+<h2 style="font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:26px;line-height:1.4;margin:0 0 8px;color:#FFFFFF">무료로 가입하고 내 사주를 저장하세요</h2>
+<p style="margin:0;color:#D8F3E6">한 번 입력한 생년월일시를 저장해 두면 매일의 사업운을 바로 볼 수 있습니다. 매일의 사업운은 계속 무료입니다.</p>
+</div>
+<a href="#" style="display:inline-flex;align-items:center;min-height:48px;padding:0 28px;background:#FFFFFF;color:#0A6A4E;border-radius:999px;font-weight:700;text-decoration:none">무료 회원가입</a>
+</div>
+</section>
+
+<section style="max-width:1200px;margin:0 auto;padding:0 24px 72px">
+<h2 style="font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:30px;line-height:1.35;margin:0 0 32px">자주 묻는 질문</h2>
+<div style="display:flex;flex-wrap:wrap;gap:16px">
+<div style="flex:1 1 440px;min-width:0;background:#FFFFFF;border:1px solid #D5E8DF;border-radius:12px;padding:24px"><h3 style="margin:0 0 8px;font-size:17px">풀이는 어떤 방식인가요?</h3><p style="margin:0;color:#53675F">생년월일시를 절기 기준 만세력으로 계산하고, 일간·오행에 맞춰 준비된 문구를 조합합니다. 참고용 자료입니다.</p></div>
+<div style="flex:1 1 440px;min-width:0;background:#FFFFFF;border:1px solid #D5E8DF;border-radius:12px;padding:24px"><h3 style="margin:0 0 8px;font-size:17px">태어난 시각을 모르면 어떻게 하나요?</h3><p style="margin:0;color:#53675F">[시각 미입력 시 제공 범위 확정 후 기재]</p></div>
+<div style="flex:1 1 440px;min-width:0;background:#FFFFFF;border:1px solid #D5E8DF;border-radius:12px;padding:24px"><h3 style="margin:0 0 8px;font-size:17px">입력한 정보는 어떻게 쓰이나요?</h3><p style="margin:0;color:#53675F">풀이에만 사용하며 마이페이지에서 삭제할 수 있습니다. [처리방침 확정 후 기재]</p></div>
+<div style="flex:1 1 440px;min-width:0;background:#FFFFFF;border:1px solid #D5E8DF;border-radius:12px;padding:24px"><h3 style="margin:0 0 8px;font-size:17px">결제 후 환불할 수 있나요?</h3><p style="margin:0;color:#53675F">결제 전에 미리보기를 확인할 수 있습니다. 환불 규정은 [확정 후 기재]</p></div>
+</div>
+</section>
+
+<footer style="background:#13302A;color:#CFE3DA">
+<div style="max-width:1200px;margin:0 auto;padding:40px 24px;display:flex;flex-direction:column;gap:12px;font-size:14px">
+<div style="display:flex;flex-wrap:wrap;gap:8px 24px;align-items:center"><strong style="font-family:'Noto Sans KR',sans-serif;font-size:18px;color:#FFFFFF">사장님 운세 (가칭)</strong><a href="#" style="color:#CFE3DA">이용약관</a><a href="#" style="color:#CFE3DA">개인정보처리방침</a></div>
+<div>[상호] · [대표자] · [사업자등록번호] · [통신판매업 신고번호] · [주소]</div>
+<div>본 서비스의 풀이는 참고용이며 투자·법률·의료 판단을 대신하지 않습니다.</div>
+</div>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":3300}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

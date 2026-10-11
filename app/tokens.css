@@ -1,0 +1,18 @@
+:root {
+  --color-primary: #0b7a5a;
+  --color-primary-hover: #08604a;
+  --color-ink: #13302a;
+  --color-sub: #53675f;
+  --color-line: #d5e8df;
+  --color-line-strong: #bbd6ca;
+  --color-bg: #f6fbf8;
+  --color-surface: #ffffff;
+  --color-accent: #ffd84d;
+  --color-footer-text: #cfe3da;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --content-max: 1200px;
+  --gutter: 24px;
+  --tap-min: 44px;
+}
