@@ -2,12 +2,12 @@
 
 다음 세션이 이 문서만 읽고 이어서 작업할 수 있게 유지합니다. 키와 비밀번호는 쓰지 않습니다.
 
-최종 갱신: 2026-10-11 (시안 v2 전환 + 3단계 v2 구현 직후)
+최종 갱신: 2026-10-11 (3단계 승인, 4단계 SQL 초안 작성 직후)
 
 ## 1. 현재 단계
 
-- **현재**: 시안 v2 기준으로 공통 스타일·헤더·푸터·`/login`·`/my`를 고치고 3단계(메인 `/`, 신년 리포트 `/report/2027`)를 다시 구현함. **사장님 승인 대기**.
-- **다음**: 4단계(사전신청·주문 저장). `orders` 마이그레이션 SQL을 먼저 보여주고 승인받은 뒤 진행. 회원가입 약관 동의 시각 저장도 4단계에서 함께 설계.
+- **현재**: 3단계 승인됨(시안과 다르게 처리한 5가지 포함). **4단계 준비 중**: 마이그레이션 SQL 2개를 작성해 전문을 보여줌. **실행 전, 사장님 승인 대기**.
+- **다음**: 승인 → 사장님이 SQL Editor에서 실행 → REST 검증 → 주문 저장·삭제 요청 서버 액션, 가입 동의 시각 기록 구현.
 - 작업 지시 원문: `지시문_sajuboss.md`(1~9단계). 디자인 기준: `design/v2/`(시안 v2). 반응형 기준: `docs/RESPONSIVE.md`.
 
 | 단계 | 내용 | 상태 | 커밋 |
@@ -16,8 +16,8 @@
 | - | 사업자 정보 기재 | push됨 | `3bd08b3` |
 | 2 | 이메일 인증, profiles, is_admin, 관리자 경로 차단 | 승인됨, **미push** | `85ac5f0` |
 | - | 반응형 공통 규칙 + 검증 스크립트 (+ `design/v2/` 파일 추가) | **미push** | `ae366af` |
-| 3 | 시안 v2 전환(공통 스타일, 헤더·푸터, 로그인, 내 신청) + 메인·리포트 상세 + 하단 고정 바 | 구현 완료, 승인 대기, **미push** | 이 문서가 들어간 커밋 |
-| 4 | 주문 저장(orders), 삭제 요청, 약관 동의 시각 | 시작 전 | |
+| 3 | 시안 v2 전환(공통 스타일, 헤더·푸터, 로그인, 내 신청) + 메인·리포트 상세 + 하단 고정 바 | 승인됨, **미push** | `579ecf4` |
+| 4 | 주문 저장(orders), 삭제 요청, 약관 동의 시각 | SQL 초안 작성(미실행), 승인 대기 | SQL 초안: 이 문서가 들어간 커밋 |
 | 5 | 신청 폼 3종 | 시작 전 | |
 | 6 | 결제·완료 화면(PG 연동 없음) | 시작 전 | |
 | 7 | 관리자 화면 | 시작 전 | |
@@ -63,6 +63,8 @@
 | 마이그레이션 파일 | 적용 여부 |
 |---|---|
 | `supabase/migrations/20261011120000_profiles.sql` | 적용됨(2026-10-11), REST 검증 30/30 통과 |
+| `supabase/migrations/20261011150000_profile_consents.sql` | **미적용**(초안, 승인 대기). profiles에 `terms_agreed_at`, `privacy_agreed_at`, `marketing_opt_in_at` 추가 |
+| `supabase/migrations/20261011150100_orders.sql` | **미적용**(초안, 승인 대기). `orders` 테이블 |
 
 **테이블 `public.profiles`**: `id`(auth.users FK, on delete cascade), `role`('user'|'admin', 기본 'user'), `created_at`.
 - RLS 켜짐. 정책: `profiles_select_own`, `profiles_update_own`(둘 다 본인 행, authenticated).
@@ -73,7 +75,13 @@
 - `public.handle_new_user()`: auth.users insert 트리거(`on_auth_user_created`). SECURITY DEFINER, `search_path=''`, role은 항상 'user', 메타데이터 미사용.
 - `public.is_admin()`: SECURITY DEFINER, `search_path=''`. execute는 authenticated만(PUBLIC·anon 회수).
 
-**아직 없는 것**: `orders` 테이블(4단계. DDL 초안은 `지시문_sajuboss.md` 4단계), 약관 동의 기록, 저장된 사주 정보.
+**아직 없는 것**: `orders` 테이블과 약관 동의 컬럼(위 초안 2개, 미적용), 저장된 사주 정보를 담을 곳(설계 없음, 아래 6번 참고).
+
+**4단계 초안에서 정한 것**(승인 전)
+- 상품은 4종: `report_2027`, `date`, `name_biz`, `name_person`. 지시문의 `name_rename`은 없앰. 개명은 `name_person`의 한 종류이고 `payload.kind`(baby/adult/rename)로 구분.
+- 패키지: `name_biz`, `name_person`은 필수(basic/detail), `report_2027`, `date`는 null.
+- 가입 동의 시각은 트리거가 아니라 **서버 액션이 service_role로 기록**하는 방식을 추천함. 사용자 update grant가 없어 직접 수정 불가.
+- 신청 동의 시각(`consent_privacy_at`, `consent_disclaimer_at`)은 서버가 두 체크박스를 확인한 뒤 기록.
 
 **참고**: SQL 실행 직후 REST가 테이블을 못 찾으면(`PGRST205`/`PGRST202`) SQL Editor에서 `notify pgrst, 'reload schema';` 실행.
 
@@ -98,14 +106,15 @@
 
 ## 6. 사장님 확인·결정 대기
 
-1. **3단계(v2) 승인**.
-2. **push 승인**. 그 전에 Supabase Authentication > URL Configuration 입력 필요(Site URL `https://sajuboss.com`, Redirect URL `…/auth/callback` — apex, www, `http://localhost:3000`).
+1. **4단계 SQL 2개 승인**(실행은 사장님이 SQL Editor에서, 파일 순서대로).
+2. **push**: 사장님이 Supabase URL Configuration과 비밀번호 정책을 설정한 뒤 **"push 진행"이라고 하면** push. push 후 Vercel 배포 상태와 `https://sajuboss.com`, `/report/2027`, `/login` 응답을 확인해 보고.
+2-1. **만 14세 이상 확인 시각**: 가입 화면의 필수 동의는 3개(만 14세, 이용약관, 개인정보)인데 요청받은 컬럼은 2개(이용약관, 개인정보)라 만 14세 확인은 기록되지 않음. `age_confirmed_at` 추가 여부 결정 필요.
+2-2. **신년 리포트 사전신청의 동의 체크박스**: `orders`는 동의 시각 2개가 필수인데, 시안 v2의 리포트 사전신청 카드에는 동의 체크박스가 없음(택일·작명 폼에는 있음). 카드에 2개를 추가할지 결정 필요.
+2-3. **저장된 내 사주**: 메인·로그인·리포트·택일 시안이 "내 사주 저장"을 전제로 하지만 지시문과 DDL에 저장할 테이블이 없음. 4단계에서 함께 만들지, 뒤로 미룰지 결정 필요.
+2-4. **삭제된 주문의 상태 제약(선택)**: `deleted_at`이 있으면 `status = canceled`여야 한다는 check를 추가하면 결제 이후 주문이 실수로 비워지는 것을 DB에서 막을 수 있음. 다만 보존기간 후 파기 정책이 정해지면 다시 고쳐야 함. 초안에는 넣지 않음.
 3. **리디렉션 방향**: 대표 주소는 `https://sajuboss.com`으로 결정됨. 사장님이 Vercel에서 www→apex로 바꾸기로 했으나 마지막 확인(2026-10-11) 시 아직 apex→www(308). 바뀐 뒤 방향 확인 필요.
 4. **통신판매업 신고번호**: 확인 중. `lib/brand.ts`에 `[확인 후 기재]`.
-5. **약관 동의 시각 저장**: 4단계에서 주문 동의와 함께 설계. 지금은 서버에서 필수 3개 체크 여부만 확인하고 저장하지 않음.
 6. **이용약관·개인정보처리방침 문서**: 없음. 가입 화면의 "보기"와 푸터 링크가 `#`.
-7. **로그인 화면 기본 탭**: 시안은 회원가입이 먼저지만 `/login`은 로그인을 기본으로 함(회원가입은 `?mode=signup`). 이의 없으면 유지.
-8. **사전신청 버튼**: 시안은 로그인 화면으로 가는 링크지만, 지시대로 `onSubmit` 자리만 두고 "준비 중" 안내를 띄움. 4단계에서 연결.
 9. **검증 스크립트의 임시 계정**: `check:responsive`가 실행마다 운영 DB에 임시 관리자 계정을 만들고 지움. 원치 않으면 `--no-auth` 기본값으로 변경.
 10. **실제 메일 흐름**(가입 인증, 비밀번호 재설정): 사장님이 직접 확인하기로 함.
 11. **관리자 계정 지정**: 가입 후 SQL Editor에서 `update public.profiles set role = 'admin' where id = '<uid>';`.
@@ -142,8 +151,8 @@ npm run check:responsive           # 처음이면 먼저: npx playwright install
 ```
 
 1. 이 문서와 `docs/RESPONSIVE.md`를 읽고 현재 상태를 요약한다.
-2. 6번 목록에서 사장님 답이 온 항목을 처리한다(특히 3단계 승인, push 승인).
-3. 승인됐으면 4단계: `지시문_sajuboss.md` 4단계의 DDL을 다시 검토하고, 약관 동의 시각 저장 방안을 함께 설계해 `supabase/migrations/…_orders.sql`로 만든 뒤 **파일 전문을 보여주고 승인 대기**. 실행은 사장님이 SQL Editor에서.
+2. 6번 목록에서 사장님 답이 온 항목을 처리한다(특히 4단계 SQL 승인, "push 진행").
+3. SQL이 승인되고 사장님이 SQL Editor에서 실행했다고 하면(`…_profile_consents.sql` → `…_orders.sql` 순서) 아래 검증을 수행. 결정에 따라 SQL을 고쳤다면 고친 파일 전문을 다시 보여주고 승인받는다.
 4. 실행 확인 후 지시문 4단계의 검증 ①~⑩을 REST로 수행(임시 계정은 무작위 `@example.com`, `email_confirm: true`, 끝나면 삭제하고 잔여 행 확인. 거부는 기대 오류 코드로 판정, `PGRST205`/`PGRST202`는 실패. 사전 점검에서 이 코드가 나오면 멈추고 보고).
 5. 새 화면은 `design/v2/`의 해당 시안과 `app/site.css` 클래스를 쓰고, 금액 + 버튼이 있는 화면에는 `MobileBar`를 넣는다.
 6. 단계 보고 직전에 이 문서를 갱신해 같은 커밋에 넣고, 보고 끝에 "HANDOFF.md 갱신됨(변경 요약 3줄)"을 붙인다.
