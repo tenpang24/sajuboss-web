@@ -1,4 +1,5 @@
--- 4단계 (b): 사전신청·주문
+-- 4단계 (3/3): 사전신청·주문
+-- 실행 순서: 20261011150000_profile_consents.sql → 20261011150050_saju_profiles.sql → 이 파일
 -- 지시문 4단계의 검토 완료 DDL 기준. 달라진 곳은 "v2:" 주석으로 표시.
 
 create table public.orders (
@@ -10,8 +11,9 @@ create table public.orders (
     check (product in ('report_2027','date','name_biz','name_person')),
   package text
     check (package in ('basic','detail')),
+  -- v2: preorder = 신년 리포트 사전신청(결제 아님). 마이페이지에는 "사전신청 완료"로 표시
   status text not null default 'requested'
-    check (status in ('requested','paid','in_progress','delivered','canceled','refunded')),
+    check (status in ('preorder','requested','paid','in_progress','delivered','canceled','refunded')),
   amount_krw int not null check (amount_krw >= 0),   -- 신청 시점 금액 스냅샷(가정치). 서버가 lib/pricing.ts로 계산
   contact_email text,                                -- 삭제 요청 시 비우므로 nullable
   contact_phone text,
@@ -27,17 +29,27 @@ create table public.orders (
     (product in ('name_biz','name_person') and package is not null)
     or (product in ('report_2027','date') and package is null)
   ),
+  -- v2: 사전신청 상태는 신년 리포트에만 쓴다.
+  constraint orders_preorder_rule check (
+    status <> 'preorder' or product = 'report_2027'
+  ),
   -- 삭제 전에는 payload·이메일 필수, 삭제 후에는 payload·이메일·전화가 모두 비어 있어야 함(양방향 강제)
   constraint orders_live_fields check (
     (deleted_at is null and payload is not null and contact_email is not null)
     or (deleted_at is not null and payload is null
         and contact_email is null and contact_phone is null)
+  ),
+  -- v2: 삭제 표시는 취소된 주문에만 붙는다. 삭제 요청 서버 함수는 preorder·requested 주문만
+  -- canceled로 바꾸고 비운다. 결제 이후 상태(paid, in_progress, delivered, refunded)는 비울 수 없다.
+  constraint orders_deleted_status check (
+    deleted_at is null or status = 'canceled'
   )
 );
 
 create index orders_user_id_created_at_idx on public.orders (user_id, created_at desc);
 create index orders_status_created_at_idx on public.orders (status, created_at desc);
 
+-- saju_profiles 마이그레이션에서 이미 만든 함수와 같은 내용이다(이 파일만 따로 실행해도 되도록 다시 둔다).
 create or replace function public.set_updated_at()
 returns trigger language plpgsql set search_path = '' as $$
 begin
@@ -59,6 +71,7 @@ create policy orders_select_own on public.orders
 
 revoke all on public.orders from anon, authenticated;
 grant all on public.orders to service_role;   -- 프로젝트 설정에 따라 기본 권한이 안 붙을 수 있어 명시
+-- 컬럼 단위 grant라 select('*')는 42501이 난다. 앱 코드는 항상 컬럼을 명시해 조회한다(CLAUDE.md).
 grant select (id, user_id, product, package, status, amount_krw, contact_email,
               contact_phone, consent_privacy_at, consent_disclaimer_at, payload,
               created_at, updated_at)

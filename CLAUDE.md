@@ -10,6 +10,11 @@
 - 키와 비밀번호는 어떤 문서에도 쓰지 않는다.
 - 단계 보고서 끝에 "HANDOFF.md 갱신됨(변경 요약 3줄)"을 항상 붙인다.
 
+## 코드 규칙
+
+- `orders` 조회는 `select('*')`를 쓰지 않고 항상 컬럼을 명시한다. 사용자에게는 컬럼 단위 권한만 있어(`admin_note`, `deleted_at` 제외) `*` 조회는 42501로 실패한다. 관리자(service_role) 코드에서도 같은 규칙을 지켜 `admin_note`가 필요한 곳에서만 명시해 읽는다.
+- `orders`, `saju_profiles`, `profiles`의 쓰기는 서버 액션에서 service_role로만 한다. 사용자 세션 클라이언트로 insert/update/delete하지 않는다.
+
 ## 참고 문서
 
 - `지시문_sajuboss.md`: 단계별 구현 지시(1~9단계)와 공통 전제.
