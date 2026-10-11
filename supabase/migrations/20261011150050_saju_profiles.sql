@@ -19,14 +19,14 @@ create table public.saju_profiles (
   birth_date date not null,
   calendar text not null
     check (calendar in ('solar','lunar','lunar_leap')),  -- 양력 / 음력 / 음력(윤달)
-  birth_time time,                                   -- 태어난 시각. 모르거나 입력하지 않으면 null
-  time_unknown boolean not null default false,       -- "태어난 시각을 몰라요" 체크 여부
+  birth_time time,                                   -- 태어난 시각. 모르면 null
+  time_unknown boolean not null,                     -- 시각을 모르면 true. 폼에서 시각을 비워 두면 서버 액션이 true로 저장
   gender text not null
     check (gender in ('female','male')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  -- 시각을 모른다고 했으면 시각 값이 없어야 한다.
-  constraint saju_profiles_time_rule check (not time_unknown or birth_time is null)
+  -- 시각이 없으면 time_unknown = true, 시각이 있으면 time_unknown = false. 둘 다 비어 있는 상태는 없다.
+  constraint saju_profiles_time_rule check ((birth_time is null) = time_unknown)
 );
 
 -- 본인 사주는 사용자당 1개

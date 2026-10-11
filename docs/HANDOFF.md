@@ -2,7 +2,7 @@
 
 다음 세션이 이 문서만 읽고 이어서 작업할 수 있게 유지합니다. 키와 비밀번호는 쓰지 않습니다.
 
-최종 갱신: 2026-10-11 (4단계 SQL 2차안 작성 직후)
+최종 갱신: 2026-10-11 (4단계 SQL 3차안 작성 직후)
 
 ## 1. 현재 단계
 
@@ -63,9 +63,9 @@
 | 마이그레이션 파일 | 적용 여부 |
 |---|---|
 | `supabase/migrations/20261011120000_profiles.sql` | 적용됨(2026-10-11), REST 검증 30/30 통과 |
-| `supabase/migrations/20261011150000_profile_consents.sql` | **미적용**(2차안, 승인 대기). 실행 순서 1. profiles에 `age_confirmed_at`, `terms_agreed_at`, `privacy_agreed_at`, `marketing_opt_in_at` 추가 |
-| `supabase/migrations/20261011150050_saju_profiles.sql` | **미적용**(2차안, 승인 대기). 실행 순서 2. `saju_profiles` 테이블, `set_updated_at()` |
-| `supabase/migrations/20261011150100_orders.sql` | **미적용**(2차안, 승인 대기). 실행 순서 3. `orders` 테이블 |
+| `supabase/migrations/20261011150000_profile_consents.sql` | **미적용**(3차안, 승인 대기). 실행 순서 1. profiles에 `age_confirmed_at`, `terms_agreed_at`, `privacy_agreed_at`, `marketing_opt_in_at` 추가 |
+| `supabase/migrations/20261011150050_saju_profiles.sql` | **미적용**(3차안, 승인 대기). 실행 순서 2. `saju_profiles` 테이블, `set_updated_at()` |
+| `supabase/migrations/20261011150100_orders.sql` | **미적용**(3차안, 승인 대기). 실행 순서 3. `orders` 테이블 |
 
 **테이블 `public.profiles`**: `id`(auth.users FK, on delete cascade), `role`('user'|'admin', 기본 'user'), `created_at`.
 - RLS 켜짐. 정책: `profiles_select_own`, `profiles_update_own`(둘 다 본인 행, authenticated).
@@ -85,6 +85,7 @@
 - `deleted_at`이 있으면 `status = canceled`(check). 삭제 요청 서버 함수는 `preorder`·`requested`만 canceled로 바꾸고 비움. 결제 이후 상태는 비우지 않음.
 - 가입 동의 4개 컬럼은 **가입 서버 액션이 service_role로 기록**(`terms_agreed_at is null`일 때만). 신청 서버 액션은 필수 동의가 비어 있는 계정의 신청을 막음.
 - 신청 동의(`consent_privacy_at`, `consent_disclaimer_at`)는 서버가 체크박스 2개를 확인한 뒤 서버 시각으로 기록. 신년 리포트 사전신청 카드에도 체크박스 2개를 추가.
+- `saju_profiles`의 시각 규칙은 하나: `(birth_time is null) = time_unknown`. 폼에서 시각을 비워 두면 서버 액션이 `time_unknown = true`로 저장(기본값 없음, 서버가 항상 명시).
 - `saju_profiles`: 본인 사주는 사용자당 1개(부분 unique index). 쓰기는 service_role만, 사용자는 본인 행 조회만, 삭제는 실제 삭제. 계정 삭제 시 함께 삭제(cascade).
 - 소상공닷컴 `saju_profiles` 스키마는 받지 못함(`_import/sosangkong` 없음). 컬럼은 사장님이 정한 최소 컬럼 기준. 8단계에서 계산 엔진 파일을 받으면 이름·형식 차이를 확인.
 - `calendar` 값은 `solar`/`lunar`/`lunar_leap`. 메인 입력 폼의 `lunar-leap`은 4단계 구현 때 `lunar_leap`으로 맞춤.
@@ -156,7 +157,7 @@ npm run check:responsive           # 처음이면 먼저: npx playwright install
 1. 이 문서와 `docs/RESPONSIVE.md`를 읽고 현재 상태를 요약한다.
 2. 6번 목록에서 사장님 답이 온 항목을 처리한다(특히 4단계 SQL 승인, "push 진행").
 3. SQL이 승인되고 사장님이 SQL Editor에서 실행했다고 하면(`…_profile_consents.sql` → `…_saju_profiles.sql` → `…_orders.sql` 순서) 아래 검증을 수행. 결정에 따라 SQL을 고쳤다면 고친 파일 전문을 다시 보여주고 승인받는다.
-4. 실행 확인 후 검증 ①~⑳을 REST로 수행(목록은 4단계 보고에 있음: 지시문 ①~⑩ + ⑪ 음수 금액 23514, ⑫ 주문 있는 계정 삭제 23503, ⑬~⑯ 가입 동의 컬럼, ⑰ preorder를 report_2027 외에 쓰면 23514, ⑱ deleted_at만 있고 canceled가 아니면 23514, ⑲ saju_profiles 권한과 본인 사주 2개째 23505, ⑳ 계정 삭제 시 saju_profiles 함께 삭제)(임시 계정은 무작위 `@example.com`, `email_confirm: true`, 끝나면 삭제하고 잔여 행 확인. 거부는 기대 오류 코드로 판정, `PGRST205`/`PGRST202`는 실패. 사전 점검에서 이 코드가 나오면 멈추고 보고).
+4. 실행 확인 후 검증 ①~㉒을 REST로 수행(목록은 4단계 보고에 있음: 지시문 ①~⑩ + ⑪ 음수 금액 23514, ⑫ 주문 있는 계정 삭제 23503, ⑬~⑯ 가입 동의 컬럼, ⑰ preorder를 report_2027 외에 쓰면 23514, ⑱ deleted_at만 있고 canceled가 아니면 23514, ⑲ saju_profiles 권한과 본인 사주 2개째 23505, ⑳ 계정 삭제 시 saju_profiles 함께 삭제, ㉑ birth_time null + time_unknown false 23514, ㉒ birth_time 있음 + time_unknown true 23514)(임시 계정은 무작위 `@example.com`, `email_confirm: true`, 끝나면 삭제하고 잔여 행 확인. 거부는 기대 오류 코드로 판정, `PGRST205`/`PGRST202`는 실패. 사전 점검에서 이 코드가 나오면 멈추고 보고).
 5. 새 화면은 `design/v2/`의 해당 시안과 `app/site.css` 클래스를 쓰고, 금액 + 버튼이 있는 화면에는 `MobileBar`를 넣는다.
 6. 단계 보고 직전에 이 문서를 갱신해 같은 커밋에 넣고, 보고 끝에 "HANDOFF.md 갱신됨(변경 요약 3줄)"을 붙인다.
 
