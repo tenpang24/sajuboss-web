@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check:responsive": "node scripts/check-responsive.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -22,6 +23,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
+    "playwright": "^1.64.0",
     "typescript": "^5"
   }
 }

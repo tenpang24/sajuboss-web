@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>개업택일 신청</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="site" style="font-family:'Noto Sans KR',sans-serif;color:#13302A;background:#F6FBF8">
+
+<dc-import name="Header" active="date" logged-in="{{ yes }}" hint-size="100%,77px"></dc-import>
+
+<div class="wrap" style="padding-top:28px;display:flex;flex-direction:column;gap:20px">
+<nav class="tabs" aria-label="신청 종류">
+<a class="tab on" href="Date.dc.html" aria-current="page">개업택일</a>
+<a class="tab" href="Name.dc.html">상호·브랜드 작명</a>
+<a class="tab" href="Person.dc.html">개인·개명</a>
+</nav>
+<div>
+<h1 class="t1" style="font-size:clamp(28px,3.2vw,38px)">개업택일 신청</h1>
+<p class="lead" style="margin-top:8px">내 사주와 부딪히지 않는 개업 후보 날짜 3개를 선정 이유와 함께 받아봅니다.</p>
+</div>
+</div>
+
+<section class="wrap" style="padding-top:28px;padding-bottom:72px">
+<div class="split">
+<form class="split-main">
+
+<div class="step">
+<div class="step-h"><span class="num">1</span><div><h2 class="t3">어떤 개업인가요?</h2></div></div>
+<div class="field"><span class="lbl">개업 유형</span>
+<div class="chips" role="radiogroup" aria-label="개업 유형">
+<sc-for list="{{ types }}" as="t" hint-placeholder-count="3">
+<label class="{{ t.cls }}"><input type="radio" name="dtype" checked="{{ t.on }}" onChange="{{ t.pick }}">{{ t.label }}</label>
+</sc-for>
+</div></div>
+<div class="grid-form">
+<div class="field"><label for="d-biz">업종</label><input class="input" id="d-biz" type="text" placeholder="예: 한식 음식점, 미용실"></div>
+<div class="field"><label for="d-area">사업장 지역</label><input class="input" id="d-area" type="text" placeholder="예: 부산 해운대구"></div>
+</div>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">2</span><div><h2 class="t3">대표자 정보</h2><p class="help" style="margin-top:2px">절기 기준으로 사주를 세우는 데 씁니다.</p></div></div>
+<div class="grid-form">
+<div class="field"><label for="d-birth">생년월일</label><input class="input" id="d-birth" type="text" inputmode="numeric" placeholder="예: 1972-03-15"></div>
+<div class="field"><label for="d-cal">양력·음력</label><select class="input" id="d-cal"><option>양력</option><option>음력</option><option>음력(윤달)</option></select></div>
+<div class="field"><label for="d-time">태어난 시각 <span class="opt">(선택)</span></label><input class="input" id="d-time" type="text" inputmode="numeric" placeholder="예: 14:30"></div>
+<div class="field"><label for="d-sex">성별</label><select class="input" id="d-sex"><option>여성</option><option>남성</option></select></div>
+</div>
+<label class="check"><input type="checkbox">태어난 시각을 몰라요 <span class="muted small">(제공 범위 [확정 후 기재])</span></label>
+<p class="help">저장된 내 사주가 있으면 자동으로 채워집니다.</p>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">3</span><div><h2 class="t3">원하는 날짜 범위</h2><p class="help" style="margin-top:2px">후보 날짜 3개를 이 범위 안에서 고릅니다.</p></div></div>
+<div class="grid-form">
+<div class="field"><label for="d-from">가장 빠른 날짜</label><input class="input" id="d-from" type="date"></div>
+<div class="field"><label for="d-to">가장 늦은 날짜</label><input class="input" id="d-to" type="date"></div>
+</div>
+<div class="field"><label for="d-avoid">피해야 할 요일·날짜 <span class="opt">(선택)</span></label><input class="input" id="d-avoid" type="text" placeholder="예: 월요일 정기휴무, 3월 10일 가족 행사"></div>
+<div class="field"><span class="lbl">선호 요일 <span class="opt">(선택)</span></span>
+<div class="chips"><label class="chip"><input type="radio" name="dday">평일</label><label class="chip"><input type="radio" name="dday">주말</label><label class="chip on"><input type="radio" name="dday" checked>상관없음</label></div></div>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">4</span><div><h2 class="t3">함께 보고 싶은 사람</h2><p class="help" style="margin-top:2px">동업자나 공동대표가 있으면 두 분 모두와 부딪히지 않는 날을 찾습니다.</p></div></div>
+<label class="check" style="font-weight:700"><input type="checkbox" checked="{{ partner }}" onChange="{{ togglePartner }}">동업자·공동대표 정보 추가 <span style="color:#0B7A5A">+10,000원</span></label>
+<sc-if value="{{ partner }}" hint-placeholder-val="{{ false }}">
+<div class="grid-form" style="background:#F0F8F3;border-radius:12px;padding:18px">
+<div class="field"><label for="d-p-birth">동업자 생년월일</label><input class="input" id="d-p-birth" type="text" inputmode="numeric" placeholder="예: 1975-08-02"></div>
+<div class="field"><label for="d-p-cal">양력·음력</label><select class="input" id="d-p-cal"><option>양력</option><option>음력</option></select></div>
+<div class="field"><label for="d-p-time">태어난 시각 <span class="opt">(선택)</span></label><input class="input" id="d-p-time" type="text" inputmode="numeric" placeholder="예: 09:00"></div>
+</div>
+</sc-if>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">5</span><div><h2 class="t3">받는 방법과 요청사항</h2></div></div>
+<div class="grid-form">
+<div class="field"><label for="d-email">이메일</label><input class="input" id="d-email" type="email" inputmode="email" placeholder="example@email.com"></div>
+<div class="field"><label for="d-tel">휴대폰 번호 <span class="opt">(선택, 알림톡)</span></label><input class="input" id="d-tel" type="tel" inputmode="tel" placeholder="010-0000-0000"></div>
+</div>
+<div class="field"><label for="d-memo">추가 요청사항 <span class="opt">(선택)</span></label><textarea class="input" id="d-memo" placeholder="예: 오전 개업을 원합니다"></textarea></div>
+</div>
+
+<div class="step" style="gap:6px">
+<label class="check"><input type="checkbox"><span>[필수] 개인정보 수집·이용에 동의합니다. <a href="#">내용 보기</a> <span class="muted small">(항목·보관기간 [확정 후 기재])</span></span></label>
+<label class="check"><input type="checkbox"><span>[필수] 결과는 전통 명리 원리에 따른 참고용 자료이며, 사업 성과를 보장하지 않는다는 점을 확인했습니다.</span></label>
+</div>
+</form>
+
+<aside class="split-side" aria-label="신청 요약">
+<div class="sum">
+<strong style="font-size:19px">신청 요약</strong>
+<div class="sum-row"><span>상품</span><span>개업택일</span></div>
+<div class="sum-row"><span>받는 내용</span><span>후보 날짜 3개 + 선정 이유</span></div>
+<div class="sum-row"><span>기본 금액</span><span>9,900원</span></div>
+<sc-if value="{{ partner }}" hint-placeholder-val="{{ false }}"><div class="sum-row"><span>동업자 추가</span><span>+10,000원</span></div></sc-if>
+<div class="sum-row"><span>역술가 검수</span><span>[범위 확정 후 기재]</span></div>
+<div class="sum-row"><span>전달 시기</span><span>[확정 후 기재]</span></div>
+<div class="total"><span style="font-weight:700">결제 예정 금액</span><strong>{{ total }}</strong></div>
+<a class="btn btn-p btn-lg btn-block hide-m" href="Pay.dc.html">신청하고 결제로</a>
+<p class="help">결제수단과 환불 규정은 [확정 후 기재]</p>
+</div>
+</aside>
+</div>
+</section>
+
+<div class="mbar"><div><div class="muted" style="font-size:14px">결제 예정 금액</div><strong style="font-size:20px">{{ total }}</strong></div><a class="btn btn-p" href="Pay.dc.html">신청하고 결제로</a></div>
+
+<dc-import name="Footer" hint-size="100%,300px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":2900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state || {};
+    const partner = s.partner ?? false;
+    const type = s.type ?? 'new';
+    const list = [
+      { key: 'new', label: '신규 개업' },
+      { key: 'move', label: '이전·확장' },
+      { key: 'reopen', label: '재개업·2호점' }
+    ];
+    const total = 9900 + (partner ? 10000 : 0);
+    return {
+      yes: true,
+      partner: partner,
+      togglePartner: () => this.setState({ partner: !partner }),
+      types: list.map((t) => ({ ...t, on: t.key === type, cls: t.key === type ? 'chip on' : 'chip', pick: () => this.setState({ type: t.key }) })),
+      total: total.toLocaleString('ko-KR') + '원'
+    };
+  }
+}
+</script>
+</body>
+</html>

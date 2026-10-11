@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>상호·브랜드 작명 신청</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="site" style="font-family:'Noto Sans KR',sans-serif;color:#13302A;background:#F6FBF8">
+
+<dc-import name="Header" active="name" logged-in="{{ yes }}" hint-size="100%,77px"></dc-import>
+
+<div class="wrap" style="padding-top:28px;display:flex;flex-direction:column;gap:20px">
+<nav class="tabs" aria-label="신청 종류">
+<a class="tab" href="Date.dc.html">개업택일</a>
+<a class="tab on" href="Name.dc.html" aria-current="page">상호·브랜드 작명</a>
+<a class="tab" href="Person.dc.html">개인·개명</a>
+</nav>
+<div>
+<h1 class="t1" style="font-size:clamp(28px,3.2vw,38px)">상호·브랜드 작명 신청</h1>
+<p class="lead" style="margin-top:8px">가게 이름과 브랜드 이름 후보를 오행·소리·뜻으로 평가해 추천 이름을 골라 드립니다.</p>
+</div>
+</div>
+
+<section class="wrap" style="padding-top:28px;padding-bottom:72px">
+<div class="split">
+<form class="split-main">
+
+<div class="step">
+<div class="step-h"><span class="num">1</span><div><h2 class="t3">어떤 이름이 필요하신가요?</h2></div></div>
+<div class="chips"><label class="chip on"><input type="radio" name="ntype" checked>새 가게 이름</label><label class="chip"><input type="radio" name="ntype">브랜드·상품 이름</label><label class="chip"><input type="radio" name="ntype">가게 이름 바꾸기</label></div>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">2</span><div><h2 class="t3">사업 소개</h2><p class="help" style="margin-top:2px">이름의 방향을 잡는 데 가장 중요한 정보입니다.</p></div></div>
+<div class="grid-form">
+<div class="field"><label for="n-biz">업종</label><input class="input" id="n-biz" type="text" placeholder="예: 동네 빵집"></div>
+<div class="field"><label for="n-area">사업장 지역 <span class="opt">(선택)</span></label><input class="input" id="n-area" type="text" placeholder="예: 부산 해운대구"></div>
+</div>
+<div class="field"><label for="n-intro">한 줄 소개</label><input class="input" id="n-intro" type="text" placeholder="예: 아침마다 굽는 천연발효 식빵 가게"></div>
+<div class="field"><label for="n-cust">주 고객 <span class="opt">(선택)</span></label><input class="input" id="n-cust" type="text" placeholder="예: 동네 30~40대 주부, 출근길 직장인"></div>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">3</span><div><h2 class="t3">원하는 느낌</h2><p class="help" style="margin-top:2px">여러 개 고를 수 있습니다.</p></div></div>
+<div class="chips"><label class="chip on"><input type="checkbox" checked>친근한</label><label class="chip"><input type="checkbox">믿음직한</label><label class="chip"><input type="checkbox">세련된</label><label class="chip"><input type="checkbox">전통적인</label><label class="chip on"><input type="checkbox" checked>짧고 기억하기 쉬운</label><label class="chip"><input type="checkbox">한글 이름</label><label class="chip"><input type="checkbox">영문 병기</label></div>
+<div class="grid-form">
+<div class="field"><label for="n-in">넣고 싶은 글자 <span class="opt">(선택)</span></label><input class="input" id="n-in" type="text" placeholder="예: 해, 온"></div>
+<div class="field"><label for="n-out">피하고 싶은 글자 <span class="opt">(선택)</span></label><input class="input" id="n-out" type="text"></div>
+</div>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">4</span><div><h2 class="t3">대표자 정보</h2><p class="help" style="margin-top:2px">오행 보완과 글자 선택에 씁니다.</p></div></div>
+<div class="grid-form">
+<div class="field"><label for="n-birth">생년월일</label><input class="input" id="n-birth" type="text" inputmode="numeric" placeholder="예: 1972-03-15"></div>
+<div class="field"><label for="n-cal">양력·음력</label><select class="input" id="n-cal"><option>양력</option><option>음력</option><option>음력(윤달)</option></select></div>
+<div class="field"><label for="n-time">태어난 시각 <span class="opt">(선택)</span></label><input class="input" id="n-time" type="text" inputmode="numeric" placeholder="예: 14:30"></div>
+<div class="field"><label for="n-sex">성별</label><select class="input" id="n-sex"><option>여성</option><option>남성</option></select></div>
+</div>
+<label class="check"><input type="checkbox">태어난 시각을 몰라요</label>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">5</span><div><h2 class="t3">이미 생각해 둔 후보가 있나요?</h2><p class="help" style="margin-top:2px">있으면 같은 기준으로 함께 평가해 드립니다.</p></div></div>
+<div class="field"><label for="n-cand">후보 이름 <span class="opt">(선택, 줄바꿈으로 구분)</span></label><textarea class="input" id="n-cand" placeholder="예:&#10;해온베이커리&#10;아침빵집"></textarea></div>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">6</span><div><h2 class="t3">패키지 선택</h2></div></div>
+<div class="grid-form">
+<button type="button" class="{{ basicCls }}" aria-pressed="{{ isBasic }}" onClick="{{ pickBasic }}"><span style="font-weight:700;font-size:18px">기본 · 29,000원</span><span class="muted" style="font-size:16px">후보 5개를 오행·소리·뜻으로 평가하고 추천 1~2개를 제시합니다.</span></button>
+<button type="button" class="{{ detailCls }}" aria-pressed="{{ isDetail }}" onClick="{{ pickDetail }}"><span style="font-weight:700;font-size:18px">상세 · 99,000원</span><span class="muted" style="font-size:16px">후보 10개와 역술가 검수 의견, 수정 1회 [범위 확정 후 기재]</span></button>
+</div>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">7</span><div><h2 class="t3">받는 방법</h2></div></div>
+<div class="grid-form">
+<div class="field"><label for="n-email">이메일</label><input class="input" id="n-email" type="email" inputmode="email" placeholder="example@email.com"></div>
+<div class="field"><label for="n-tel">휴대폰 번호 <span class="opt">(선택, 알림톡)</span></label><input class="input" id="n-tel" type="tel" inputmode="tel" placeholder="010-0000-0000"></div>
+</div>
+</div>
+
+<div class="card-tint" style="padding:20px 22px;display:flex;gap:12px;align-items:flex-start">
+<svg style="flex:none;margin-top:3px" width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="none" stroke="#0B7A5A" stroke-width="1.8"/><path d="M11 6.5v6M11 15.5v.5" stroke="#0B7A5A" stroke-width="2" stroke-linecap="round"/></svg>
+<p style="margin:0;font-size:16px;color:#2F4740">작명은 상표 등록 가능 여부나 같은 상호가 있는지를 확인해 드리지 않습니다. 쓰시기 전에 특허정보검색서비스(KIPRIS)와 상호 검색을 직접 확인해 주세요.</p>
+</div>
+
+<div class="step" style="gap:6px">
+<label class="check"><input type="checkbox"><span>[필수] 개인정보 수집·이용에 동의합니다. <a href="#">내용 보기</a> <span class="muted small">(항목·보관기간 [확정 후 기재])</span></span></label>
+<label class="check"><input type="checkbox"><span>[필수] 결과는 전통 명리 원리에 따른 참고용 자료이며, 사업 성과나 상표 등록 가능 여부를 보장하지 않는다는 점을 확인했습니다.</span></label>
+</div>
+</form>
+
+<aside class="split-side" aria-label="신청 요약">
+<div class="sum">
+<strong style="font-size:19px">신청 요약</strong>
+<div class="sum-row"><span>상품</span><span>상호·브랜드 작명</span></div>
+<div class="sum-row"><span>패키지</span><span>{{ pkgName }}</span></div>
+<div class="sum-row"><span>받는 내용</span><span>{{ pkgDesc }}</span></div>
+<div class="sum-row"><span>역술가 검수</span><span>[범위 확정 후 기재]</span></div>
+<div class="sum-row"><span>전달 시기</span><span>[확정 후 기재]</span></div>
+<div class="total"><span style="font-weight:700">결제 예정 금액</span><strong>{{ total }}</strong></div>
+<a class="btn btn-p btn-lg btn-block hide-m" href="Pay.dc.html">신청하고 결제로</a>
+<p class="help">결제수단과 환불 규정은 [확정 후 기재]</p>
+</div>
+</aside>
+</div>
+</section>
+
+<div class="mbar"><div><div class="muted" style="font-size:14px">결제 예정 금액</div><strong style="font-size:20px">{{ total }}</strong></div><a class="btn btn-p" href="Pay.dc.html">신청하고 결제로</a></div>
+
+<dc-import name="Footer" hint-size="100%,300px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":3100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const pkg = (this.state && this.state.pkg) || 'basic';
+    const basic = pkg === 'basic';
+    return {
+      yes: true,
+      isBasic: basic,
+      isDetail: !basic,
+      basicCls: basic ? 'pkg on' : 'pkg',
+      detailCls: basic ? 'pkg' : 'pkg on',
+      pickBasic: () => this.setState({ pkg: 'basic' }),
+      pickDetail: () => this.setState({ pkg: 'detail' }),
+      pkgName: basic ? '기본' : '상세',
+      pkgDesc: basic ? '후보 5개 + 추천 1~2개' : '후보 10개 + 검수 의견',
+      total: basic ? '29,000원' : '99,000원'
+    };
+  }
+}
+</script>
+</body>
+</html>

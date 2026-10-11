@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>마이페이지 내 신청</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="site" style="font-family:'Noto Sans KR',sans-serif;color:#13302A;background:#F6FBF8">
+
+<dc-import name="Header" active="none" logged-in="{{ yes }}" hint-size="100%,77px"></dc-import>
+
+<div class="wrap" style="padding-top:36px">
+<h1 class="t1" style="font-size:clamp(28px,3.2vw,38px)">내 신청</h1>
+<p class="lead" style="margin-top:8px">신청한 풀이의 진행 상태와 결과를 확인합니다.</p>
+</div>
+
+<section class="wrap" style="padding-top:28px;padding-bottom:72px">
+<div class="split">
+<div class="split-main" style="gap:16px">
+
+<sc-if value="{{ hasOrders }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px"><strong style="font-size:19px">신청 목록 <span class="muted" style="font-weight:500">3건</span></strong><span class="badge">아래는 예시 데이터</span></div>
+<sc-for list="{{ orders }}" as="o" hint-placeholder-count="3">
+<div class="card" style="display:flex;flex-wrap:wrap;gap:16px 24px;align-items:center;padding:22px 24px">
+<div style="flex:999 1 300px;min-width:0;display:flex;flex-direction:column;gap:4px">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><span class="{{ o.badgeCls }}">{{ o.status }}</span><span class="muted small">신청 번호 {{ o.no }}</span></div>
+<strong style="font-size:19px">{{ o.product }}</strong>
+<span class="muted" style="font-size:16px">{{ o.date }} 신청 · {{ o.amount }}</span>
+</div>
+<a class="btn btn-o" style="flex:1 1 140px" href="Done.dc.html">{{ o.action }}</a>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}">
+<div class="card" style="text-align:center;padding:48px 24px;display:flex;flex-direction:column;align-items:center;gap:12px">
+<svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><rect x="10" y="8" width="36" height="42" rx="6" fill="none" stroke="#9FB7AD" stroke-width="2.5"/><path d="M18 20h20M18 29h20M18 38h12" stroke="#9FB7AD" stroke-width="2.5" stroke-linecap="round"/></svg>
+<strong style="font-size:20px">아직 신청한 풀이가 없습니다</strong>
+<p class="muted" style="margin:0">신년 사업운 리포트나 택일·작명을 신청하면 여기에서 진행 상태를 볼 수 있습니다.</p>
+<a class="btn btn-p" href="Main.dc.html#products">풀이 둘러보기</a>
+</div>
+</sc-if>
+
+<div class="card-tint" style="padding:18px 20px">
+<strong style="font-size:16px">진행 상태 안내</strong>
+<div style="display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:8px;font-size:15px;color:#2F4740">
+<span><span class="badge badge-y">결제 확인 대기</span> 신청 접수됨</span>
+<span><span class="badge">풀이 진행 중</span> 작성·검수 중</span>
+<span><span class="badge" style="background:#13302A;color:#FFFFFF">전달 완료</span> 결과 확인 가능</span>
+</div>
+</div>
+</div>
+
+<aside class="split-side" style="display:flex;flex-direction:column;gap:16px" aria-label="내 정보">
+<div class="card" style="display:flex;flex-direction:column;gap:12px;padding:24px">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><strong style="font-size:19px">내 사주 정보</strong><span class="badge">저장됨</span></div>
+<div class="sum-row"><span>생년월일</span><span>1972년 3월 15일 (양력)</span></div>
+<div class="sum-row"><span>태어난 시각</span><span>오후 2시 30분</span></div>
+<div class="sum-row"><span>성별</span><span>여성</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+<button type="button" class="btn btn-g" style="flex:1 1 120px;min-height:48px">수정</button>
+<button type="button" class="btn btn-g" style="flex:1 1 120px;min-height:48px;color:#A3341F;border-color:#D9A79C">삭제</button>
+</div>
+<p class="help">삭제하면 저장된 생년월일시와 진행 전 신청의 입력 정보가 지워집니다. 결제된 신청의 보관 기간은 [확정 후 기재]</p>
+</div>
+<div class="card" style="display:flex;flex-direction:column;gap:12px;padding:24px">
+<strong style="font-size:19px">계정</strong>
+<div class="sum-row"><span>이메일</span><span>example@email.com</span></div>
+<a class="btn btn-g btn-block" style="min-height:48px" href="Login.dc.html">비밀번호 변경</a>
+<button type="button" class="btn btn-g btn-block" style="min-height:48px">로그아웃</button>
+<a href="#" class="muted small" style="align-self:flex-start">회원 탈퇴 [절차 확정 후 기재]</a>
+</div>
+</aside>
+</div>
+</section>
+
+<dc-import name="Footer" hint-size="100%,300px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"empty":{"editor":"boolean","default":false},"$preview":{"width":1280,"height":1900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const empty = this.props.empty ?? false;
+    return {
+      yes: true,
+      empty: empty,
+      hasOrders: !empty,
+      orders: [
+        { no: '3F2A9C1E', product: '상호·브랜드 작명 (기본)', date: '2026.12.02', amount: '29,000원', status: '결제 확인 대기', badgeCls: 'badge badge-y', action: '신청 내용 보기' },
+        { no: '8B71D04A', product: '개업택일 (동업자 포함)', date: '2026.12.01', amount: '19,900원', status: '풀이 진행 중', badgeCls: 'badge', action: '진행 상황 보기' },
+        { no: 'C09E5B12', product: '2027 신년 사업운 월별 리포트', date: '2026.12.01', amount: '3,900원', status: '전달 완료', badgeCls: 'badge badge-done', action: '리포트 보기' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -3,8 +3,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: var(--tap-min);
-  padding: 0 20px;
+  min-height: var(--control-h);
+  padding: 4px 20px;
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   font: inherit;
@@ -52,7 +52,14 @@
   background: var(--color-surface);
   border: 1px solid var(--color-line);
   border-radius: 12px;
-  padding: 24px;
+  padding: 20px;
+  min-width: 0;
+}
+
+@media (min-width: 600px) {
+  .card {
+    padding: 24px;
+  }
 }
 
 .form {
@@ -68,12 +75,13 @@
 }
 
 .field__label {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
 }
 
 .field__input {
-  min-height: var(--tap-min);
+  width: 100%;
+  min-height: var(--control-h);
   padding: 0 12px;
   border: 1px solid var(--color-line-strong);
   border-radius: var(--radius-md);
@@ -89,7 +97,7 @@
 }
 
 .field__hint {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-sub);
 }
 
@@ -97,7 +105,7 @@
   margin: 0;
   padding: 10px 12px;
   border-radius: var(--radius-md);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .form-notice--error {
@@ -112,11 +120,19 @@
 
 /* 로그인·가입 */
 .auth-page {
-  padding-top: 56px;
-  padding-bottom: 72px;
+  padding-top: 32px;
+  padding-bottom: 48px;
+}
+
+@media (min-width: 600px) {
+  .auth-page {
+    padding-top: 56px;
+    padding-bottom: 72px;
+  }
 }
 
 .auth-card {
+  width: 100%;
   max-width: 440px;
   margin: 0 auto;
   display: flex;
@@ -131,7 +147,7 @@
 
 .auth-card__title {
   margin: 0;
-  font-size: 26px;
+  font-size: clamp(1.375rem, 1.1rem + 1.4vw, 1.625rem);
   line-height: 1.35;
 }
 
@@ -144,7 +160,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-sub);
 }
 
@@ -158,7 +174,7 @@
 
 .auth-card__hint {
   margin: -8px 0 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--color-sub);
   text-align: center;
 }
@@ -166,18 +182,24 @@
 .auth-card__links {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 14px;
+  font-size: 0.875rem;
   text-align: center;
+}
+
+.auth-card__links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
 }
 
 /* 내 신청 */
 .my-page {
-  padding-top: 48px;
-  padding-bottom: 72px;
+  padding-top: 32px;
+  padding-bottom: 48px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -186,7 +208,7 @@
 
 .my-page__title {
   margin: 0 0 8px;
-  font-size: 30px;
+  font-size: clamp(1.5rem, 1.2rem + 1.6vw, 1.875rem);
   line-height: 1.35;
 }
 
@@ -199,7 +221,7 @@
 
 .my-section__title {
   margin: 0;
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 
 .my-section__text,
@@ -211,11 +233,24 @@
 }
 
 .my-section__hint {
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .my-section__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.my-section a:not(.btn) {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+}
+
+@media (min-width: 600px) {
+  .my-page {
+    padding-top: 48px;
+    padding-bottom: 72px;
+  }
 }

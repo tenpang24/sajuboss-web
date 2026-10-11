@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>결제</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="site" style="font-family:'Noto Sans KR',sans-serif;color:#13302A;background:#F6FBF8">
+
+<dc-import name="Header" active="none" logged-in="{{ yes }}" hint-size="100%,77px"></dc-import>
+
+<div class="wrap" style="padding-top:28px;display:flex;flex-direction:column;gap:16px">
+<ol style="list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px 20px;font-size:16px;color:#53675F" aria-label="진행 단계">
+<li style="display:flex;align-items:center;gap:8px"><span class="num" style="width:28px;height:28px;font-size:14px;background:#9FB7AD">1</span>신청서 작성</li>
+<li style="display:flex;align-items:center;gap:8px;color:#13302A;font-weight:700" aria-current="step"><span class="num" style="width:28px;height:28px;font-size:14px">2</span>결제</li>
+<li style="display:flex;align-items:center;gap:8px"><span class="num" style="width:28px;height:28px;font-size:14px;background:#9FB7AD">3</span>접수 완료</li>
+</ol>
+<div>
+<h1 class="t1" style="font-size:clamp(28px,3.2vw,38px)">결제하기</h1>
+<p class="lead" style="margin-top:8px">주문 내용을 확인하고 결제 수단을 골라 주세요.</p>
+</div>
+</div>
+
+<section class="wrap" style="padding-top:28px;padding-bottom:72px">
+<div class="split">
+<div class="split-main">
+
+<div class="step">
+<div class="step-h"><span class="num">1</span><div><h2 class="t3">주문 상품</h2></div></div>
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-start;background:#F0F8F3;border-radius:12px;padding:18px 20px">
+<div style="min-width:0"><strong style="font-size:18px">상호·브랜드 작명 (기본)</strong><p class="muted" style="margin:4px 0 0;font-size:16px">후보 5개 평가 + 추천 1~2개 · 전달 시기 [확정 후 기재]</p></div>
+<strong style="font-size:20px;flex:none">29,000원</strong>
+</div>
+<a href="Name.dc.html" style="font-size:16px;font-weight:700;align-self:flex-start">신청 내용 수정하기</a>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">2</span><div><h2 class="t3">신청자 확인</h2></div></div>
+<div class="grid-form">
+<div class="field"><label for="pay-name">이름</label><input class="input" id="pay-name" type="text" autocomplete="name" placeholder="홍길동"></div>
+<div class="field"><label for="pay-email">이메일</label><input class="input" id="pay-email" type="email" inputmode="email" value="example@email.com"></div>
+<div class="field"><label for="pay-tel">휴대폰 번호 <span class="opt">(선택)</span></label><input class="input" id="pay-tel" type="tel" inputmode="tel" placeholder="010-0000-0000"></div>
+</div>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">3</span><div><h2 class="t3">결제 수단</h2><p class="help" style="margin-top:2px">결제 연동 후 확정합니다. 아래는 배치 예시입니다.</p></div></div>
+<div class="grid-form">
+<button type="button" class="pkg on" disabled><span style="font-weight:700">신용·체크카드</span><span class="muted small">[결제 연동 후 기재]</span></button>
+<button type="button" class="pkg" disabled><span style="font-weight:700">간편결제</span><span class="muted small">[제공 업체 확정 후 기재]</span></button>
+<button type="button" class="pkg" disabled><span style="font-weight:700">계좌이체</span><span class="muted small">[확정 후 기재]</span></button>
+</div>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">4</span><div><h2 class="t3">환불·결제 안내</h2></div></div>
+<ul style="margin:0;padding:0 0 0 20px;display:flex;flex-direction:column;gap:6px;color:#2F4740">
+<li>환불 규정: [확정 후 기재]</li>
+<li>작업이 시작된 뒤의 환불 범위: [확정 후 기재]</li>
+<li>영수증·현금영수증 발급: [확정 후 기재]</li>
+</ul>
+<label class="check" style="font-weight:700"><input type="checkbox"><span>[필수] 주문 내용과 환불 규정을 확인했으며 결제에 동의합니다.</span></label>
+</div>
+</div>
+
+<aside class="split-side" aria-label="결제 요약">
+<div class="sum">
+<strong style="font-size:19px">결제 요약</strong>
+<div class="sum-row"><span>상품</span><span>상호·브랜드 작명</span></div>
+<div class="sum-row"><span>패키지</span><span>기본</span></div>
+<div class="sum-row"><span>상품 금액</span><span>29,000원</span></div>
+<div class="sum-row"><span>할인</span><span>0원</span></div>
+<div class="total"><span style="font-weight:700">결제 금액</span><strong>29,000원</strong></div>
+<button type="button" class="btn btn-lg btn-block btn-dis" disabled>29,000원 결제하기 (준비 중)</button>
+<a class="btn btn-o btn-block" href="Done.dc.html">신청만 먼저 접수하기</a>
+<p class="help">지금은 온라인 결제를 준비하고 있습니다. 신청을 먼저 접수하시면 결제 방법을 안내해 드립니다. [안내 방식 확정 후 기재]</p>
+</div>
+</aside>
+</div>
+</section>
+
+<div class="mbar"><div><div class="muted" style="font-size:14px">결제 금액</div><strong style="font-size:20px">29,000원</strong></div><a class="btn btn-p" href="Done.dc.html">신청 접수하기</a></div>
+
+<dc-import name="Footer" hint-size="100%,300px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":2100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { yes: true };
+  }
+}
+</script>
+</body>
+</html>

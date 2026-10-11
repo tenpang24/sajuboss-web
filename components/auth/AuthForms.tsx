@@ -34,7 +34,16 @@ function EmailField() {
   return (
     <label className="field">
       <span className="field__label">이메일</span>
-      <input className="field__input" type="email" name="email" autoComplete="email" required />
+      <input
+        className="field__input"
+        type="email"
+        name="email"
+        inputMode="email"
+        autoComplete="email"
+        autoCapitalize="none"
+        spellCheck={false}
+        required
+      />
     </label>
   );
 }

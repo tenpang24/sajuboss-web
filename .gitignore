@@ -34,6 +34,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# 반응형 검증 스크린샷
+/.responsive/
+
 # vercel
 .vercel
 

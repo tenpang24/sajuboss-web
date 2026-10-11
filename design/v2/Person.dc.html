@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>개인·개명 작명 신청</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="site" style="font-family:'Noto Sans KR',sans-serif;color:#13302A;background:#F6FBF8">
+
+<dc-import name="Header" active="name" logged-in="{{ yes }}" hint-size="100%,77px"></dc-import>
+
+<div class="wrap" style="padding-top:28px;display:flex;flex-direction:column;gap:20px">
+<nav class="tabs" aria-label="신청 종류">
+<a class="tab" href="Date.dc.html">개업택일</a>
+<a class="tab" href="Name.dc.html">상호·브랜드 작명</a>
+<a class="tab on" href="Person.dc.html" aria-current="page">개인·개명</a>
+</nav>
+<div>
+<h1 class="t1" style="font-size:clamp(28px,3.2vw,38px)">개인·개명 작명 신청</h1>
+<p class="lead" style="margin-top:8px">아기 이름, 성인 이름, 개명 후보를 오행·소리·뜻으로 평가해 받아봅니다.</p>
+</div>
+</div>
+
+<section class="wrap" style="padding-top:28px;padding-bottom:72px">
+<div class="split">
+<form class="split-main">
+
+<div class="step">
+<div class="step-h"><span class="num">1</span><div><h2 class="t3">어떤 이름인가요?</h2></div></div>
+<div class="chips" role="radiogroup" aria-label="이름 종류">
+<sc-for list="{{ kinds }}" as="k" hint-placeholder-count="3">
+<label class="{{ k.cls }}"><input type="radio" name="pkind" checked="{{ k.on }}" onChange="{{ k.pick }}">{{ k.label }}</label>
+</sc-for>
+</div>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">2</span><div><h2 class="t3">이름 받을 분 정보</h2><p class="help" style="margin-top:2px">절기 기준으로 사주를 세우는 데 씁니다.</p></div></div>
+<div class="grid-form">
+<div class="field"><label for="p-birth">생년월일</label><input class="input" id="p-birth" type="text" inputmode="numeric" placeholder="예: 2026-12-03"></div>
+<div class="field"><label for="p-cal">양력·음력</label><select class="input" id="p-cal"><option>양력</option><option>음력</option><option>음력(윤달)</option></select></div>
+<div class="field"><label for="p-time">태어난 시각 <span class="opt">(선택)</span></label><input class="input" id="p-time" type="text" inputmode="numeric" placeholder="예: 06:40"></div>
+<div class="field"><label for="p-sex">성별</label><select class="input" id="p-sex"><option>여성</option><option>남성</option></select></div>
+</div>
+<label class="check"><input type="checkbox">태어난 시각을 몰라요</label>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">3</span><div><h2 class="t3">성씨와 현재 이름</h2></div></div>
+<div class="grid-form">
+<div class="field"><label for="p-family">성씨</label><input class="input" id="p-family" type="text" placeholder="예: 박(朴)"></div>
+<sc-if value="{{ isRename }}" hint-placeholder-val="{{ false }}">
+<div class="field"><label for="p-now">현재 이름</label><input class="input" id="p-now" type="text"></div>
+</sc-if>
+<sc-if value="{{ isRename }}" hint-placeholder-val="{{ false }}">
+<div class="field"><label for="p-why">개명 사유 <span class="opt">(선택)</span></label><select class="input" id="p-why"><option>선택해 주세요</option><option>발음·표기가 불편해서</option><option>놀림 등 생활 불편</option><option>사주 보완</option><option>기타</option></select></div>
+</sc-if>
+</div>
+<sc-if value="{{ isRename }}" hint-placeholder-val="{{ false }}">
+<p class="card-tint" style="margin:0;padding:16px 18px;font-size:16px;color:#2F4740">개명은 가정법원 허가가 필요한 절차입니다. 이 서비스는 후보 이름의 참고 평가만 제공하며 법적 절차를 대행하지 않습니다.</p>
+</sc-if>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">4</span><div><h2 class="t3">가족 정보 <span class="opt">(선택)</span></h2><p class="help" style="margin-top:2px">아기 이름은 부모와의 글자 조화를 함께 봅니다.</p></div></div>
+<div class="grid-form">
+<div class="field"><label for="p-parent">부모 생년월일 (한 분)</label><input class="input" id="p-parent" type="text" inputmode="numeric" placeholder="예: 1990-05-21"></div>
+<div class="field"><label for="p-dol">돌림자·피하고 싶은 글자</label><input class="input" id="p-dol" type="text"></div>
+</div>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">5</span><div><h2 class="t3">원하는 이름</h2></div></div>
+<div class="field"><span class="lbl">원하는 느낌 <span class="opt">(선택, 여러 개)</span></span>
+<div class="chips"><label class="chip on"><input type="checkbox" checked>부르기 쉬운</label><label class="chip"><input type="checkbox">단단한</label><label class="chip"><input type="checkbox">따뜻한</label><label class="chip"><input type="checkbox">밝은</label><label class="chip"><input type="checkbox">지적인</label><label class="chip"><input type="checkbox">순한글</label><label class="chip on"><input type="checkbox" checked>한자 병기</label></div></div>
+<div class="grid-form">
+<div class="field"><label for="p-len">이름 글자 수</label><select class="input" id="p-len"><option>상관없음</option><option>외자</option><option>두 글자</option></select></div>
+<div class="field"><label for="p-want">넣고 싶은 글자 <span class="opt">(선택)</span></label><input class="input" id="p-want" type="text"></div>
+</div>
+<div class="field"><label for="p-cand">이미 생각해 둔 후보 <span class="opt">(선택)</span></label><textarea class="input" id="p-cand" placeholder="줄바꿈으로 구분해 주세요"></textarea></div>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">6</span><div><h2 class="t3">패키지 선택</h2></div></div>
+<div class="grid-form">
+<button type="button" class="{{ basicCls }}" aria-pressed="{{ isBasic }}" onClick="{{ pickBasic }}"><span style="font-weight:700;font-size:18px">기본 · 49,000원</span><span class="muted" style="font-size:16px">후보 5개를 오행·소리·뜻으로 평가하고 추천 1~2개를 제시합니다.</span></button>
+<button type="button" class="{{ detailCls }}" aria-pressed="{{ isDetail }}" onClick="{{ pickDetail }}"><span style="font-weight:700;font-size:18px">상세 · 99,000원</span><span class="muted" style="font-size:16px">후보 10개와 역술가 검수 의견, 수정 1회 [범위 확정 후 기재]</span></button>
+</div>
+</div>
+
+<div class="step">
+<div class="step-h"><span class="num">7</span><div><h2 class="t3">받는 방법</h2></div></div>
+<div class="grid-form">
+<div class="field"><label for="p-email">이메일</label><input class="input" id="p-email" type="email" inputmode="email" placeholder="example@email.com"></div>
+<div class="field"><label for="p-tel">휴대폰 번호 <span class="opt">(선택, 알림톡)</span></label><input class="input" id="p-tel" type="tel" inputmode="tel" placeholder="010-0000-0000"></div>
+</div>
+</div>
+
+<div class="card-tint" style="padding:20px 22px;display:flex;gap:12px;align-items:flex-start">
+<svg style="flex:none;margin-top:3px" width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="none" stroke="#0B7A5A" stroke-width="1.8"/><path d="M11 6.5v6M11 15.5v.5" stroke="#0B7A5A" stroke-width="2" stroke-linecap="round"/></svg>
+<p style="margin:0;font-size:16px;color:#2F4740">이름은 전통 명리와 소리 기준의 참고 평가입니다. 출생신고나 가족관계등록에 쓸 한자는 인명용 한자인지 직접 확인해 주세요.</p>
+</div>
+
+<div class="step" style="gap:6px">
+<label class="check"><input type="checkbox"><span>[필수] 개인정보 수집·이용에 동의합니다. <a href="#">내용 보기</a> <span class="muted small">(항목·보관기간 [확정 후 기재])</span></span></label>
+<label class="check"><input type="checkbox"><span>[필수] 결과는 전통 명리 원리에 따른 참고용 자료이며, 결과를 보장하지 않는다는 점을 확인했습니다.</span></label>
+</div>
+</form>
+
+<aside class="split-side" aria-label="신청 요약">
+<div class="sum">
+<strong style="font-size:19px">신청 요약</strong>
+<div class="sum-row"><span>상품</span><span>{{ kindName }}</span></div>
+<div class="sum-row"><span>패키지</span><span>{{ pkgName }}</span></div>
+<div class="sum-row"><span>받는 내용</span><span>{{ pkgDesc }}</span></div>
+<div class="sum-row"><span>역술가 검수</span><span>[범위 확정 후 기재]</span></div>
+<div class="sum-row"><span>전달 시기</span><span>[확정 후 기재]</span></div>
+<div class="total"><span style="font-weight:700">결제 예정 금액</span><strong>{{ total }}</strong></div>
+<a class="btn btn-p btn-lg btn-block hide-m" href="Pay.dc.html">신청하고 결제로</a>
+<p class="help">결제수단과 환불 규정은 [확정 후 기재]</p>
+</div>
+</aside>
+</div>
+</section>
+
+<div class="mbar"><div><div class="muted" style="font-size:14px">결제 예정 금액</div><strong style="font-size:20px">{{ total }}</strong></div><a class="btn btn-p" href="Pay.dc.html">신청하고 결제로</a></div>
+
+<dc-import name="Footer" hint-size="100%,300px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":3300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state || {};
+    const pkg = s.pkg || 'basic';
+    const kind = s.kind || 'baby';
+    const basic = pkg === 'basic';
+    const kinds = [
+      { key: 'baby', label: '아기 이름', name: '아기 이름 작명' },
+      { key: 'adult', label: '성인 이름', name: '성인 이름 작명' },
+      { key: 'rename', label: '개명', name: '개명 작명' }
+    ];
+    const cur = kinds.find((k) => k.key === kind) || kinds[0];
+    return {
+      yes: true,
+      kinds: kinds.map((k) => ({ ...k, on: k.key === kind, cls: k.key === kind ? 'chip on' : 'chip', pick: () => this.setState({ kind: k.key }) })),
+      isRename: kind === 'rename',
+      kindName: cur.name,
+      isBasic: basic,
+      isDetail: !basic,
+      basicCls: basic ? 'pkg on' : 'pkg',
+      detailCls: basic ? 'pkg' : 'pkg on',
+      pickBasic: () => this.setState({ pkg: 'basic' }),
+      pickDetail: () => this.setState({ pkg: 'detail' }),
+      pkgName: basic ? '기본' : '상세',
+      pkgDesc: basic ? '후보 5개 + 추천 1~2개' : '후보 10개 + 검수 의견',
+      total: basic ? '49,000원' : '99,000원'
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Noto_Sans_KR } from "next/font/google";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -29,6 +29,15 @@ export const metadata: Metadata = {
   },
   // 오픈 승인 전까지 noindex. 해제 시 app/robots.ts도 함께 고칩니다.
   robots: { index: false, follow: false },
+};
+
+// 반응형 기준(docs/RESPONSIVE.md): viewport-fit=cover 사용, 확대 금지 옵션은 넣지 않습니다.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  colorScheme: "light",
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
