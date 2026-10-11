@@ -8,7 +8,8 @@ import { hasRequiredConsents, readSignupConsents, recordSignupConsents } from "@
 import { kakaoLoginEnabled } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
-export type AuthFormState = { error?: string; message?: string };
+// consentRetry: 가입은 됐지만 약관 동의 시각을 저장하지 못한 경우. 화면이 다시 동의하도록 안내합니다.
+export type AuthFormState = { error?: string; message?: string; consentRetry?: boolean };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
@@ -89,18 +90,23 @@ export async function signUp(_prev: AuthFormState, formData: FormData): Promise<
 
   // 가입 직후 동의 시각을 기록합니다(service_role, terms_agreed_at is null인 경우에만).
   // 이미 가입된 이메일이면 Supabase가 identities가 빈 가짜 사용자를 돌려주므로 기록하지 않습니다.
-  // 기록에 실패해도 계정은 만들어진 상태입니다. 그 경우 신청 단계에서 막히고,
-  // 내 신청 화면에서 다시 동의할 수 있습니다.
+  // 기록에 실패해도 계정은 만들어진 상태입니다. 그 경우 가입 완료 안내에서 약관 동의를
+  // 다시 확인하라고 알리고 내 신청의 동의 카드로 보냅니다. 실패 사유는 recordSignupConsents가
+  // 오류 코드만 로그에 남깁니다.
   const isNewAccount = Boolean(data.user && (data.user.identities?.length ?? 0) > 0);
-  if (isNewAccount && data.user) {
-    await recordSignupConsents(data.user.id, consents);
-  }
+  const consentFailed =
+    isNewAccount && data.user
+      ? (await recordSignupConsents(data.user.id, consents)) === "failed"
+      : false;
 
   if (data.session) {
-    redirect(next);
+    redirect(consentFailed ? "/my?notice=consent-retry" : next);
   }
   // 이미 가입된 이메일이어도 같은 안내를 보여 가입 여부가 드러나지 않게 합니다.
-  return { message: "인증 메일을 보냈습니다. 메일의 링크를 누르면 가입이 완료됩니다." };
+  return {
+    message: "인증 메일을 보냈습니다. 메일의 링크를 누르면 가입이 완료됩니다.",
+    consentRetry: consentFailed,
+  };
 }
 
 export async function requestPasswordReset(

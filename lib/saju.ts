@@ -1,5 +1,6 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import {
   CALENDARS,
   GENDERS,
@@ -12,7 +13,7 @@ import {
   type Gender,
 } from "@/lib/validation";
 
-// 저장된 사주 정보(saju_profiles). 쓰기는 service_role로만 합니다.
+// 저장된 사주 정보(saju_profiles). 쓰기는 service_role로만 하고, 조회는 사용자 세션 클라이언트(RLS)로 합니다.
 // 이 파일의 함수는 서버 액션이 아닙니다. 호출하는 서버 액션이 먼저 auth.getUser()로 userId를 확인해야 합니다.
 // 생년월일시는 민감한 정보이므로 로그에 남기지 않습니다(오류 코드만 기록).
 
@@ -89,9 +90,10 @@ function toRow(data: Record<string, unknown>): SajuRow {
   };
 }
 
+// 본인 사주 조회. 사용자 세션 클라이언트로 읽으므로 RLS(본인 행만)가 한 번 더 걸립니다.
 export async function getSelfSaju(userId: string): Promise<SajuRow | null> {
-  const admin = await createAdminClient();
-  const { data, error } = await admin
+  const supabase = await createClient();
+  const { data, error } = await supabase
     .from("saju_profiles")
     .select(SAJU_COLUMNS)
     .eq("user_id", userId)

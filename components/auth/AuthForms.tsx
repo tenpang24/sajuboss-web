@@ -179,6 +179,12 @@ export function SignUpForm({ next }: { next: string }) {
       />
       <ConsentBox />
       <FormNotice state={state} />
+      {state.consentRetry && (
+        <p className="notice notice-error" role="alert">
+          약관 동의가 저장되지 않았습니다. 메일 인증을 마치고 로그인한 뒤{" "}
+          <Link href="/my">내 신청</Link>에서 약관에 다시 동의해 주세요.
+        </p>
+      )}
       <Button type="submit" size="lg" block disabled={pending}>
         {pending ? "가입 처리 중…" : "가입하고 인증 메일 받기"}
       </Button>

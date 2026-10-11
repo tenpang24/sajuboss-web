@@ -2,7 +2,7 @@
 
 다음 세션이 이 문서만 읽고 이어서 작업할 수 있게 유지합니다. 키와 비밀번호는 쓰지 않습니다.
 
-최종 갱신: 2026-10-11 (4단계 코드 구현·검증 직후)
+최종 갱신: 2026-10-11 (4단계 코드 검토 반영 직후)
 
 ## 1. 현재 단계
 
@@ -56,12 +56,12 @@
 - `lib/products.ts`: 상품·패키지·주문 상태 허용값과 표시 이름, `REPORT_2027_IS_PREORDER`(오픈 시 false로), 신청 번호.
 - `lib/validation.ts`: 서버 입력 검증(생년월일, 시각, 이메일, 전화, 텍스트 길이, 허용값).
 - `lib/consents.ts`(server-only): 가입 동의 4개 시각 기록(`terms_agreed_at is null`일 때만), 필수 동의 확인.
-- `lib/saju.ts`(server-only): 사주 폼 검증, 본인 사주 저장(있으면 수정)·삭제(실제 삭제). 시각이 없으면 `time_unknown = true`를 서버가 명시.
+- `lib/saju.ts`(server-only): 사주 폼 검증, 본인 사주 저장(있으면 수정)·삭제(실제 삭제). 조회(`getSelfSaju`)는 사용자 세션 클라이언트(RLS)로, 쓰기는 service_role로. 시각이 없으면 `time_unknown = true`를 서버가 명시.
 - `lib/orders.ts`(server-only): `createOrder`(모든 신청의 공통 경로: 로그인 확인, 상품·패키지 규칙, 신청 동의 2개, 연락처, payload 8KB 상한, 가입 동의 확인, 연속 제출 제한 20초·시간당 10건, 금액·상태·동의 시각은 서버가 결정), `requestOrderDeletion`(preorder·requested만 비움, 결제 이후는 안내만).
 - `lib/pricing.ts`: `orderAmount`(서버 금액 계산).
 - `lib/supabase/admin.ts`: `createAdminClient`가 async로 바뀜(내부 초기화를 기다림). 호출부는 `await createAdminClient()`.
 - `lib/supabase/server.ts`: `await connection()` 추가(프리페치 렌더링에서 세션 확인이 실행돼 로그에 프리렌더 오류가 쌓이던 것을 없앰).
-- `app/login/actions.ts`: 가입 직후 동의 시각 기록.
+- `app/login/actions.ts`: 가입 직후 동의 시각 기록. 기록에 실패하면 가입 안내에 "약관에 다시 동의" 문구를 함께 보이고(`consentRetry`), 바로 로그인된 경우에는 `/my?notice=consent-retry`로 보냄.
 - `app/my/actions.ts`: 약관 동의, 사주 저장·삭제, 신청 삭제 요청 서버 액션.
 - `app/report/2027/actions.ts`: 신년 리포트 사전신청 서버 액션.
 - `components/saju/SajuFields.tsx`: 사주 입력 묶음(공통). `components/report/PreorderForm.tsx`: 실제 신청으로 연결, 동의 체크박스 2개. `components/my/MyClient.tsx`: 동의 카드, 사주 패널, 삭제 요청(확인 단계).
@@ -166,6 +166,8 @@
 - `components/home/TodayForm.tsx`: 검증 통과 시 "준비 중" 안내만 표시. 실제 계산은 8단계.
 - 신청 폼 3종(5단계)이 아직 없어, 실제로 만들 수 있는 신청은 신년 리포트 사전신청뿐. `createOrder`는 4개 상품을 모두 받지만 택일·작명의 폼별 입력 검증은 5단계에서 추가.
 - 가입 화면의 실제 가입 성공 → 동의 기록 경로는 실제 메일이 필요해 끝까지 확인하지 못함. 같은 기록 함수(`recordSignupConsents`)를 쓰는 /my의 약관 동의 경로는 브라우저로 확인함.
+- 가입 동의 기록 실패 안내(`consentRetry`)는 실패 상황을 만들 수 없어 실제 동작을 확인하지 못함(코드 검토와 빌드만).
+- 사장님 화면에서 언어 표시가 붙은 코드 블록이 보이지 않는 일이 반복됨. 코드·SQL 전문을 보여줄 때는 언어 표시 없는 코드 블록으로 출력하고, 검토용 묶음 파일도 함께 만든다(`Desktopsajuboss-review`, 저장소 밖).
 - 연속 제출 제한은 조회 후 저장 방식이라, 같은 순간에 동시에 들어온 두 요청은 둘 다 통과할 수 있음(금전 피해는 없음. 필요하면 DB 제약으로 보강).
 - 메인의 "오늘의 사업운" 입력은 저장된 사주와 아직 연결하지 않음(8단계).
 - 검증 스크립트(DB 검증, 4단계 브라우저 검증)는 저장소에 없음(세션 임시 폴더). `scripts/check-responsive.mjs`만 저장소에 있음.
