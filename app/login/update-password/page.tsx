@@ -12,8 +12,6 @@ async function UpdatePasswordContent() {
 
   return (
     <Card className="auth-card">
-      <h1 className="auth-card__title">새 비밀번호 설정</h1>
-      <p className="auth-card__lead">앞으로 사용할 비밀번호를 입력해 주세요.</p>
       <UpdatePasswordForm />
     </Card>
   );
@@ -21,10 +19,14 @@ async function UpdatePasswordContent() {
 
 export default function UpdatePasswordPage() {
   return (
-    <div className="container auth-page">
-      <Suspense fallback={<Card className="auth-card auth-card--loading" aria-busy="true" />}>
+    <section className="wrap auth">
+      <div className="auth-head">
+        <h1 className="t1 t1-sm">새 비밀번호 설정</h1>
+        <p className="lead">앞으로 사용할 비밀번호를 입력해 주세요.</p>
+      </div>
+      <Suspense fallback={<Card className="auth-card auth-card-loading" aria-busy="true" />}>
         <UpdatePasswordContent />
       </Suspense>
-    </div>
+    </section>
   );
 }

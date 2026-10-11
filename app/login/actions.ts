@@ -11,6 +11,15 @@ export type AuthFormState = { error?: string; message?: string };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
+const REQUIRED_CONSENTS = ["agreeAge", "agreeTerms", "agreePrivacy"];
+
+// 영문·숫자 포함 8자 이상
+function passwordError(password: string) {
+  if (password.length < MIN_PASSWORD_LENGTH || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+    return `비밀번호는 영문과 숫자를 포함해 ${MIN_PASSWORD_LENGTH}자 이상으로 입력해 주세요.`;
+  }
+  return null;
+}
 
 function readEmail(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
@@ -47,11 +56,18 @@ export async function signUp(_prev: AuthFormState, formData: FormData): Promise<
   if (!email) {
     return { error: "이메일 주소를 확인해 주세요." };
   }
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    return { error: `비밀번호는 ${MIN_PASSWORD_LENGTH}자 이상으로 입력해 주세요.` };
+  const invalidPassword = passwordError(password);
+  if (invalidPassword) {
+    return { error: invalidPassword };
   }
   if (password !== passwordConfirm) {
     return { error: "비밀번호 확인이 일치하지 않습니다." };
+  }
+
+  // 필수 동의 3개를 서버에서도 확인합니다. 선택 동의(agreeMarketing)와 동의 시각은
+  // 아직 저장하지 않습니다(4단계에서 주문 동의와 함께 설계).
+  if (!REQUIRED_CONSENTS.every((name) => formData.get(name) === "on")) {
+    return { error: "필수 약관에 모두 동의해 주세요." };
   }
 
   const next = safeNext(formData.get("next"));
@@ -100,8 +116,9 @@ export async function updatePassword(
 ): Promise<AuthFormState> {
   const password = String(formData.get("password") ?? "");
   const passwordConfirm = String(formData.get("passwordConfirm") ?? "");
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    return { error: `비밀번호는 ${MIN_PASSWORD_LENGTH}자 이상으로 입력해 주세요.` };
+  const invalidPassword = passwordError(password);
+  if (invalidPassword) {
+    return { error: invalidPassword };
   }
   if (password !== passwordConfirm) {
     return { error: "비밀번호 확인이 일치하지 않습니다." };

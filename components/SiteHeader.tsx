@@ -1,57 +1,52 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { HeaderNav, HeaderNavLinks } from "@/components/HeaderNav";
+import { ButtonLink } from "@/components/ui/Button";
 import { getUser } from "@/lib/auth";
 import { brand } from "@/lib/brand";
 
-const menu = [
-  { href: "/#today", label: "오늘의 운세" },
-  { href: "/report/2027", label: "신년 사업운" },
-  { href: "/#products", label: "택일·작명" },
-  { href: "/#products", label: "전문가 상담" },
-];
-
-function LoginLink() {
+function LoginButton() {
   return (
-    <Link href="/login" className="site-header__login">
-      로그인
-    </Link>
+    <ButtonLink href="/login" variant="p">
+      로그인·가입
+    </ButtonLink>
   );
 }
 
 async function HeaderAuth() {
   if (!(await getUser())) {
-    return <LoginLink />;
+    return <LoginButton />;
   }
   return (
-    <Link href="/my" className="site-header__login">
+    <ButtonLink href="/my" variant="o">
       내 신청
-    </Link>
+    </ButtonLink>
   );
 }
 
 export function SiteHeader() {
   return (
-    <header className="site-header">
-      <div className="container site-header__inner">
-        <Link href="/" className="site-header__logo">
-          <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-            <circle cx="16" cy="16" r="15" fill="#0B7A5A" />
-            <circle cx="16" cy="16" r="7" fill="none" stroke="#FFD84D" strokeWidth="2" />
-            <circle cx="16" cy="16" r="2" fill="#FFD84D" />
+    <header className="hdr">
+      <div className="wrap hdr-in">
+        <Link href="/" className="logo" aria-label={`${brand.name} 홈`}>
+          <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+            <circle cx="17" cy="17" r="16" fill="#0B7A5A" />
+            <circle cx="17" cy="17" r="7.5" fill="none" stroke="#FFD84D" strokeWidth="2.2" />
+            <circle cx="17" cy="17" r="2.4" fill="#FFD84D" />
           </svg>
-          <span className="site-header__name">{brand.name}</span>
-          {brand.showTentativeBadge && <span className="site-header__badge">가칭</span>}
+          <span className="logo-name">{brand.name}</span>
+          {brand.showTentativeBadge && <span className="badge badge-line logo-badge">가칭</span>}
         </Link>
-        <nav aria-label="주요 메뉴" className="site-header__nav">
-          {menu.map((item) => (
-            <Link key={item.label} href={item.href}>
-              {item.label}
-            </Link>
-          ))}
+        <nav className="hdr-nav" aria-label="주요 메뉴">
+          <Suspense fallback={<HeaderNavLinks pathname="" />}>
+            <HeaderNav />
+          </Suspense>
         </nav>
-        <Suspense fallback={<LoginLink />}>
-          <HeaderAuth />
-        </Suspense>
+        <div className="hdr-act">
+          <Suspense fallback={<LoginButton />}>
+            <HeaderAuth />
+          </Suspense>
+        </div>
       </div>
     </header>
   );

@@ -1,0 +1,1010 @@
+/* 화면별 스타일(시안 v2의 인라인 스타일을 옮긴 것). 공통 요소는 site.css.
+   모바일 우선: 기본값이 좁은 화면이고 721px 이상은 맨 아래 min-width 블록에서 넓힙니다. */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.t2-gap {
+  margin-bottom: 32px;
+}
+
+/* 로그인·회원가입 */
+.auth {
+  padding-top: 32px;
+  padding-bottom: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.auth-head {
+  text-align: center;
+  max-width: 560px;
+}
+
+.auth-head .lead {
+  margin-top: 10px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 520px;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  box-shadow: 0 12px 32px rgba(11, 90, 68, 0.08);
+}
+
+.auth-card-loading {
+  min-height: 420px;
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  background: var(--tint);
+  border-radius: 14px;
+  padding: 6px;
+}
+
+.site .auth-tabs .btn:not(.btn-p) {
+  color: var(--ink);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.auth-text {
+  margin: 0;
+  color: var(--body);
+}
+
+.auth-center {
+  text-align: center;
+}
+
+.consent {
+  margin: 0;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.consent-all {
+  font-weight: 700;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 10px;
+  margin-bottom: 6px;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.site .btn-kakao:not(:disabled) {
+  background: #fee500;
+  color: #191919;
+}
+
+.auth-benefits {
+  width: 100%;
+  max-width: 880px;
+}
+
+.auth-benefit {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 20px;
+}
+
+.auth-benefit p {
+  margin: 2px 0 0;
+}
+
+/* 내 신청 */
+.my-head {
+  padding-top: 28px;
+}
+
+.my-head .lead {
+  margin-top: 8px;
+}
+
+.my-body {
+  padding-top: 24px;
+  padding-bottom: 56px;
+}
+
+.my-main {
+  gap: 16px;
+}
+
+.my-empty {
+  text-align: center;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.my-empty p {
+  margin: 0;
+}
+
+.my-empty-title {
+  font-size: 1.25rem;
+}
+
+.my-guide {
+  padding: 18px 20px;
+}
+
+.my-guide > strong {
+  font-size: 1rem;
+}
+
+.my-guide-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 8px;
+  font-size: 0.9375rem;
+  color: var(--body);
+}
+
+.my-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.my-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+}
+
+.my-card p {
+  margin: 0;
+}
+
+.my-card-title {
+  font-size: 1.1875rem;
+}
+
+.my-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.my-actions .btn {
+  flex: 1 1 120px;
+}
+
+/* 메인: 히어로 */
+.hero {
+  background: var(--hero);
+}
+
+.hero-in {
+  padding-top: 40px;
+  padding-bottom: 48px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 36px 56px;
+}
+
+.hero-copy {
+  flex: 1 1 460px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hero-season {
+  align-self: flex-start;
+  color: var(--p-t);
+  font-weight: 700;
+}
+
+.hero-accent {
+  color: var(--p);
+}
+
+.hero-lead {
+  max-width: 540px;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hero-actions .btn {
+  flex: 1 1 100%;
+}
+
+.hero-points {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  font-size: 1rem;
+  color: var(--body);
+}
+
+.hero-points li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hero-points svg,
+.check-list svg {
+  flex: none;
+}
+
+.hero-sample {
+  flex: 1 1 360px;
+  min-width: 0;
+  max-width: 460px;
+}
+
+.sample {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border-radius: 20px;
+  box-shadow: 0 18px 40px rgba(11, 90, 68, 0.14);
+}
+
+.sample-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sample-head strong {
+  font-size: 1.1875rem;
+}
+
+.sample-today {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.sample-tarot {
+  flex: none;
+  width: 24%;
+  min-width: 64px;
+  max-width: 84px;
+  aspect-ratio: 7 / 10;
+  border-radius: 12px;
+  background: var(--p);
+  border: 2px solid var(--y);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sample-text {
+  min-width: 0;
+}
+
+.sample-text p {
+  margin: 4px 0 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.sample-scores {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.score {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.score-label {
+  flex: none;
+  min-width: 3.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.score-bar {
+  flex: 1;
+  min-width: 0;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--line);
+}
+
+.score-bar div {
+  height: 10px;
+  border-radius: 5px;
+  background: var(--p);
+}
+
+.score-text {
+  flex: none;
+  min-width: 4.25rem;
+  text-align: right;
+  font-size: 0.9375rem;
+}
+
+.sample-link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* 메인: 오늘의 사업운 입력 */
+.today {
+  padding-top: 40px;
+  scroll-margin-top: 8px;
+}
+
+.today-card {
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.today-lead {
+  margin: 0;
+}
+
+.today-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.today-fields {
+  align-items: start;
+}
+
+.today-submit {
+  align-self: end;
+}
+
+.today-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 28px;
+}
+
+/* 메인: 상품, 고민, 풀이 방식 */
+.product {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.product-featured {
+  border: 2px solid var(--p);
+}
+
+.product-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.product-body {
+  margin: 0;
+  flex: 1;
+}
+
+.product-price-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 8px;
+}
+
+.product-price-row span {
+  white-space: nowrap;
+}
+
+.product-price {
+  font-size: 1.625rem;
+}
+
+.site .concern {
+  text-decoration: none;
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.concern span {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--p-t);
+}
+
+.concern strong {
+  font-size: 1.1875rem;
+  line-height: 1.45;
+}
+
+.how-step {
+  display: flex;
+  gap: 16px;
+}
+
+.how-step .t3 {
+  font-size: 1.1875rem;
+}
+
+.how-step p {
+  margin: 4px 0 0;
+}
+
+.how-note {
+  margin: 32px 0 0;
+  padding: 18px 22px;
+  font-size: 1rem;
+  color: var(--body);
+}
+
+/* 띠 배너 */
+.band-wrap {
+  padding-bottom: 56px;
+}
+
+.band {
+  background: #0a6a4e;
+  border-radius: 20px;
+  padding: clamp(28px, 4vw, 44px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.band-deep {
+  background: #0a5a44;
+}
+
+.band-copy {
+  flex: 1 1 380px;
+  min-width: 0;
+}
+
+.band h2 {
+  font-size: clamp(1.375rem, 2.6vw, 1.75rem);
+  line-height: 1.4;
+  margin: 0 0 8px;
+  color: #ffffff;
+}
+
+.band p {
+  margin: 0;
+  color: #d8f3e6;
+}
+
+.band .btn {
+  flex: 1 1 100%;
+}
+
+/* FAQ */
+.faq-wrap {
+  padding-bottom: 64px;
+}
+
+.faq-title {
+  margin-bottom: 24px;
+}
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.faq-mark {
+  flex: none;
+  transition: transform 0.15s;
+}
+
+/* 신년 리포트 상세 */
+.crumb {
+  padding-top: 12px;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.site .crumb a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--muted);
+}
+
+.crumb span {
+  color: var(--ink);
+}
+
+.report-top {
+  padding-top: 12px;
+  padding-bottom: 48px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px 48px;
+  align-items: flex-start;
+}
+
+.report-col {
+  flex: 1 1 440px;
+  min-width: 0;
+}
+
+.cover {
+  background: var(--p-t);
+  border-radius: 20px;
+  padding: clamp(24px, 3.5vw, 40px);
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.cover-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.cover-year {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--y);
+}
+
+.cover-title {
+  font-weight: 700;
+  font-size: clamp(1.75rem, 3.2vw, 2.375rem);
+  line-height: 1.3;
+  color: #ffffff;
+  margin-top: 8px;
+}
+
+.cover-badge {
+  flex: none;
+}
+
+.cover-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 120px;
+}
+
+.cover-bars div {
+  flex: 1;
+  min-width: 0;
+  border-radius: 3px;
+  background: #8fd0b3;
+}
+
+.cover-bars div.is-good {
+  background: var(--y);
+}
+
+.cover-bars div.is-careful {
+  background: #ffffff;
+}
+
+.cover-caption {
+  font-size: 0.9375rem;
+  color: #ddf4e8;
+}
+
+.report-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.report-status {
+  align-self: flex-start;
+}
+
+.report-title {
+  font-size: clamp(1.75rem, 3.4vw, 2.5rem);
+}
+
+.report-price {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.report-price strong {
+  font-size: clamp(1.75rem, 1.4rem + 1.6vw, 2.125rem);
+}
+
+.check-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.check-list li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.check-list svg {
+  margin-top: 4px;
+}
+
+.preorder {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  scroll-margin-top: 16px;
+}
+
+.content-no {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--p-t);
+}
+
+.content-item .t3 {
+  margin: 4px 0 6px;
+}
+
+.content-item p,
+.purchase-item p {
+  margin: 0;
+}
+
+.preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.preview-chart {
+  flex: 999 1 520px;
+  min-width: 0;
+}
+
+.chart-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.chart-head strong {
+  font-size: 1.1875rem;
+}
+
+.chart-badge {
+  margin-left: 6px;
+}
+
+/* 막대 폭은 비율이라 좁은 화면에서도 넘치지 않습니다. */
+.chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 160px;
+}
+
+.chart-bars div {
+  flex: 1;
+  min-width: 0;
+  border-radius: 4px;
+}
+
+.chart-labels {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 0.875rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.chart-labels span {
+  flex: 1;
+  min-width: 0;
+}
+
+.is-good {
+  background: var(--p);
+}
+
+.is-careful {
+  background: var(--dark);
+}
+
+.is-normal {
+  background: #cfe3da;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 18px;
+  font-size: 0.9375rem;
+  color: var(--body);
+}
+
+.chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-legend i {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
+.preview-cards {
+  flex: 1 1 340px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.month-card,
+.locked-card {
+  padding: 24px;
+}
+
+.month-label {
+  font-size: 0.9375rem;
+  color: var(--p-t);
+  font-weight: 700;
+}
+
+.month-card p {
+  margin: 8px 0 12px;
+  color: var(--body);
+}
+
+.month-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.month-rows strong {
+  color: var(--ink);
+}
+
+.locked-card {
+  border-style: dashed;
+  border-color: var(--field);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.locked-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.locked-head svg {
+  flex: none;
+}
+
+.locked-line {
+  height: 12px;
+  background: var(--line);
+  border-radius: 6px;
+}
+
+.decision strong {
+  font-size: 1.1875rem;
+}
+
+.decision p {
+  margin: 6px 0 0;
+}
+
+.info-card .t3 {
+  margin-bottom: 12px;
+}
+
+.info-card ul {
+  margin: 0;
+  padding: 0 0 0 20px;
+  color: var(--body);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.purchase {
+  margin-top: 24px;
+}
+
+.purchase-item .t3 {
+  font-size: 1.125rem;
+  margin-bottom: 6px;
+}
+
+.cross-wrap {
+  padding-bottom: 56px;
+}
+
+.cross-title {
+  margin-bottom: 24px;
+}
+
+.site .cross {
+  text-decoration: none;
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cross .badge {
+  align-self: flex-start;
+}
+
+.cross-name {
+  font-size: 1.3125rem;
+}
+
+.cross-price {
+  color: var(--p);
+}
+
+/* 721px 이상 */
+@media (min-width: 721px) {
+  .auth {
+    padding-top: 48px;
+    padding-bottom: 72px;
+    gap: 28px;
+  }
+
+  .my-head {
+    padding-top: 36px;
+  }
+
+  .my-body {
+    padding-top: 28px;
+    padding-bottom: 72px;
+  }
+
+  .my-empty {
+    padding: 48px 24px;
+  }
+
+  .hero-in {
+    padding-top: 64px;
+    padding-bottom: 64px;
+    gap: 40px 56px;
+  }
+
+  .hero-actions .btn,
+  .band .btn {
+    flex: 0 1 auto;
+  }
+
+  .today {
+    padding-top: 56px;
+  }
+
+  .band-wrap {
+    padding-bottom: 72px;
+  }
+
+  .faq-wrap {
+    padding-bottom: 80px;
+  }
+
+  .crumb {
+    padding-top: 20px;
+  }
+
+  .report-top {
+    padding-top: 20px;
+    padding-bottom: 64px;
+    gap: 40px 48px;
+  }
+
+  .preorder {
+    padding: 24px;
+  }
+
+  .chart-bars {
+    gap: 6px;
+    height: 180px;
+  }
+
+  .chart-labels {
+    gap: 6px;
+  }
+
+  .cross-wrap {
+    padding-bottom: 64px;
+  }
+}

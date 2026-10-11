@@ -16,4 +16,7 @@ export const brand = {
     mailOrderNumber: "[확인 후 기재]", // 신고번호 확인 중
     address: "부산 해운대구 반여로17-1 C동 102호",
   },
+  // 고객센터 연락처는 확정되면 채웁니다.
+  support: TBD,
+  copyrightYear: 2026,
 } as const;

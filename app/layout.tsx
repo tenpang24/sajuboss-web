@@ -43,7 +43,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ko" className={notoSansKr.variable}>
-      <body>
+      <body className="site">
         <SiteHeader />
         <main>{children}</main>
         <SiteFooter />
