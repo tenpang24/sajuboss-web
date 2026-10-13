@@ -11,6 +11,8 @@ import {
   PERSON_MOODS,
   RENAME_REASONS,
   nameLengthNames,
+  packageDescriptions,
+  packageSummaries,
   personKindNames,
   personKindProductNames,
   personMoodNames,
@@ -37,7 +39,6 @@ import {
   useApplyForm,
   type ApplyViewer,
 } from "./ApplyParts";
-import { packageDescriptions, packageSummaries } from "./NameForm";
 
 const PATH = "/apply/person";
 const FORM_ID = "apply-person";

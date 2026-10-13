@@ -54,6 +54,22 @@ export const REPORT_2027_IS_PREORDER = true;
 // 검증할 때만 로컬에서 true로 바꾸고, 커밋에는 false로 남깁니다.
 export const APPLY_FORMS_OPEN = false;
 
+// 결제 모드 스위치.
+// - off: 결제 화면은 보이되 결제 버튼이 "결제 준비 중"(비활성). 신청만 접수된 상태로 둡니다.
+// - manual: 계좌이체 안내를 보여 주고, 입금은 관리자가 확인합니다(계좌 정보는 서버 환경변수).
+// - pg: 결제대행사 결제(6-B에서 연결). 연결 전에는 "아직 연결되지 않음" 오류로 끝납니다.
+// 커밋 값은 "off"입니다. 검증할 때만 로컬에서 바꿉니다.
+export const PAYMENT_MODES = ["off", "manual", "pg"] as const;
+export type PaymentMode = (typeof PAYMENT_MODES)[number];
+export const PAYMENT_MODE: PaymentMode = "off";
+
+// pg 모드에서 쓸 결제대행사. "none"은 아직 연결되지 않음(6-A의 커밋 값).
+// "mock"은 개발·테스트 전용 모의 결제이고, 운영 환경(NODE_ENV=production)에서는
+// lib/payment.ts가 어떤 경우에도 성공 처리하지 않습니다.
+export const PG_PROVIDERS = ["none", "mock"] as const;
+export type PgProviderName = (typeof PG_PROVIDERS)[number];
+export const PAYMENT_PG_PROVIDER: PgProviderName = "none";
+
 // 신청 번호: 주문 id 앞 8자리
 export function orderNumber(orderId: string) {
   return orderId.slice(0, 8).toUpperCase();

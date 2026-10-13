@@ -1247,3 +1247,213 @@ input[type="date"].input::-webkit-date-and-time-value {
     padding: 18px;
   }
 }
+
+/* 6단계: 결제(/pay)와 완료(/done) 화면 */
+.pay-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.pay-steps li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pay-steps .pay-step-on {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.pay-step-num {
+  width: 28px;
+  height: 28px;
+  font-size: 0.875rem;
+}
+
+.pay-step-off {
+  background: #9fb7ad;
+}
+
+.pay-item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  background: #f0f8f3;
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+.pay-item-info {
+  min-width: 0;
+  flex: 1 1 240px;
+}
+
+.pay-item-info strong {
+  font-size: 1.125rem;
+}
+
+.pay-item-info p {
+  margin: 4px 0 0;
+  font-size: 1rem;
+}
+
+.pay-item-price {
+  flex: none;
+  font-size: 1.25rem;
+}
+
+.pay-rows,
+.pay-bank {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pay-bank {
+  padding: 18px 20px;
+}
+
+.pay-account {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.pay-list {
+  margin: 0;
+  padding: 0 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--body);
+}
+
+.pay-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pay-agree {
+  font-weight: 700;
+}
+
+.pay-blocked {
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 28px 24px;
+}
+
+.pay-blocked p {
+  margin: 0;
+}
+
+.pay-blocked-actions,
+.done-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pay-blocked-actions {
+  margin-top: 8px;
+}
+
+.pay-blocked-actions .btn,
+.done-actions .btn {
+  flex: 1 1 240px;
+}
+
+.order-actions {
+  flex: 1 1 200px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.order-actions .order-delete {
+  flex: none;
+  width: 100%;
+}
+
+.done {
+  padding-top: 40px;
+  padding-bottom: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.done-head {
+  max-width: 600px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.done-card {
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.done-number {
+  letter-spacing: 0.04em;
+}
+
+.done-steps {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.done-steps li {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.done-steps p {
+  margin: 2px 0 0;
+  font-size: 1rem;
+}
+
+.done-actions {
+  width: 100%;
+  max-width: 680px;
+  justify-content: center;
+}
+
+.done-foot {
+  margin: 0;
+  text-align: center;
+}
+
+@media (min-width: 721px) {
+  .done {
+    padding-top: 56px;
+    padding-bottom: 80px;
+    gap: 28px;
+  }
+}

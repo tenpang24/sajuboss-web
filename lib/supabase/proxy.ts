@@ -42,6 +42,28 @@ export async function updateSession(request: NextRequest) {
     return redirect;
   }
 
+  // 결제·완료 화면은 본인 주문일 때만 엽니다. 주문 id가 형식에 맞지 않거나, 다른 사람의 주문이거나,
+  // 삭제된 주문이면 화면을 그리기 전에 404로 끝냅니다(RLS가 본인의 삭제되지 않은 주문만 돌려줍니다).
+  const orderPage = /^\/(pay|done)\/([^/]+)\/?$/.exec(pathname);
+  if (orderPage) {
+    let own = false;
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderPage[2])) {
+      try {
+        const { data, error } = await supabase
+          .from("orders")
+          .select("id")
+          .eq("id", orderPage[2])
+          .maybeSingle();
+        own = !error && Boolean(data);
+      } catch {
+        own = false;
+      }
+    }
+    if (!own) {
+      return new NextResponse("Not Found", { status: 404 });
+    }
+  }
+
   // 관리자 경로는 화면을 그리기 전에 막습니다. 오류나 판별 실패도 차단합니다(fail closed).
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     let admin = false;

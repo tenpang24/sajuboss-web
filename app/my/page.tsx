@@ -139,7 +139,14 @@ async function OrderSection() {
                 {dateFormat.format(new Date(order.created_at))} 신청 · {formatKrw(order.amount_krw)}
               </span>
             </div>
-            {status !== "canceled" && <OrderDeleteControl orderId={order.id} />}
+            <div className="order-actions">
+              {status === "requested" && (
+                <ButtonLink href={`/pay/${order.id}`} size="sm">
+                  결제하기
+                </ButtonLink>
+              )}
+              {status !== "canceled" && <OrderDeleteControl orderId={order.id} />}
+            </div>
           </Card>
         );
       })}

@@ -9,6 +9,8 @@ import {
   LIMITS,
   bizMoodNames,
   bizNameTypeNames,
+  packageDescriptions,
+  packageSummaries,
   type BizNameType,
 } from "@/lib/apply/options";
 import { orderAmount, pricing } from "@/lib/pricing";
@@ -33,15 +35,6 @@ import {
 
 const PATH = "/apply/name";
 const FORM_ID = "apply-name";
-export const packageDescriptions: Record<Package, string> = {
-  basic: "후보 5개를 오행·소리·뜻으로 평가하고 추천 1~2개를 제시합니다.",
-  detail: "후보 10개와 역술가 검수 의견, 수정 1회 [범위 확정 후 기재]",
-};
-export const packageSummaries: Record<Package, string> = {
-  basic: "후보 5개 + 추천 1~2개",
-  detail: "후보 10개 + 검수 의견",
-};
-
 // 상호·브랜드 작명 신청 폼(시안 v2 Name). 저장은 서버 액션이 하고, 금액은 서버가 다시 계산합니다.
 export function NameForm({ viewer }: { viewer: ApplyViewer }) {
   const { state, pending, formProps, errorOf, formError } = useApplyForm(submitNameBizOrder);

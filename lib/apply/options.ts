@@ -118,3 +118,14 @@ export const nameLengthNames: Record<NameLength, string> = {
 
 // 아기 이름은 태어나기 전에도 신청하므로, 출산 예정일을 오늘부터 이 일수까지 받습니다.
 export const BABY_DUE_MAX_DAYS = 300;
+
+// 상품 설명(신청 요약, 결제 화면, 완료 화면 공통)
+export const packageDescriptions = {
+  basic: "후보 5개를 오행·소리·뜻으로 평가하고 추천 1~2개를 제시합니다.",
+  detail: "후보 10개와 역술가 검수 의견, 수정 1회 [범위 확정 후 기재]",
+} as const;
+export const packageSummaries = {
+  basic: "후보 5개 + 추천 1~2개",
+  detail: "후보 10개 + 검수 의견",
+} as const;
+export const dateSummary = "후보 날짜 3개 + 선정 이유";

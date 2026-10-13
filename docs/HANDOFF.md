@@ -2,12 +2,14 @@
 
 다음 세션이 이 문서만 읽고 이어서 작업할 수 있게 유지합니다. 키와 비밀번호는 쓰지 않습니다.
 
-최종 갱신: 2026-10-13 (5단계 결정 반영: 동의 문구 통일, 아기 성별 "아직 몰라요", 반응형 빠른 모드)
+최종 갱신: 2026-10-13 (6-A: 결제 기록 테이블, 결제 모드 스위치, 결제·완료 화면. PG 연동 없음)
 
 ## 1. 현재 단계
 
+- **6-A 구현·검증 완료(2026-10-13), 사장님 승인 대기, 미push**: 결제 기록 테이블 `payments`와 결제 확인 함수 `confirm_order_payment`(SQL 적용됨), 결제 모듈 `lib/payment.ts`, 결제 화면 `/pay/[orderId]`, 완료 화면 `/done/[orderId]`, 결제 모드 스위치. **PG는 연결하지 않았고 실제 결제는 일어나지 않는다.** 커밋 값은 `PAYMENT_MODE = "off"`, `PAYMENT_PG_PROVIDER = "none"`, `APPLY_FORMS_OPEN = false`. 검증: DB 52건, 브라우저 82건(off 25, manual 계좌 없음 6, manual 19, pg 미연결 8, pg 모의 결제 운영 빌드 8, pg 모의 결제 개발 서버 16), 5단계 회귀(열림 88, 닫힘 16), 반응형 quick 19개 경로 152회 모두 통과.
+
 - **현재**: 4단계 승인됨(2026-10-12). 사장님이 프로덕션 가입·사전신청 실사이트 확인을 마쳤다고 알림. **5단계 구현 완료, 사장님 승인 대기**: 신청 폼 3종(`/apply/date`, `/apply/name`, `/apply/person`), 폼별 서버 검증, 오픈 스위치 `APPLY_FORMS_OPEN`(커밋 값 false). 브라우저 조작 검증: 닫힌 상태 16건, 열린 상태 88건 통과(결정 반영 뒤 다시 실행).
-- **다음**: 6단계(결제·완료 화면, PG 연동 없음). 지금 신청 폼은 제출 후 `/my?notice=requested`로 보내고, 신년 리포트 사전신청은 `/my?notice=preorder-done`으로 보낸다. 6단계에서 `/pay/[orderId]`, `/done/[orderId]`로 바꾼다.
+- **다음**: 6-B(PG 연동). 사장님이 PG를 정하고 키를 환경변수에 직접 넣은 뒤 시작한다. 고칠 곳은 `lib/payment.ts`의 provider 하나(`prepare`, `confirm`, `cancel`, `verifyWebhook`)와 결제창을 띄우는 화면 흐름. 신청 폼은 제출 후 `/pay/[orderId]`로 보낸다. 신년 리포트 사전신청은 그대로 `/my?notice=preorder-done`.
 - 작업 지시 원문: `지시문_sajuboss.md`(1~9단계). 디자인 기준: `design/v2/`(시안 v2). 반응형 기준: `docs/RESPONSIVE.md`.
 
 | 단계 | 내용 | 상태 | 커밋 |
@@ -19,7 +21,8 @@
 | 3 | 시안 v2 전환(공통 스타일, 헤더·푸터, 로그인, 내 신청) + 메인·리포트 상세 + 하단 고정 바 | 승인됨, push됨 | `579ecf4` |
 | 4 | 주문 저장(orders), 삭제 요청, 약관 동의 시각, 사주 저장 | 승인됨, push됨 | SQL `7f688e7`, 코드 `a383e3b`, `b795676` |
 | 5 | 신청 폼 3종(개업택일, 상호·브랜드 작명, 개인·개명 작명) | 구현·검증 완료, 결정 반영, push됨(접수 스위치 꺼짐) | `d8ab582`, `a37ecaa` |
-| 6 | 결제·완료 화면(PG 연동 없음) | 시작 전 | |
+| 6-A | 결제 기록(payments), 결제 모드 스위치, 결제·완료 화면(PG 연동 없음) | 구현·검증 완료, 승인 대기, 미push | 이 문서와 같은 커밋 |
+| 6-B | PG 연동 | 시작 전(PG 결정·키 대기) | |
 | 7 | 관리자 화면 | 시작 전 | |
 | 8 | 풀이 연결(후순위) | 시작 전 | |
 | 9 | QA, 오픈 전 점검 | 시작 전 | |
@@ -93,6 +96,19 @@
 - `lib/validation.ts`: `GENDER_UNKNOWN`, `genderUnknownName`. `lib/apply/shared.ts`: `resolveSaju`에 `allowUnknownGender`, `OrderSaju.gender`가 `unknown`도 받음. `lib/apply/name-person.ts`: baby일 때만 허용.
 - `components/saju/SajuFields.tsx`: `allowUnknownGender`(선택지와 안내 문구). `ApplyParts.tsx`의 `SajuSource`와 `PersonForm.tsx`가 baby일 때 넘김.
 
+**6-A(결제 기록, 결제·완료 화면)**
+- `supabase/migrations/20261013120000_payments.sql`(신규): `payments` 테이블, 결제 확인 함수 `confirm_order_payment`. 아래 3번 참고.
+- `lib/products.ts`: 스위치 `PAYMENT_MODE`(`off` | `manual` | `pg`, 커밋 값 `off`), `PAYMENT_PG_PROVIDER`(`none` | `mock`, 커밋 값 `none`).
+- `lib/payment.ts`(신규, server-only): `getBankInfo`(계좌 안내, 서버 환경변수), `PaymentProvider` 형태와 연결 안 된 provider·모의 provider, `startPayment`, `confirmPayment`, `requestManualPayment`(입금 확인 요청, ready 행 1개), `confirmManualPayment`(관리자 전용, 아직 부르는 화면 없음), `getPaymentState`, `cancelPendingPayments`. 주문 상태를 requested → paid로 바꾸는 곳은 이 파일의 `settlePayment`(DB 함수 호출) 하나.
+- `lib/order-view.ts`(신규, server-only): 결제·완료 화면용 본인 주문 조회(세션 클라이언트, 컬럼 명시, payload는 읽지 않음).
+- `app/pay/[orderId]/page.tsx`, `actions.ts`(신규), `components/pay/PayView.tsx`(신규): 결제 화면. 서버 액션이 폼에서 읽는 값은 주문 id와 결제 동의 체크뿐.
+- `app/done/[orderId]/page.tsx`: 완료 화면. 주문 상태에 따라 제목·안내·결제 상태 표시가 달라짐(결제 확인 전에는 결제 확인으로 보이지 않음).
+- `lib/supabase/proxy.ts`: `/pay/[id]`, `/done/[id]`는 본인의 삭제되지 않은 주문일 때만 열고, 아니면 화면을 그리기 전에 HTTP 404.
+- `lib/apply/shared.ts`: 신청 접수 후 `/pay/[orderId]`로 이동. `lib/apply/options.ts`: 패키지 설명·요약 문구를 이쪽으로 옮김(결제 화면과 함께 씀).
+- `lib/orders.ts`: 삭제 요청 시 남아 있는 결제 대기 행을 canceled로 바꿈(`cancelPendingPayments`).
+- `app/my/page.tsx`: requested 주문에 "결제하기" 링크. `app/pages.css`: 결제·완료 화면 스타일. `.env.example`: 계좌 환경변수 이름.
+- `scripts/check-responsive.mjs`: `/pay/[orderId]`, `/done/[orderId]`를 임시 주문으로 검사, 정리 순서에 payments 추가.
+
 ## 3. DB 상태 (Supabase 프로젝트 ref `jmolzaubbseytkdaadgf`)
 
 마이그레이션은 **사장님이 SQL Editor에서 직접 실행**합니다. Claude는 DDL을 실행할 수단이 없고, CLI 로그인·DB 비밀번호는 쓰지 않기로 했습니다. SQL 파일 전문을 코드 블록으로 보여주고 승인 → 실행 → REST 검증 순서입니다.
@@ -103,6 +119,7 @@
 | `supabase/migrations/20261011150000_profile_consents.sql` | 적용됨(2026-10-11). 실행 순서 1. profiles에 `age_confirmed_at`, `terms_agreed_at`, `privacy_agreed_at`, `marketing_opt_in_at` 추가 |
 | `supabase/migrations/20261011150050_saju_profiles.sql` | 적용됨(2026-10-11). 실행 순서 2. `saju_profiles` 테이블, `set_updated_at()` |
 | `supabase/migrations/20261011150100_orders.sql` | 적용됨(2026-10-11). 실행 순서 3. `orders` 테이블 |
+| `supabase/migrations/20261013120000_payments.sql` | 적용됨(2026-10-13). `payments` 테이블, 함수 `confirm_order_payment`. REST 검증 52/52 통과 |
 
 **테이블 `public.profiles`**: `id`(auth.users FK, on delete cascade), `role`('user'|'admin', 기본 'user'), `created_at`.
 - RLS 켜짐. 정책: `profiles_select_own`, `profiles_update_own`(둘 다 본인 행, authenticated).
@@ -117,6 +134,13 @@
 
 **테이블 `public.orders`**: RLS 켜짐, 정책 `orders_select_own`(본인 + 삭제되지 않은 주문). authenticated는 컬럼 단위 select만(`admin_note`, `deleted_at` 제외), 쓰기는 service_role. 계정 삭제는 restrict.
 
+**테이블 `public.payments`**(6-A): `id`, `order_id`(orders FK, restrict), `provider`('manual'|'pg'), `provider_name`, `provider_payment_id`, `amount_krw`(0 이상), `status`('ready'|'paid'|'failed'|'canceled'|'refunded', 기본 ready), `paid_at`, `created_at`, `updated_at`.
+- RLS 켜짐, 정책 없음. anon·authenticated는 권한 없음(조회·쓰기 모두 42501). service_role만 사용. 화면에 필요한 결제 상태는 서버가 읽어 넘김.
+- unique: `(provider_name, provider_payment_id)`(결제 키가 있을 때), 주문당 ready 행 1개(`payments_one_ready_per_order`). 결제 수단 정보(카드번호·계좌번호 등)를 담는 컬럼은 없음.
+- 결제 기록이 있는 주문은 삭제할 수 없음(23503). 임시 데이터 정리 순서는 **payments → orders → saju_profiles → 계정**.
+
+**함수 `public.confirm_order_payment(p_order_id, p_provider, p_provider_name, p_provider_payment_id, p_amount_krw)`**(6-A): 주문을 잠그고 금액을 비교한 뒤 payments 기록과 `orders.status = paid`를 한 트랜잭션으로 처리. 결과 문자열: `paid`, `already_paid`, `amount_mismatch`(주문 그대로, failed 행 1개), `duplicate_payment`, `not_payable`, `not_found`, `invalid`. `search_path = ''`. execute는 service_role만(anon·authenticated 호출은 42501).
+
 **profiles 동의 컬럼 4개**: `age_confirmed_at`, `terms_agreed_at`, `privacy_agreed_at`, `marketing_opt_in_at`. 사용자 수정 불가.
 
 **함수 `public.set_updated_at()`**: orders, saju_profiles의 updated_at 트리거.
@@ -128,6 +152,12 @@
 - `name_biz`: `form, name_type, business, area, intro, customers, moods, include_chars, avoid_chars, saju_source, saju, candidates, memo`
 - `name_person`: `form, kind, saju_source, saju, family_name, current_name, rename_reason, parent_birth_date, avoid_chars, moods, name_length, include_chars, candidates`
 - `saju`는 `birth_date, calendar, birth_time, time_unknown, gender`(이름표 없음). `partner_saju`는 성별 없이 4개.
+
+**6-A DB 검증 결과**(2026-10-13, 임시 계정 2개로 수행 후 삭제, 잔여 행 0, 전후 전체 행 수 같음)
+- 사전 점검 2건(테이블은 컬럼을 명시한 일반 조회로, 함수는 없는 주문 → `not_found`로 확인) 통과 뒤 진행. 52건 모두 통과.
+- 권한: anon·authenticated의 payments 조회·추가·수정·삭제와 함수 호출 모두 42501. 제약: 음수 금액·허용되지 않은 status·provider 23514, 같은 (PG 이름, 결제 키) 23505, 결제 기록이 있는 주문 삭제 23503, 없는 주문 id 23503, order_id 없음 23502.
+- 함수: 정상 → paid, 재시도 → already_paid(행 늘지 않음), 동시 5개 → paid 1번, 금액 불일치(적게·많게) → amount_mismatch + failed 1행(재시도해도 1행), 같은 결제 키를 다른 주문에 → duplicate_payment, preorder·canceled·삭제 요청·in_progress → not_payable, 없는 주문 → not_found, 잘못된 입력 7가지 → invalid, ready 행이 있으면 그 행이 paid로 바뀜(새 행 없음), 입금 확인 요청 연타 → ready 1행 유지.
+- 첫 시도 때는 사전 점검이 PGRST205·PGRST202로 실패해 중단했고, 사장님이 SQL을 다시 실행·스키마 리로드한 뒤 통과함. **행 수만 세는 조회(head)는 테이블이 없어도 오류가 드러나지 않으므로 사전 점검에 쓰지 않는다.**
 
 **4단계 DB 검증 결과**(2026-10-11, 임시 계정 3개로 수행 후 삭제, 잔여 행 0)
 - 사전 점검 6건, ①~⑨, ⑪, ⑬~㉔ 모두 통과(거부는 42501/23514/23502/23505 정확히 일치, 허용은 행 수 일치).
@@ -160,11 +190,17 @@
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon 키 | 있음 | Production, Preview, Development |
 | `SUPABASE_SERVICE_ROLE_KEY` | 서버 전용. `NEXT_PUBLIC_` 금지 | 있음 | Production, Preview (Secret) |
 | `NEXT_PUBLIC_KAKAO_LOGIN_ENABLED` | `true`면 카카오 버튼 활성 | 없음(비활성) | 없음(비활성) |
+| `BANK_NAME` | 계좌이체 안내의 은행 이름(서버 전용, `PAYMENT_MODE = "manual"`일 때 사용) | 없음 | 없음(사장님이 직접 입력) |
+| `BANK_HOLDER` | 예금주(서버 전용) | 없음 | 없음(사장님이 직접 입력) |
+| `BANK_ACCOUNT` | 계좌번호(서버 전용) | 없음 | 없음(사장님이 직접 입력) |
 
 - `.env.local`은 `.gitignore`(`.env*`)로 제외. `.env.example`만 커밋.
 - service_role 키를 읽는 코드는 `lib/supabase/admin.ts`(앱)와 `scripts/check-responsive.mjs`(로컬 검증)뿐.
+- 계좌 3개는 `lib/payment.ts`의 `getBankInfo`만 읽음. 하나라도 비어 있으면 화면에 `[확정 후 기재]`가 보이고 입금 확인 요청을 받지 않음. 값은 사장님이 직접 넣고, 문서·코드에는 쓰지 않음. PG 키는 6-B에서 사장님이 직접 넣음.
 
 ## 5. 미커밋·미push
+
+- **6-A 커밋은 로컬에만 있음(미push)**. 그 앞의 문서 갱신 커밋 `a3b66ac`도 미push. push는 사장님의 "push 진행" 뒤에. push 직전에는 전체 반응형 검사(`npm run check:responsive`)와 빌드 결과물의 service_role 키 검색을 한다.
 
 - 2026-10-11 사장님의 "push 진행"으로 `b795676`까지 push함. Vercel 프로덕션 배포 Ready(`sajuboss-l2pwtbapn`), `www.sajuboss.com`에 연결됨.
 - 2026-10-13 사장님의 "push 진행"으로 `a37ecaa`까지 push함(`5120fd9`, `a8336f6`, `d8ab582`, `a37ecaa`). Vercel 프로덕션 배포 Ready(`sajuboss-bncwjq2r4`). 그 뒤의 문서 갱신 커밋(이 문서)은 로컬에만 있음. **push는 매번 사장님 승인 후에만.** push하면 Vercel 프로덕션에 배포됨.
@@ -186,6 +222,14 @@
 - 배포된 페이지·스크립트에서 service_role 키, `service_role` 문자열, `sb_secret_` 형식 키 0건. `.env*`, `.git/config`, 마이그레이션·문서 파일은 404. git 이력에 키 값 0건.
 
 ## 6. 사장님 확인·결정 대기
+
+00. **6-A 승인**과 아래 6-A 확인 사항.
+00-1. **지시에 없던 DB 항목 2개**: 주문당 결제 대기 행 1개 제한 인덱스, 결제 확인 함수 `confirm_order_payment`(SQL 전문을 보고 실행하심).
+00-2. **결제 모드를 켜는 순서**: `manual`로 바꾸기 전에 `BANK_NAME`, `BANK_HOLDER`, `BANK_ACCOUNT`를 Vercel에 넣어야 함. `manual`에서는 사용자가 "입금 확인 요청하기"를 눌러도 주문은 requested 그대로이고, 입금 확인(→ paid)은 관리자 화면(7단계)이 생겨야 할 수 있음. 그 전에는 처리할 화면이 없음.
+00-3. **manual 모드의 입금 안내 문구**("입금자명 뒤에 신청 번호를 함께 적어 주세요")는 Claude가 쓴 문구. 실제 운영 방식에 맞는지 확인 필요.
+00-4. **off 모드 결제 화면의 버튼**: "결제하기 (준비 중)" 비활성 + "신청만 먼저 접수하기"(→ `/my?notice=requested`). 결제 안내 방식은 `[안내 방식 확정 후 기재]`.
+00-5. **환불 규정, 영수증·현금영수증, 결과 전달 방법·시기, 입금 확인 소요 시간**: 모두 `[확정 후 기재]`.
+00-6. **신년 리포트 사전신청 완료 후 이동**: 그대로 `/my?notice=preorder-done`. `/done/[id]`는 사전신청 주문도 열 수 있게 만들어 둠(제목 "사전신청이 접수되었습니다"). 바꿀지 결정 필요.
 
 0. **5단계 승인**과 아래 5단계 결정 사항.
 0-1. (결정됨, 2026-10-13) **신청 동의 문구**: "개인정보 수집·이용" 문구는 `components/order/OrderConsents.tsx` 한 곳에서 가져옴(사전신청 카드 + 신청 폼 3종). "참고용 자료 확인" 문구는 시안대로 상품별(`disclaimer`로 넘김).
@@ -211,7 +255,7 @@
 
 - `components/home/TodayForm.tsx`: 검증 통과 시 "준비 중" 안내만 표시. 실제 계산은 8단계.
 - 신청 폼 3종은 스위치가 꺼져 있어(`APPLY_FORMS_OPEN = false`) 배포해도 접수되지 않음. 실제로 만들 수 있는 신청은 신년 리포트 사전신청뿐.
-- 신청 폼의 버튼 문구는 시안의 "신청하고 결제로"가 아니라 "신청하기"(결제 화면이 없어서). 6단계에서 되돌릴지 결정.
+- 신청 폼의 버튼 문구는 시안의 "신청하고 결제로"가 아니라 "신청하기". 결제 화면이 생겼으니 결제 모드를 켤 때 되돌릴지 결정.
 - 신청 폼은 길이 상한 때문에 payload가 8KB를 넘을 수 없음(최대 약 3KB). `createOrder`의 8KB 확인은 뒤쪽 안전장치로만 남아 있고, 폼으로는 그 분기에 닿지 않음.
 - 금액·status·user_id·모르는 키를 주입한 요청은 "거부"가 아니라 그 값을 버리고 정상 값으로 저장됨(서버가 그 이름을 읽지 않음).
 - 비로그인 상태에서 폼을 채운 뒤 로그인하러 가면 입력이 지워짐. 폼 위 안내와 "로그인하고 신청하기" 버튼으로 먼저 로그인하게 안내함.
@@ -224,7 +268,14 @@
 - 메인의 "오늘의 사업운" 입력은 저장된 사주와 아직 연결하지 않음(8단계).
 - 검증 스크립트(DB 검증, 4단계 브라우저 검증)는 저장소에 없음(세션 임시 폴더). `scripts/check-responsive.mjs`만 저장소에 있음.
 - 메인 히어로의 예시 카드: 시안에는 날짜("10월 11일")가 있으나, 고정 날짜는 금방 틀려 보여 "예시 · 오늘의 한마디"로 표기.
-- `/pay/[orderId]`, `/done/[orderId]`, `/admin/orders`: 제목만 있는 빈 페이지(`PageStub`). v2 시안은 `design/v2/Pay·Done.dc.html`.
+- `/admin/orders`: 제목만 있는 빈 페이지(`PageStub`). 7단계에서 만든다. `/pay/[orderId]`, `/done/[orderId]`는 6-A에서 구현함(v2 시안 `design/v2/Pay·Done.dc.html`).
+- 결제 스위치는 코드 상수라 바꾸려면 커밋·배포가 필요함(환경변수 아님). 모드별 화면은 스위치를 로컬에서만 바꿔 빌드해 확인했고, 커밋에는 `off`·`none`으로 남김.
+- 모의 결제(`PAYMENT_PG_PROVIDER = "mock"`)는 `NODE_ENV`가 production이면 결제 준비·확인 양쪽에서 거부함. 운영 빌드(`next start`)에서는 "이 결제 방식은 사용할 수 없습니다"만 나오고 기록이 생기지 않음을 확인. 결제 성공 흐름은 개발 서버(`next dev`)에서만 확인함.
+- 실제 PG로는 아무것도 확인하지 않음(6-B). 금액 불일치 거부는 DB 함수 검증으로만 확인했고(모의 결제는 주문 금액을 그대로 돌려줘 화면으로는 불일치를 만들 수 없음), 웹훅·결제 취소·환불은 구현하지 않음(provider에 자리만 있음).
+- 관리자 입금 확인(`confirmManualPayment`)은 부르는 화면이 없어 브라우저로 확인하지 못함. 같은 DB 함수의 manual 경로는 DB 검증으로 확인함.
+- 반응형 검사는 커밋 상태(off 모드)의 결제·완료 화면만 봄. manual·pg 모드 화면의 반응형은 그 모드를 켤 때 다시 검사해야 함.
+- 금액·status·결제 키를 주입한 결제 요청도 "거부"가 아니라 그 값을 읽지 않고 버림(서버 액션은 주문 id와 동의 체크만 읽음).
+- 서버 로그에는 오류 코드와 결과 종류만 남김. 개발 서버 로그에는 요청 경로가 찍혀 주문 id가 보이지만(Next.js 기본 동작) 이메일·전화·payload·결제 키는 없음.
 - 푸터 "이용약관", "개인정보처리방침": 링크가 `#`(문서 미정).
 - 파비콘: Next.js 기본 아이콘.
 - 미정 문구가 두 종류: `[확정 후 기재]`(계열 문구 포함)와 `[확인 후 기재]`(신고번호). 9단계에서 둘 다 검색.
@@ -248,8 +299,8 @@ npm run check:responsive:quick     # 평소. push 직전·9단계 QA는 npm run 
 
 1. 이 문서와 `docs/RESPONSIVE.md`를 읽고 현재 상태를 요약한다.
 2. 6번 목록에서 사장님 답이 온 항목을 처리한다(특히 5단계 승인, "push 진행").
-3. `lib/products.ts`의 `APPLY_FORMS_OPEN`이 false인지 먼저 확인한다. 검증할 때만 로컬에서 true로 바꾸고, 커밋 전에 false로 되돌린다.
-4. DB를 바꾸는 작업이 생기면 SQL 전문을 보여주고 승인 → 사장님이 SQL Editor에서 실행 → REST 검증 순서(임시 계정은 무작위 `@example.com`, `email_confirm: true`, 끝나면 orders → saju_profiles → 계정 순서로 삭제하고 잔여 행 확인. 거부는 기대 오류 코드로 판정, `PGRST205`/`PGRST202`는 실패. 사전 점검에서 이 코드가 나오면 멈추고 보고).
+3. `lib/products.ts`의 `APPLY_FORMS_OPEN`이 false, `PAYMENT_MODE`가 `off`, `PAYMENT_PG_PROVIDER`가 `none`인지 먼저 확인한다. 검증할 때만 로컬에서 바꾸고, 커밋 전에 되돌린다.
+4. DB를 바꾸는 작업이 생기면 SQL 전문을 보여주고 승인 → 사장님이 SQL Editor에서 실행 → REST 검증 순서(임시 계정은 무작위 `@example.com`, `email_confirm: true`, 끝나면 payments → orders → saju_profiles → 계정 순서로 삭제하고 잔여 행 확인. 거부는 기대 오류 코드로 판정, `PGRST205`/`PGRST202`는 실패. 사전 점검에서 이 코드가 나오면 멈추고 보고).
 5. 새 화면은 `design/v2/`의 해당 시안과 `app/site.css` 클래스를 쓰고, 금액 + 버튼이 있는 화면에는 `MobileBar`를 넣는다.
 6. 단계 보고 직전에 이 문서를 갱신해 같은 커밋에 넣고, 보고 끝에 "HANDOFF.md 갱신됨(변경 요약 3줄)"을 붙인다.
 

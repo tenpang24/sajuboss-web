@@ -1,6 +1,7 @@
 import "server-only";
 import { APPLY_CLOSED_MESSAGE } from "@/lib/apply/options";
 import { getUser } from "@/lib/auth";
+import { cancelPendingPayments } from "@/lib/payment";
 import { brand } from "@/lib/brand";
 import { hasSignupConsents } from "@/lib/consents";
 import { orderAmount } from "@/lib/pricing";
@@ -228,5 +229,7 @@ export async function requestOrderDeletion(orderId: unknown): Promise<DeletionRe
   if (updated.data.length === 0) {
     return { ok: false, message: "신청 상태가 바뀌어 삭제하지 못했습니다. 화면을 새로 고쳐 주세요." };
   }
+  // 입금 확인을 기다리던 결제 대기 기록이 있으면 함께 취소로 바꿉니다.
+  await cancelPendingPayments(orderId);
   return { ok: true, outcome: "deleted" };
 }

@@ -12,11 +12,12 @@
 //       2) 파일을 화면 경로로 바꿉니다.
 //          app/<경로>/ 아래 파일          → 그 경로 (예: app/apply/date/actions.ts → /apply/date)
 //          components/apply/DateForm 등   → 해당 폼, 그 밖의 components/apply, lib/apply → 신청 폼 3종
+//          components/pay, lib/payment.ts, lib/order-view.ts → /pay/[orderId], /done/[orderId]
 //          components/report → /report/2027, components/my → /my, components/auth → /login 계열, components/home → /
 //          components/saju, components/order → 그 부품을 쓰는 화면(신청 폼 3종, /my, /report/2027)
 //          전역 파일(app/layout.tsx, app/*.css, components/ui, 헤더·푸터) → 모든 경로
 //          lib(위에 없는 것), docs, scripts, 설정 파일 → 화면 경로 없음
-//       3) 고른 경로가 하나도 없으면 신청 폼 3종과 /my를 검사합니다.
+//       3) 고른 경로가 하나도 없으면 신청 폼 3종, /my, /pay/[orderId], /done/[orderId]를 검사합니다.
 //     신청 폼 경로는 비로그인 화면과 로그인 상태 변형(저장된 사주, 직접 입력, 동업자, 개명)을 함께 봅니다.
 import { execFileSync, spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
@@ -55,7 +56,14 @@ const publicRoutes = [
   "/login?mode=reset",
 ];
 // 로그인(관리자) 상태로 확인하는 경로
-const authRoutes = ["/my", "/login/update-password", "/admin/orders", "/pay/sample", "/done/sample"];
+// [orderId]는 검사할 때 임시 계정의 신청 id(결제 대기 상태)로 바뀝니다.
+const authRoutes = [
+  "/my",
+  "/login/update-password",
+  "/admin/orders",
+  "/pay/[orderId]",
+  "/done/[orderId]",
+];
 // 신청 폼 3종은 로그인 상태(저장된 사주 있음)에서 화면이 달라지므로 한 번 더 확인합니다.
 // clicks: 화면을 연 뒤 눌러서 펼쳐 볼 요소(직접 입력, 동업자 입력, 개명 항목)
 const applyVariants = [
@@ -80,7 +88,7 @@ const applyVariants = [
 ];
 
 const APPLY_ROUTES = ["/apply/date", "/apply/name", "/apply/person"];
-const QUICK_FALLBACK = [...APPLY_ROUTES, "/my"];
+const QUICK_FALLBACK = [...APPLY_ROUTES, "/my", "/pay/[orderId]", "/done/[orderId]"];
 
 // 빠른 모드의 경로 선택. 바뀐 파일 목록을 화면 경로로 바꿉니다(규칙은 파일 맨 위 주석).
 // 돌려주는 값: { all: true } 또는 { routes: Set<경로> }, 그리고 고른 이유.
@@ -112,14 +120,16 @@ function pickQuickRoutes() {
     ) {
       all = true;
     } else if (file.startsWith("app/")) {
-      // app/apply/date/page.tsx → /apply/date, app/page.tsx → /, app/pay/[orderId]/page.tsx → /pay/sample
+      // app/apply/date/page.tsx → /apply/date, app/page.tsx → /, app/pay/[orderId]/page.tsx → /pay/[orderId]
       const dir = file.split("/").slice(1, -1);
       if (dir[0] === "auth") continue; // 화면이 없는 경로(인증 콜백)
-      add("/" + dir.map((part) => (part.startsWith("[") ? "sample" : part)).join("/"));
+      add("/" + dir.join("/"));
     } else if (/^components\/apply\/(Date|Name|Person)Form/.test(file)) {
       add({ Date: "/apply/date", Name: "/apply/name", Person: "/apply/person" }[file.match(/(Date|Name|Person)Form/)[1]]);
     } else if (/^(components|lib)\/apply\//.test(file)) {
       add(...APPLY_ROUTES);
+    } else if (file.startsWith("components/pay/") || ["lib/payment.ts", "lib/order-view.ts"].includes(file)) {
+      add("/pay/[orderId]", "/done/[orderId]");
     } else if (file.startsWith("components/report/")) {
       add("/report/2027");
     } else if (file.startsWith("components/my/")) {
@@ -191,8 +201,12 @@ async function createTempSession(env) {
   if (error) throw new Error(`임시 계정 생성 실패 (${error.code ?? error.status})`);
   const userId = data.user.id;
 
-  // 정리 순서: orders → saju_profiles → 계정(주문이 있으면 계정 삭제가 막힙니다).
+  // 정리 순서: payments → orders → saju_profiles → 계정(주문이 있으면 계정 삭제가 막힙니다).
   const cleanup = async () => {
+    // 결제 기록이 있는 주문은 지울 수 없어(restrict) payments부터 지웁니다.
+    const { data: mine } = await admin.from("orders").select("id").eq("user_id", userId);
+    const orderIds = (mine ?? []).map((row) => row.id);
+    if (orderIds.length) await admin.from("payments").delete().in("order_id", orderIds);
     await admin.from("orders").delete().eq("user_id", userId);
     await admin.from("saju_profiles").delete().eq("user_id", userId);
     await admin.auth.admin.deleteUser(userId);
@@ -234,8 +248,27 @@ async function createTempSession(env) {
       time_unknown: true,
       gender: "female",
     });
-    if (seededOrder.error || seededSaju.error) {
-      throw new Error(`임시 데이터 준비 실패 (${seededOrder.error?.code ?? seededSaju.error?.code})`);
+    // 결제·완료 화면용: 결제 대기(requested) 상태의 신청 1건
+    const payOrder = await admin
+      .from("orders")
+      .insert({
+        user_id: userId,
+        product: "name_biz",
+        package: "basic",
+        status: "requested",
+        amount_krw: 29000,
+        contact_email: email,
+        contact_phone: "01012345678",
+        consent_privacy_at: now,
+        consent_disclaimer_at: now,
+        payload: { test: true },
+      })
+      .select("id")
+      .single();
+    if (seededOrder.error || seededSaju.error || payOrder.error) {
+      throw new Error(
+        `임시 데이터 준비 실패 (${seededOrder.error?.code ?? seededSaju.error?.code ?? payOrder.error?.code})`,
+      );
     }
 
     const jar = new Map();
@@ -249,7 +282,7 @@ async function createTempSession(env) {
     const signedIn = await client.auth.signInWithPassword({ email, password });
     if (signedIn.error) throw new Error(`임시 계정 로그인 실패 (${signedIn.error.code})`);
     const cookies = [...jar].map(([name, value]) => ({ name, value, url: baseUrl }));
-    return { cookies, cleanup };
+    return { cookies, cleanup, orderId: payOrder.data.id };
   } catch (error) {
     await cleanup();
     throw error;
@@ -337,14 +370,22 @@ async function main() {
     if (canAuth) session = await createTempSession(env);
     const allRoutes = [
       ...publicRoutes.map((route) => ({ route, name: route, auth: false })),
-      ...(session ? authRoutes.map((route) => ({ route, name: route, auth: true })) : []),
+      ...(session
+        ? authRoutes.map((route) => ({
+            route: route.replace("[orderId]", session.orderId),
+            name: route,
+            auth: true,
+          }))
+        : []),
       ...(session ? applyVariants.map((variant) => ({ ...variant, auth: true })) : []),
     ];
     // 빠른 모드에서는 고른 경로만 남깁니다(/login은 ?mode= 변형도 함께).
     const routes =
       !picked || picked.all
         ? allRoutes
-        : allRoutes.filter(({ route }) => picked.routes.has(route.split("?")[0]));
+        : allRoutes.filter(({ route, name }) =>
+            picked.routes.has((name.includes("[") ? name : route).split("?")[0]),
+          );
 
     const chromiumBrowser = await chromium.launch();
     const webkitBrowser = await webkit.launch();

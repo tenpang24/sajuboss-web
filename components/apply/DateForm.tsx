@@ -9,6 +9,7 @@ import {
   LIMITS,
   OPEN_TYPES,
   WEEKDAY_PREFS,
+  dateSummary,
   openTypeNames,
   weekdayPrefNames,
   type OpenType,
@@ -44,7 +45,7 @@ export function DateForm({ viewer }: { viewer: ApplyViewer }) {
   const amount = orderAmount("date", null, { partner });
   const summary = [
     { label: "상품", value: productNames.date },
-    { label: "받는 내용", value: "후보 날짜 3개 + 선정 이유" },
+    { label: "받는 내용", value: dateSummary },
     { label: "기본 금액", value: formatKrw(pricing.date.base) },
     ...(partner ? [{ label: "동업자 추가", value: `+${formatKrw(pricing.date.partnerAddon)}` }] : []),
   ];

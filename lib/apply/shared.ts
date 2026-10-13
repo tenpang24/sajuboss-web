@@ -202,6 +202,6 @@ export async function submitOrder(
     };
   }
 
-  // 결제 화면(/pay/[orderId])은 6단계에서 만듭니다. 그 전까지는 내 신청으로 보냅니다.
-  redirect("/my?notice=requested");
+  // 접수 후 결제 화면으로 보냅니다. 결제 모드가 off여도 화면에서 "결제 준비 중"을 안내합니다.
+  redirect(`/pay/${result.orderId}`);
 }
