@@ -3,8 +3,15 @@ import { redirect } from "next/navigation";
 import { LIMITS, SAJU_SOURCES, type ApplyState, type SajuSource } from "@/lib/apply/options";
 import { createOrder } from "@/lib/orders";
 import type { Package, Product } from "@/lib/products";
-import { getSelfSaju, readSajuForm, type SajuInput } from "@/lib/saju";
-import { isOneOf, parseLine, parseLongText, pickAllowed } from "@/lib/validation";
+import { getSelfSaju, readBirthForm, readSajuForm, type SajuInput } from "@/lib/saju";
+import {
+  GENDER_UNKNOWN,
+  isOneOf,
+  parseLine,
+  parseLongText,
+  pickAllowed,
+  type Gender,
+} from "@/lib/validation";
 
 // 신청 폼 3종의 서버 검증에서 함께 쓰는 도구.
 // 폼별 검증 파일(date.ts, name-biz.ts, name-person.ts)은 formData에서 정해진 이름만 하나씩 읽어
@@ -104,8 +111,11 @@ export function choices<T extends string>(formData: FormData, name: string, allo
   return pickAllowed(formData.getAll(name), allowed);
 }
 
-// payload에 넣는 사주 정보(이름표는 넣지 않습니다)
-export type OrderSaju = Omit<SajuInput, "label">;
+// payload에 넣는 사주 정보(이름표는 넣지 않습니다).
+// 성별 unknown은 아기 이름 신청에서만 나옵니다(resolveSaju의 allowUnknownGender).
+export type OrderSaju = Omit<SajuInput, "label" | "gender"> & {
+  gender: Gender | typeof GENDER_UNKNOWN;
+};
 
 function toOrderSaju(saju: OrderSaju): OrderSaju {
   return {
@@ -122,7 +132,7 @@ function toOrderSaju(saju: OrderSaju): OrderSaju {
 export async function resolveSaju(
   formData: FormData,
   userId: string,
-  options: { maxFutureDays?: number; allowSelf?: boolean } = {},
+  options: { maxFutureDays?: number; allowSelf?: boolean; allowUnknownGender?: boolean } = {},
 ): Promise<{ source: SajuSource; saju: OrderSaju }> {
   const source = formData.get("sajuSource");
   if (!isOneOf(source, SAJU_SOURCES)) {
@@ -138,6 +148,16 @@ export async function resolveSaju(
       throw new InputError("저장된 내 사주가 없습니다. '직접 입력'을 골라 주세요.", "sajuSource");
     }
     return { source, saju: toOrderSaju(saved) };
+  }
+
+  // 성별 "아직 몰라요"(unknown)는 allowUnknownGender를 준 폼(아기 이름)에서만 받습니다.
+  // 그 밖의 폼에서 unknown이 오면 아래 readSajuForm이 허용값(female, male)이 아니라고 거부합니다.
+  if (options.allowUnknownGender === true && formData.get("gender") === GENDER_UNKNOWN) {
+    const birth = readBirthForm(formData, { maxFutureDays: options.maxFutureDays });
+    if (!birth.ok) {
+      throw new InputError(birth.error, birth.field);
+    }
+    return { source, saju: toOrderSaju({ ...birth.value, gender: GENDER_UNKNOWN }) };
   }
 
   const parsed = readSajuForm(formData, { maxFutureDays: options.maxFutureDays });

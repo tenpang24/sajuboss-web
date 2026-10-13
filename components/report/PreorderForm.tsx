@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { submitReportPreorder, type PreorderState } from "@/app/report/2027/actions";
+import { OrderConsents } from "@/components/order/OrderConsents";
 import { SajuFields } from "@/components/saju/SajuFields";
 import { Button, buttonClass } from "@/components/ui/Button";
 import { PREORDER_FORM_ID } from "./ids";
@@ -32,22 +33,10 @@ export function PreorderForm() {
 
       {target === "other" && <SajuFields idPrefix="d" withLabel />}
 
-      <div className="preorder-consents">
-        <label className="check">
-          <input type="checkbox" name="consentPrivacy" required />
-          <span>
-            [필수] 개인정보 수집·이용에 동의합니다. <a href="#">내용 보기</a>{" "}
-            <span className="muted small">(항목·보관기간 [확정 후 기재])</span>
-          </span>
-        </label>
-        <label className="check">
-          <input type="checkbox" name="consentDisclaimer" required />
-          <span>
-            [필수] 결과는 전통 명리 원리에 따른 참고용 자료이며, 사업 성과를 보장하지 않는다는
-            점을 확인했습니다.
-          </span>
-        </label>
-      </div>
+      <OrderConsents
+        className="preorder-consents"
+        disclaimer="결과는 전통 명리 원리에 따른 참고용 자료이며, 사업 성과를 보장하지 않는다는 점을 확인했습니다."
+      />
 
       {state.error && (
         <p className="notice notice-error" role="alert">

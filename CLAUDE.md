@@ -20,5 +20,5 @@
 ## 참고 문서
 
 - `지시문_sajuboss.md`: 단계별 구현 지시(1~9단계)와 공통 전제.
-- `docs/RESPONSIVE.md`: 반응형 기준. 모든 화면에 적용하고 단계 보고에 `npm run check:responsive` 결과를 첨부한다.
+- `docs/RESPONSIVE.md`: 반응형 기준. 모든 화면에 적용하고 단계 보고에 반응형 검사 결과를 첨부한다. 평소엔 quick(`npm run check:responsive:quick`, 바뀐 화면 경로만 4개 폭), push 직전과 9단계 QA에서는 전체(`npm run check:responsive`).
 - `docs/HANDOFF.md`: 현재 상태, DB 상태, 대기 중인 결정, 다음에 할 일.

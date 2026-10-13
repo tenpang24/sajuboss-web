@@ -2,7 +2,23 @@
 //   npm run build && npm run check:responsive
 // 옵션: --no-auth (로그인 필요한 경로 건너뜀), --base-url=http://localhost:3000 (이미 떠 있는 서버 사용)
 // 키·비밀번호·세션 값은 출력하지 않습니다.
-import { spawn } from "node:child_process";
+//
+// 빠른 모드: npm run build && npm run check:responsive:quick  (--quick)
+//   평소 작업 중에는 빠른 모드를 쓰고, push 직전과 9단계 QA에서는 전체 검사를 돌립니다.
+//   - 폭 4개: 320(Android Chromium), 390(iPhone WebKit), 768, 1280(Chromium). 폭마다 기본과 글자 130%를 확인합니다.
+//   - 경로는 git으로 바뀐 파일을 보고 고릅니다(아래 pickQuickRoutes).
+//       1) 커밋하지 않은 변경(git diff HEAD)과 새 파일(추적되지 않은 파일)을 모읍니다.
+//          --since=<커밋 또는 브랜치>를 주면 그 지점부터 지금까지 바뀐 파일을 봅니다(예: --since=origin/main).
+//       2) 파일을 화면 경로로 바꿉니다.
+//          app/<경로>/ 아래 파일          → 그 경로 (예: app/apply/date/actions.ts → /apply/date)
+//          components/apply/DateForm 등   → 해당 폼, 그 밖의 components/apply, lib/apply → 신청 폼 3종
+//          components/report → /report/2027, components/my → /my, components/auth → /login 계열, components/home → /
+//          components/saju, components/order → 그 부품을 쓰는 화면(신청 폼 3종, /my, /report/2027)
+//          전역 파일(app/layout.tsx, app/*.css, components/ui, 헤더·푸터) → 모든 경로
+//          lib(위에 없는 것), docs, scripts, 설정 파일 → 화면 경로 없음
+//       3) 고른 경로가 하나도 없으면 신청 폼 3종과 /my를 검사합니다.
+//     신청 폼 경로는 비로그인 화면과 로그인 상태 변형(저장된 사주, 직접 입력, 동업자, 개명)을 함께 봅니다.
+import { execFileSync, spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import path from "node:path";
@@ -14,13 +30,16 @@ import { chromium, devices, webkit } from "playwright";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
 const noAuth = args.includes("--no-auth");
+const quick = args.includes("--quick");
+const sinceArg = args.find((arg) => arg.startsWith("--since="))?.split("=")[1];
+const startedAt = Date.now();
 const baseUrlArg = args.find((arg) => arg.startsWith("--base-url="))?.split("=")[1];
 const PORT = 3217;
 const baseUrl = baseUrlArg ?? `http://localhost:${PORT}`;
 const outDir = path.join(root, ".responsive");
 
-const MOBILE_WIDTHS = [320, 360, 390, 430];
-const WIDE_WIDTHS = [768, 1024, 1280, 1440];
+const MOBILE_WIDTHS = quick ? [320, 390] : [320, 360, 390, 430];
+const WIDE_WIDTHS = quick ? [768, 1280] : [768, 1024, 1280, 1440];
 const TEXT_ZOOM = 1.3; // 시스템 글꼴 크기 130%
 const MIN_FONT_PX = 16;
 const MIN_CONTROL_PX = 48;
@@ -59,6 +78,71 @@ const applyVariants = [
     clicks: ["input[name=kind][value=rename]"],
   },
 ];
+
+const APPLY_ROUTES = ["/apply/date", "/apply/name", "/apply/person"];
+const QUICK_FALLBACK = [...APPLY_ROUTES, "/my"];
+
+// 빠른 모드의 경로 선택. 바뀐 파일 목록을 화면 경로로 바꿉니다(규칙은 파일 맨 위 주석).
+// 돌려주는 값: { all: true } 또는 { routes: Set<경로> }, 그리고 고른 이유.
+function pickQuickRoutes() {
+  const git = (gitArgs) => {
+    try {
+      return execFileSync("git", gitArgs, { cwd: root, encoding: "utf8" })
+        .split(/\r?\n/)
+        .map((line) => line.trim().replace(/\\/g, "/"))
+        .filter(Boolean);
+    } catch {
+      return [];
+    }
+  };
+  const files = [
+    ...new Set([
+      ...git(["diff", "--name-only", sinceArg ?? "HEAD"]),
+      ...git(["ls-files", "--others", "--exclude-standard"]),
+    ]),
+  ];
+
+  const routes = new Set();
+  let all = false;
+  const add = (...list) => list.forEach((route) => routes.add(route));
+  for (const file of files) {
+    if (
+      /^app\/(layout\.tsx|[^/]+\.css)$/.test(file) ||
+      /^components\/(ui\/|Site|HeaderNav|PageStub)/.test(file)
+    ) {
+      all = true;
+    } else if (file.startsWith("app/")) {
+      // app/apply/date/page.tsx → /apply/date, app/page.tsx → /, app/pay/[orderId]/page.tsx → /pay/sample
+      const dir = file.split("/").slice(1, -1);
+      if (dir[0] === "auth") continue; // 화면이 없는 경로(인증 콜백)
+      add("/" + dir.map((part) => (part.startsWith("[") ? "sample" : part)).join("/"));
+    } else if (/^components\/apply\/(Date|Name|Person)Form/.test(file)) {
+      add({ Date: "/apply/date", Name: "/apply/name", Person: "/apply/person" }[file.match(/(Date|Name|Person)Form/)[1]]);
+    } else if (/^(components|lib)\/apply\//.test(file)) {
+      add(...APPLY_ROUTES);
+    } else if (file.startsWith("components/report/")) {
+      add("/report/2027");
+    } else if (file.startsWith("components/my/")) {
+      add("/my");
+    } else if (file.startsWith("components/auth/")) {
+      add("/login", "/login/update-password", "/my"); // 약관 동의 상자는 /my에서도 씁니다.
+    } else if (file.startsWith("components/home/")) {
+      add("/");
+    } else if (/^components\/(saju|order)\//.test(file)) {
+      add(...APPLY_ROUTES, "/report/2027");
+      if (file.startsWith("components/saju/")) add("/my");
+    }
+  }
+
+  if (all) return { all: true, reason: `전역 파일이 바뀌어 모든 경로를 검사합니다(바뀐 파일 ${files.length}개).` };
+  if (routes.size === 0) {
+    return {
+      routes: new Set(QUICK_FALLBACK),
+      reason: `화면에 해당하는 변경이 없어 기본 경로를 검사합니다(바뀐 파일 ${files.length}개).`,
+    };
+  }
+  return { routes, reason: `바뀐 파일 ${files.length}개에서 고른 경로입니다.` };
+}
 
 function loadEnv() {
   const file = path.join(root, ".env.local");
@@ -244,16 +328,23 @@ async function main() {
   let checks = 0;
   const browsers = [];
 
+  const picked = quick ? pickQuickRoutes() : null;
+
   try {
     await waitForServer(baseUrl + "/robots.txt");
 
     const canAuth = !noAuth && env.SUPABASE_SERVICE_ROLE_KEY && env.NEXT_PUBLIC_SUPABASE_URL;
     if (canAuth) session = await createTempSession(env);
-    const routes = [
+    const allRoutes = [
       ...publicRoutes.map((route) => ({ route, name: route, auth: false })),
       ...(session ? authRoutes.map((route) => ({ route, name: route, auth: true })) : []),
       ...(session ? applyVariants.map((variant) => ({ ...variant, auth: true })) : []),
     ];
+    // 빠른 모드에서는 고른 경로만 남깁니다(/login은 ?mode= 변형도 함께).
+    const routes =
+      !picked || picked.all
+        ? allRoutes
+        : allRoutes.filter(({ route }) => picked.routes.has(route.split("?")[0]));
 
     const chromiumBrowser = await chromium.launch();
     const webkitBrowser = await webkit.launch();
@@ -261,7 +352,7 @@ async function main() {
 
     const iphone = devices["iPhone 13"];
     const android = devices["Pixel 7"];
-    const profiles = [
+    const fullProfiles = [
       ...MOBILE_WIDTHS.flatMap((width) => [
         {
           label: `${width}-iphone-webkit`,
@@ -283,6 +374,12 @@ async function main() {
         mobile: false,
       })),
     ];
+    // 빠른 모드: 320은 Android(Chromium), 390은 iPhone(WebKit) 하나씩만 봅니다.
+    const profiles = quick
+      ? fullProfiles.filter(
+          ({ label }) => !label.startsWith("320-iphone") && !label.startsWith("390-android"),
+        )
+      : fullProfiles;
 
     for (const profile of profiles) {
       const publicContext = await profile.browser.newContext(profile.options);
@@ -292,7 +389,8 @@ async function main() {
       for (const target of routes) {
         const context = target.auth ? authContext : publicContext;
         const runs = [{ zoom: false, label: profile.label }];
-        if (profile.mobile) runs.push({ zoom: true, label: `${profile.label}-zoom130` });
+        // 글자 130%: 전체 검사는 모바일 폭에서, 빠른 모드는 4개 폭 모두에서 확인합니다.
+        if (profile.mobile || quick) runs.push({ zoom: true, label: `${profile.label}-zoom130` });
         for (const run of runs) {
           checks += 1;
           const problems = await checkRoute(context, target, run.label, { zoom: run.zoom });
@@ -306,7 +404,11 @@ async function main() {
     // 보고
     const routeList = routes.map(({ name }) => name);
     console.log(`검증 폭: ${[...MOBILE_WIDTHS, ...WIDE_WIDTHS].join(", ")}`);
-    console.log(`모바일 폭: iPhone(WebKit) + Android(Chromium), 각각 기본·글자 130%`);
+    console.log(
+      quick
+        ? `빠른 모드: 320 Android(Chromium), 390 iPhone(WebKit), 768·1280 Chromium, 폭마다 기본·글자 130%\n경로 선택: ${picked.reason}`
+        : `모바일 폭: iPhone(WebKit) + Android(Chromium), 각각 기본·글자 130%`,
+    );
     console.log(`경로 ${routeList.length}개, 확인 ${checks}회${session ? "" : " (로그인 경로 제외)"}\n`);
     for (const route of routeList) {
       const failed = failures.filter((failure) => failure.route === route);
@@ -321,6 +423,7 @@ async function main() {
 
   if (cleanupOk !== null) console.log(`\n임시 테스트 계정 삭제: ${cleanupOk ? "완료(잔여 행 없음)" : "실패. 직접 확인 필요"}`);
   console.log(`스크린샷: .responsive/ (${checks}장)`);
+  console.log(`소요 시간: ${Math.round((Date.now() - startedAt) / 1000)}초`);
   const failedRoutes = new Set(failures.map((failure) => failure.route)).size;
   console.log(failedRoutes ? `\n결과: 실패 경로 ${failedRoutes}개` : "\n결과: 전 경로 통과");
   process.exit(failedRoutes || cleanupOk === false ? 1 : 0);

@@ -29,9 +29,11 @@ export function readNamePersonForm(formData: FormData, userId: string) {
     // 이름 받을 분의 사주.
     // 생년월일은 오늘까지만 받는 것이 기본이고, 아기 이름에 한해 출산 예정일(앞날)을 받습니다.
     // 아기 이름은 신청자 본인의 사주가 아니므로 저장된 내 사주를 쓸 수 없습니다.
+    // 성별은 아기 이름일 때만 female / male / unknown(아직 몰라요)을 받고, 성인·개명은 female / male만 받습니다.
     const { source, saju } = await resolveSaju(formData, userId, {
       maxFutureDays: kind === "baby" ? BABY_DUE_MAX_DAYS : 0,
       allowSelf: kind !== "baby",
+      allowUnknownGender: kind === "baby",
     }).catch((error: unknown) => {
       if (kind === "baby" && error instanceof InputError && error.field === "birth") {
         throw new InputError(

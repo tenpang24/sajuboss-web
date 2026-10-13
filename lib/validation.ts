@@ -13,6 +13,11 @@ export const calendarNames: Record<Calendar, string> = {
 };
 export const genderNames: Record<Gender, string> = { female: "여성", male: "남성" };
 
+// 아기 이름 신청에서만 받는 성별 값(태어나기 전이라 모르는 경우).
+// saju_profiles에는 저장하지 않고 신청 내용(orders.payload)에만 들어갑니다.
+export const GENDER_UNKNOWN = "unknown";
+export const genderUnknownName = "아직 몰라요";
+
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

@@ -2,7 +2,7 @@
 
 디자인 기준은 **시안 v2**(`design/v2/site.css` + `.dc.html` 17개)이고, 앱 전역 스타일 `app/site.css`가 이를 옮긴 것입니다. `design/` 바로 아래의 구 시안은 참고용입니다.
 
-모든 단계의 모든 화면에 적용합니다. 새 화면을 만들거나 기존 화면을 고칠 때 이 문서를 먼저 확인하고, 단계 보고에는 `npm run check:responsive` 결과를 첨부합니다.
+모든 단계의 모든 화면에 적용합니다. 새 화면을 만들거나 기존 화면을 고칠 때 이 문서를 먼저 확인하고, 단계 보고에는 반응형 검사 결과를 첨부합니다(평소엔 `npm run check:responsive:quick`, push 직전과 9단계 QA에서는 `npm run check:responsive`).
 
 ## 원칙
 
@@ -68,10 +68,22 @@
 
 ```
 npm run build
-npm run check:responsive
+npm run check:responsive:quick   # 평소 작업 중
+npm run check:responsive         # push 직전, 9단계 QA
 ```
 
-`scripts/check-responsive.mjs`가 하는 일:
+**평소엔 quick, push 직전과 9단계 QA에서는 전체 검사를 돌립니다.**
+
+| | quick | 전체 |
+|---|---|---|
+| 폭 | 320(Android Chromium), 390(iPhone WebKit), 768, 1280 | 320, 360, 390, 430(iPhone WebKit + Android Chromium), 768, 1024, 1280, 1440 |
+| 글자 130% | 4개 폭 모두 | 모바일 폭 4개 |
+| 경로 | git으로 바뀐 화면 경로만. 없으면 신청 폼 3종과 `/my` | 모든 경로 |
+| 걸리는 시간 | 몇 분 | 30분 안팎 |
+
+quick의 경로 선택: 커밋하지 않은 변경과 새 파일을 화면 경로로 바꿉니다(`app/<경로>/` 아래 파일은 그 경로, `components/apply`·`lib/apply`는 신청 폼, `components/saju`·`components/order`는 그 부품을 쓰는 화면). `app/layout.tsx`, `app/*.css`, `components/ui`, 헤더·푸터 같은 전역 파일이 바뀌면 모든 경로를 봅니다. 이미 커밋한 변경을 보려면 `-- --since=origin/main`처럼 기준을 줍니다. 자세한 규칙은 스크립트 맨 위 주석에 있습니다.
+
+`scripts/check-responsive.mjs`가 하는 일(전체 검사 기준):
 
 - 프로덕션 빌드를 로컬에 띄우고, 모든 경로를 8개 폭에서 엽니다.
 - 모바일 폭(320~430)은 **iPhone(WebKit)** 과 **Android(Chromium)** 기기 에뮬레이션 둘 다로 확인합니다.

@@ -360,6 +360,7 @@ export function SajuSource({
   form,
   viewer,
   allowSelf = true,
+  allowUnknownGender = false,
   errorOf,
   fieldError,
   birthLabel,
@@ -370,6 +371,7 @@ export function SajuSource({
   form: string;
   viewer: ApplyViewer;
   allowSelf?: boolean;
+  allowUnknownGender?: boolean;
   errorOf: (name: string) => string | undefined;
   fieldError: { error?: string; field?: string };
   birthLabel?: string;
@@ -428,6 +430,7 @@ export function SajuSource({
           birthPlaceholder={birthPlaceholder}
           timePlaceholder={timePlaceholder}
           unknownNote={unknownNote}
+          allowUnknownGender={allowUnknownGender}
           error={fieldError.error}
           errorField={fieldError.field}
         />
@@ -475,25 +478,6 @@ export function ContactFields({
         placeholder="010-0000-0000"
         error={errorOf("phone")}
       />
-    </div>
-  );
-}
-
-// 신청 동의 2개(사전신청 카드와 같은 방식). 체크하지 않으면 제출되지 않고, 서버도 다시 확인합니다.
-export function OrderConsents({ disclaimer }: { disclaimer: string }) {
-  return (
-    <div className="step apply-consents">
-      <label className="check">
-        <input type="checkbox" name="consentPrivacy" required />
-        <span>
-          [필수] 개인정보 수집·이용에 동의합니다. <a href="#">내용 보기</a>{" "}
-          <span className="muted small">(항목·보관기간 [확정 후 기재])</span>
-        </span>
-      </label>
-      <label className="check">
-        <input type="checkbox" name="consentDisclaimer" required />
-        <span>[필수] {disclaimer}</span>
-      </label>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { submitNameBizOrder } from "@/app/apply/name/actions";
+import { OrderConsents } from "@/components/order/OrderConsents";
 import {
   BIZ_MOODS,
   BIZ_NAME_TYPES,
@@ -21,7 +22,6 @@ import {
   ChipRadio,
   ContactFields,
   InfoNote,
-  OrderConsents,
   PackagePicker,
   SajuSource,
   Step,
@@ -185,7 +185,7 @@ export function NameForm({ viewer }: { viewer: ApplyViewer }) {
               특허정보검색서비스(KIPRIS)와 상호 검색을 직접 확인해 주세요.
             </InfoNote>
 
-            <OrderConsents disclaimer="결과는 전통 명리 원리에 따른 참고용 자료이며, 사업 성과나 상표 등록 가능 여부를 보장하지 않는다는 점을 확인했습니다." />
+            <OrderConsents className="step apply-consents" disclaimer="결과는 전통 명리 원리에 따른 참고용 자료이며, 사업 성과나 상표 등록 가능 여부를 보장하지 않는다는 점을 확인했습니다." />
             {formError}
           </form>
 

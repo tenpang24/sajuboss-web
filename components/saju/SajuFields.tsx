@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { CALENDARS, GENDERS, calendarNames, genderNames } from "@/lib/validation";
+import {
+  CALENDARS,
+  GENDERS,
+  GENDER_UNKNOWN,
+  calendarNames,
+  genderNames,
+  genderUnknownName,
+} from "@/lib/validation";
 
 // 숫자 키패드에는 '-'와 ':'가 없어서, 숫자만 받고 구분 기호를 자동으로 넣습니다.
 export function formatBirth(value: string) {
@@ -30,6 +37,7 @@ export function SajuFields({
   withLabel,
   namePrefix = "",
   withGender = true,
+  allowUnknownGender = false,
   birthLabel = "생년월일",
   birthPlaceholder = "예: 1972-03-15",
   timePlaceholder = "예: 14:30",
@@ -42,6 +50,7 @@ export function SajuFields({
   withLabel?: boolean; // 누구의 사주인지 적는 칸(다른 사람 사주 입력용)
   namePrefix?: string; // 한 폼에 두 벌을 넣을 때 입력 이름 앞에 붙는 말(readSajuForm의 prefix와 같게)
   withGender?: boolean;
+  allowUnknownGender?: boolean; // 성별에 "아직 몰라요"를 추가(아기 이름 신청 전용)
   birthLabel?: string;
   birthPlaceholder?: string;
   timePlaceholder?: string;
@@ -152,7 +161,14 @@ export function SajuFields({
                   {genderNames[value]}
                 </option>
               ))}
+              {allowUnknownGender && <option value={GENDER_UNKNOWN}>{genderUnknownName}</option>}
             </select>
+            {allowUnknownGender && (
+              <p className="help">
+                아직 모르면 &lsquo;{genderUnknownName}&rsquo;를 골라 주세요. 태어난 뒤 알게 되시면 이름을
+                정할 때 알려 주세요.
+              </p>
+            )}
           </div>
         )}
       </div>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { submitNamePersonOrder } from "@/app/apply/person/actions";
 import { formatBirth } from "@/components/saju/SajuFields";
+import { OrderConsents } from "@/components/order/OrderConsents";
 import {
   LIMITS,
   NAME_LENGTHS,
@@ -27,7 +28,6 @@ import {
   ChipRadio,
   ContactFields,
   InfoNote,
-  OrderConsents,
   PackagePicker,
   SajuSource,
   SelectField,
@@ -90,6 +90,7 @@ export function PersonForm({ viewer }: { viewer: ApplyViewer }) {
                 form="person"
                 viewer={viewer}
                 allowSelf={!isBaby}
+                allowUnknownGender={isBaby}
                 errorOf={errorOf}
                 fieldError={state}
                 birthLabel={isBaby ? "출생일 또는 출산 예정일" : "생년월일"}
@@ -233,7 +234,7 @@ export function PersonForm({ viewer }: { viewer: ApplyViewer }) {
               인명용 한자인지 직접 확인해 주세요.
             </InfoNote>
 
-            <OrderConsents disclaimer="결과는 전통 명리 원리에 따른 참고용 자료이며, 결과를 보장하지 않는다는 점을 확인했습니다." />
+            <OrderConsents className="step apply-consents" disclaimer="결과는 전통 명리 원리에 따른 참고용 자료이며, 결과를 보장하지 않는다는 점을 확인했습니다." />
             {formError}
           </form>
 

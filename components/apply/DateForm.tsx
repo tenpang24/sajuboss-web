@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { submitDateOrder } from "@/app/apply/date/actions";
+import { OrderConsents } from "@/components/order/OrderConsents";
 import { SajuFields } from "@/components/saju/SajuFields";
 import {
   DATE_RANGE_MAX_MONTHS,
@@ -22,7 +23,6 @@ import {
   AreaField,
   ChipRadio,
   ContactFields,
-  OrderConsents,
   SajuSource,
   Step,
   TextField,
@@ -187,7 +187,7 @@ export function DateForm({ viewer }: { viewer: ApplyViewer }) {
               />
             </Step>
 
-            <OrderConsents disclaimer="결과는 전통 명리 원리에 따른 참고용 자료이며, 사업 성과를 보장하지 않는다는 점을 확인했습니다." />
+            <OrderConsents className="step apply-consents" disclaimer="결과는 전통 명리 원리에 따른 참고용 자료이며, 사업 성과를 보장하지 않는다는 점을 확인했습니다." />
             {formError}
           </form>
 

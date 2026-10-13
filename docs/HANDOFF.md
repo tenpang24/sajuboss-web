@@ -2,11 +2,11 @@
 
 다음 세션이 이 문서만 읽고 이어서 작업할 수 있게 유지합니다. 키와 비밀번호는 쓰지 않습니다.
 
-최종 갱신: 2026-10-13 (5단계 구현·검증 직후)
+최종 갱신: 2026-10-13 (5단계 결정 반영: 동의 문구 통일, 아기 성별 "아직 몰라요", 반응형 빠른 모드)
 
 ## 1. 현재 단계
 
-- **현재**: 4단계 승인됨(2026-10-12). 사장님이 프로덕션 가입·사전신청 실사이트 확인을 마쳤다고 알림. **5단계 구현 완료, 사장님 승인 대기**: 신청 폼 3종(`/apply/date`, `/apply/name`, `/apply/person`), 폼별 서버 검증, 오픈 스위치 `APPLY_FORMS_OPEN`(커밋 값 false). 브라우저 조작 검증: 닫힌 상태 16건, 열린 상태 71건 통과.
+- **현재**: 4단계 승인됨(2026-10-12). 사장님이 프로덕션 가입·사전신청 실사이트 확인을 마쳤다고 알림. **5단계 구현 완료, 사장님 승인 대기**: 신청 폼 3종(`/apply/date`, `/apply/name`, `/apply/person`), 폼별 서버 검증, 오픈 스위치 `APPLY_FORMS_OPEN`(커밋 값 false). 브라우저 조작 검증: 닫힌 상태 16건, 열린 상태 88건 통과(결정 반영 뒤 다시 실행).
 - **다음**: 6단계(결제·완료 화면, PG 연동 없음). 지금 신청 폼은 제출 후 `/my?notice=requested`로 보내고, 신년 리포트 사전신청은 `/my?notice=preorder-done`으로 보낸다. 6단계에서 `/pay/[orderId]`, `/done/[orderId]`로 바꾼다.
 - 작업 지시 원문: `지시문_sajuboss.md`(1~9단계). 디자인 기준: `design/v2/`(시안 v2). 반응형 기준: `docs/RESPONSIVE.md`.
 
@@ -85,7 +85,13 @@
 
 **문서·검증**
 - `docs/RESPONSIVE.md`: v2 토큰, 720px 분기점, 하단 고정 바 규칙 반영.
-- `scripts/check-responsive.mjs`: 신청 폼 3종의 로그인 상태 변형 6개 추가(저장된 사주 사용 / 직접 입력+동업자 / 직접 입력+상세 / 아기 / 개명). 경로가 13개에서 19개로 늘어 한 번 실행에 10분 넘게 걸림.
+- `scripts/check-responsive.mjs`: 신청 폼 3종의 로그인 상태 변형 6개 추가(저장된 사주 사용 / 직접 입력+동업자 / 직접 입력+상세 / 아기 / 개명). 경로가 13개에서 19개로 늘어 전체 검사는 30분 안팎.
+- **빠른 모드 `npm run check:responsive:quick`**(2026-10-13): 폭 320·390·768·1280 × 기본·글자 130%, git으로 바뀐 화면 경로만(없으면 신청 폼 3종과 `/my`). **평소엔 quick, push 직전과 9단계 QA에서는 전체.** 이미 커밋한 변경은 `-- --since=origin/main`으로 지정. 규칙은 스크립트 맨 위 주석과 `docs/RESPONSIVE.md`.
+
+**5단계 결정 반영(2026-10-13)**
+- `components/order/OrderConsents.tsx`(신규): 신청 동의 2개 공통 컴포넌트. `PreorderForm`과 신청 폼 3종이 사용. `ApplyParts.tsx`에 있던 같은 이름의 컴포넌트는 삭제.
+- `lib/validation.ts`: `GENDER_UNKNOWN`, `genderUnknownName`. `lib/apply/shared.ts`: `resolveSaju`에 `allowUnknownGender`, `OrderSaju.gender`가 `unknown`도 받음. `lib/apply/name-person.ts`: baby일 때만 허용.
+- `components/saju/SajuFields.tsx`: `allowUnknownGender`(선택지와 안내 문구). `ApplyParts.tsx`의 `SajuSource`와 `PersonForm.tsx`가 baby일 때 넘김.
 
 ## 3. DB 상태 (Supabase 프로젝트 ref `jmolzaubbseytkdaadgf`)
 
@@ -175,8 +181,8 @@
 ## 6. 사장님 확인·결정 대기
 
 0. **5단계 승인**과 아래 5단계 결정 사항.
-0-1. **신청 동의 문구**: 지시는 "사전신청 카드와 같은 문구"였지만 시안이 폼마다 다름(작명: "사업 성과나 상표 등록 가능 여부를", 개인: "결과를 보장하지 않는다"). 시안 문구로 구현함. 하나로 통일하려면 `OrderConsents`의 `disclaimer` 값만 바꾸면 됨.
-0-2. **아기 성별**: 시안대로 여성/남성 필수. 태어나기 전이라 모르는 경우를 받을지 결정 필요.
+0-1. (결정됨, 2026-10-13) **신청 동의 문구**: "개인정보 수집·이용" 문구는 `components/order/OrderConsents.tsx` 한 곳에서 가져옴(사전신청 카드 + 신청 폼 3종). "참고용 자료 확인" 문구는 시안대로 상품별(`disclaimer`로 넘김).
+0-2. (결정됨, 2026-10-13) **아기 성별**: `kind`가 baby일 때만 "아직 몰라요"(`unknown`) 허용. adult·rename과 다른 폼은 female/male만. payload에만 저장되고 `saju_profiles`와 DB 제약은 변경 없음.
 0-3. **아기 출산 예정일 상한 300일**, **가장 빠른 개업일은 오늘부터 2년 안**(시안·지시에 없던 상한, `lib/apply/options.ts`).
 0-4. **스위치를 켜는 시점**: `APPLY_FORMS_OPEN`을 true로 바꾸면 결제 화면 없이 "결제 확인 대기" 주문이 쌓임. 6단계 뒤에 켜는 것을 권장.
 0-5. **프로덕션 검증(2026-10-12)에서 나온 것**: 기본 메일 발송 한도(`over_email_send_rate_limit`)로 가입이 막힌 적 있음. 관리자 생성 링크는 `#access_token` 형식이라 콜백에서 실패하고, `token_hash` 형식은 성공. `signUp` 실패 시 오류 코드가 서버 로그에 남지 않음. 사장님이 실사이트 확인을 마쳤다고 했으나, SMTP·메일 템플릿·오류 로그를 어떻게 정했는지는 전달받지 못함.
@@ -230,7 +236,7 @@ npm install                        # 필요 시
 npx tsc --noEmit
 npm run lint
 npm run build
-npm run check:responsive           # 처음이면 먼저: npx playwright install chromium webkit
+npm run check:responsive:quick     # 평소. push 직전·9단계 QA는 npm run check:responsive (처음이면 먼저: npx playwright install chromium webkit)
 ```
 
 1. 이 문서와 `docs/RESPONSIVE.md`를 읽고 현재 상태를 요약한다.
