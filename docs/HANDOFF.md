@@ -18,7 +18,7 @@
 | - | 반응형 공통 규칙 + 검증 스크립트 (+ `design/v2/` 파일 추가) | push됨 | `ae366af` |
 | 3 | 시안 v2 전환(공통 스타일, 헤더·푸터, 로그인, 내 신청) + 메인·리포트 상세 + 하단 고정 바 | 승인됨, push됨 | `579ecf4` |
 | 4 | 주문 저장(orders), 삭제 요청, 약관 동의 시각, 사주 저장 | 승인됨, push됨 | SQL `7f688e7`, 코드 `a383e3b`, `b795676` |
-| 5 | 신청 폼 3종(개업택일, 상호·브랜드 작명, 개인·개명 작명) | 구현·검증 완료, 승인 대기, push 안 함 | 이 문서가 들어간 커밋 |
+| 5 | 신청 폼 3종(개업택일, 상호·브랜드 작명, 개인·개명 작명) | 구현·검증 완료, 결정 반영, push됨(접수 스위치 꺼짐) | `d8ab582`, `a37ecaa` |
 | 6 | 결제·완료 화면(PG 연동 없음) | 시작 전 | |
 | 7 | 관리자 화면 | 시작 전 | |
 | 8 | 풀이 연결(후순위) | 시작 전 | |
@@ -167,7 +167,14 @@
 ## 5. 미커밋·미push
 
 - 2026-10-11 사장님의 "push 진행"으로 `b795676`까지 push함. Vercel 프로덕션 배포 Ready(`sajuboss-l2pwtbapn`), `www.sajuboss.com`에 연결됨.
-- 그 뒤의 문서 갱신 커밋 2개(`5120fd9`, `a8336f6`)와 5단계 커밋은 로컬에만 있음. **push는 매번 사장님 승인 후에만.** push하면 Vercel 프로덕션에 배포됨.
+- 2026-10-13 사장님의 "push 진행"으로 `a37ecaa`까지 push함(`5120fd9`, `a8336f6`, `d8ab582`, `a37ecaa`). Vercel 프로덕션 배포 Ready(`sajuboss-bncwjq2r4`). 그 뒤의 문서 갱신 커밋(이 문서)은 로컬에만 있음. **push는 매번 사장님 승인 후에만.** push하면 Vercel 프로덕션에 배포됨.
+- 이 PC의 Git 자격 증명 관리자에 GitHub 계정이 2개(`tenpang24`, `moonpak45-ui`) 있음. 첫 push 시도는 `moonpak45-ui`로 인증돼 403으로 실패했고, 사장님이 자격 증명을 지운 뒤 `tenpang24`로 성공. 다시 403이 나면 어떤 계정으로 인증됐는지와 오류 문구만 보고하고 멈춘다(자격 증명을 임의로 지우지 않음).
+
+**배포 확인 결과(2026-10-13, `a37ecaa`)**
+- 공용 DNS(8.8.8.8) 기준 `https://sajuboss.com`의 `/`, `/report/2027`, `/login`, `/apply/date`, `/apply/name`, `/apply/person` 모두 200. www는 6개 경로 모두 308로 루트 이동. `/my`는 로그인으로 307.
+- 신청 폼 3종: PC·모바일 모두 버튼 "오픈 준비 중"(비활성), 제출 버튼 0개. 폼을 강제로 제출해도 서버가 준비 중 안내만 돌려줌. `noindex, nofollow` 유지.
+- 배포된 페이지·스크립트와 로컬 빌드의 `.next/static` 전체에서 service_role 키 값, `SUPABASE_SERVICE_ROLE_KEY`·`service_role` 문자열 0건.
+- push 직전 전체 반응형 검사: 19개 경로 380회 전 경로 통과.
 - 원격: `https://github.com/tenpang24/sajuboss-web.git`, 브랜치 `main`.
 - 커밋 작성자는 이 저장소 로컬 설정(`tenpang24 <tenpang24@gmail.com>`). 전역 git 설정은 건드리지 않음.
 - 보관 브랜치 `wip/stage3-old-design`은 push하지 않음(로컬 전용).
