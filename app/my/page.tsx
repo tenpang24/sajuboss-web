@@ -25,6 +25,7 @@ export const metadata: Metadata = { title: "내 신청" };
 const notices: Record<string, string> = {
   "password-updated": "비밀번호를 변경했습니다.",
   "preorder-done": "사전신청이 접수됐습니다. 12월 1일 오픈하면 이메일로 알려 드립니다.",
+  requested: "신청이 접수됐습니다. 결제 방법은 곧 안내드립니다.",
   "consent-retry": "가입은 완료됐지만 약관 동의가 저장되지 않았습니다. 아래에서 약관에 다시 동의해 주세요.",
 };
 

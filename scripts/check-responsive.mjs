@@ -37,6 +37,28 @@ const publicRoutes = [
 ];
 // 로그인(관리자) 상태로 확인하는 경로
 const authRoutes = ["/my", "/login/update-password", "/admin/orders", "/pay/sample", "/done/sample"];
+// 신청 폼 3종은 로그인 상태(저장된 사주 있음)에서 화면이 달라지므로 한 번 더 확인합니다.
+// clicks: 화면을 연 뒤 눌러서 펼쳐 볼 요소(직접 입력, 동업자 입력, 개명 항목)
+const applyVariants = [
+  { route: "/apply/date", name: "/apply/date (로그인)" },
+  {
+    route: "/apply/date",
+    name: "/apply/date (로그인, 직접 입력+동업자)",
+    clicks: ["input[name=sajuSource][value=input]", "input[name=partner]"],
+  },
+  { route: "/apply/name", name: "/apply/name (로그인)" },
+  {
+    route: "/apply/name",
+    name: "/apply/name (로그인, 직접 입력+상세)",
+    clicks: ["input[name=sajuSource][value=input]", "input[name=package][value=detail]"],
+  },
+  { route: "/apply/person", name: "/apply/person (로그인, 아기)" },
+  {
+    route: "/apply/person",
+    name: "/apply/person (로그인, 개명)",
+    clicks: ["input[name=kind][value=rename]"],
+  },
+];
 
 function loadEnv() {
   const file = path.join(root, ".env.local");
@@ -176,9 +198,9 @@ function measure({ minFont, minControl }) {
   return problems;
 }
 
-const slug = (route) => (route === "/" ? "home" : route.replace(/^\//, "").replace(/[^a-zA-Z0-9]+/g, "-"));
+const slug = (route) => (route === "/" ? "home" : route.replace(/^\//, "").replace(/[^a-zA-Z0-9가-힣]+/g, "-"));
 
-async function checkRoute(context, route, label, { zoom = false } = {}) {
+async function checkRoute(context, { route, name, clicks = [] }, label, { zoom = false } = {}) {
   const page = await context.newPage();
   const problems = [];
   try {
@@ -189,6 +211,8 @@ async function checkRoute(context, route, label, { zoom = false } = {}) {
       problems.push(`다른 경로로 이동됨 (${new URL(page.url()).pathname})`);
     }
     await page.evaluate(() => document.fonts.ready);
+    // 숨은 라디오(패키지 카드)도 누를 수 있게 force로 누릅니다.
+    for (const selector of clicks) await page.locator(selector).first().check({ force: true });
     if (zoom) {
       await page.addStyleTag({ content: `html{font-size:${TEXT_ZOOM * 100}% !important}` });
       await page.waitForTimeout(150);
@@ -199,7 +223,7 @@ async function checkRoute(context, route, label, { zoom = false } = {}) {
       minControl: zoom ? 0 : MIN_CONTROL_PX,
     });
     problems.push(...found);
-    await page.screenshot({ path: path.join(outDir, `${slug(route)}__${label}.png`), fullPage: true });
+    await page.screenshot({ path: path.join(outDir, `${slug(name)}__${label}.png`), fullPage: true });
   } catch (error) {
     problems.push(`확인 실패: ${String(error.message).split("\n")[0]}`);
   } finally {
@@ -226,8 +250,9 @@ async function main() {
     const canAuth = !noAuth && env.SUPABASE_SERVICE_ROLE_KEY && env.NEXT_PUBLIC_SUPABASE_URL;
     if (canAuth) session = await createTempSession(env);
     const routes = [
-      ...publicRoutes.map((route) => ({ route, auth: false })),
-      ...(session ? authRoutes.map((route) => ({ route, auth: true })) : []),
+      ...publicRoutes.map((route) => ({ route, name: route, auth: false })),
+      ...(session ? authRoutes.map((route) => ({ route, name: route, auth: true })) : []),
+      ...(session ? applyVariants.map((variant) => ({ ...variant, auth: true })) : []),
     ];
 
     const chromiumBrowser = await chromium.launch();
@@ -264,14 +289,14 @@ async function main() {
       const authContext = session ? await profile.browser.newContext(profile.options) : null;
       if (authContext) await authContext.addCookies(session.cookies);
 
-      for (const { route, auth } of routes) {
-        const context = auth ? authContext : publicContext;
+      for (const target of routes) {
+        const context = target.auth ? authContext : publicContext;
         const runs = [{ zoom: false, label: profile.label }];
         if (profile.mobile) runs.push({ zoom: true, label: `${profile.label}-zoom130` });
         for (const run of runs) {
           checks += 1;
-          const problems = await checkRoute(context, route, run.label, { zoom: run.zoom });
-          if (problems.length) failures.push({ route, label: run.label, problems });
+          const problems = await checkRoute(context, target, run.label, { zoom: run.zoom });
+          if (problems.length) failures.push({ route: target.name, label: run.label, problems });
         }
       }
       await publicContext.close();
@@ -279,7 +304,7 @@ async function main() {
     }
 
     // 보고
-    const routeList = routes.map(({ route }) => route);
+    const routeList = routes.map(({ name }) => name);
     console.log(`검증 폭: ${[...MOBILE_WIDTHS, ...WIDE_WIDTHS].join(", ")}`);
     console.log(`모바일 폭: iPhone(WebKit) + Android(Chromium), 각각 기본·글자 130%`);
     console.log(`경로 ${routeList.length}개, 확인 ${checks}회${session ? "" : " (로그인 경로 제외)"}\n`);

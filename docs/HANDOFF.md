@@ -2,12 +2,12 @@
 
 다음 세션이 이 문서만 읽고 이어서 작업할 수 있게 유지합니다. 키와 비밀번호는 쓰지 않습니다.
 
-최종 갱신: 2026-10-11 (도메인 리디렉션 방향 확인 직후)
+최종 갱신: 2026-10-13 (5단계 구현·검증 직후)
 
 ## 1. 현재 단계
 
-- **현재**: 3단계 승인됨(시안과 다르게 처리한 5가지 포함). **4단계 구현 완료, 사장님 승인 대기**: 가입 동의 기록, 사주 저장·삭제, 주문 저장(신년 리포트 사전신청), 삭제 요청, /my 연결. 브라우저 조작 검증 35건 통과(⑩ 포함).
-- **다음**: 5단계(신청 폼 3종: `/apply/date`, `/apply/name`, `/apply/person`). 폼별 서버 액션은 입력을 검증해 payload를 만든 뒤 `lib/orders.ts`의 `createOrder`를 호출한다.
+- **현재**: 4단계 승인됨(2026-10-12). 사장님이 프로덕션 가입·사전신청 실사이트 확인을 마쳤다고 알림. **5단계 구현 완료, 사장님 승인 대기**: 신청 폼 3종(`/apply/date`, `/apply/name`, `/apply/person`), 폼별 서버 검증, 오픈 스위치 `APPLY_FORMS_OPEN`(커밋 값 false). 브라우저 조작 검증: 닫힌 상태 16건, 열린 상태 71건 통과.
+- **다음**: 6단계(결제·완료 화면, PG 연동 없음). 지금 신청 폼은 제출 후 `/my?notice=requested`로 보내고, 신년 리포트 사전신청은 `/my?notice=preorder-done`으로 보낸다. 6단계에서 `/pay/[orderId]`, `/done/[orderId]`로 바꾼다.
 - 작업 지시 원문: `지시문_sajuboss.md`(1~9단계). 디자인 기준: `design/v2/`(시안 v2). 반응형 기준: `docs/RESPONSIVE.md`.
 
 | 단계 | 내용 | 상태 | 커밋 |
@@ -17,8 +17,8 @@
 | 2 | 이메일 인증, profiles, is_admin, 관리자 경로 차단 | 승인됨, push됨 | `85ac5f0` |
 | - | 반응형 공통 규칙 + 검증 스크립트 (+ `design/v2/` 파일 추가) | push됨 | `ae366af` |
 | 3 | 시안 v2 전환(공통 스타일, 헤더·푸터, 로그인, 내 신청) + 메인·리포트 상세 + 하단 고정 바 | 승인됨, push됨 | `579ecf4` |
-| 4 | 주문 저장(orders), 삭제 요청, 약관 동의 시각, 사주 저장 | 구현·검증 완료, 승인 대기, push됨 | SQL `7f688e7`, 코드: 이 문서가 들어간 커밋 |
-| 5 | 신청 폼 3종 | 시작 전 | |
+| 4 | 주문 저장(orders), 삭제 요청, 약관 동의 시각, 사주 저장 | 승인됨, push됨 | SQL `7f688e7`, 코드 `a383e3b`, `b795676` |
+| 5 | 신청 폼 3종(개업택일, 상호·브랜드 작명, 개인·개명 작명) | 구현·검증 완료, 승인 대기, push 안 함 | 이 문서가 들어간 커밋 |
 | 6 | 결제·완료 화면(PG 연동 없음) | 시작 전 | |
 | 7 | 관리자 화면 | 시작 전 | |
 | 8 | 풀이 연결(후순위) | 시작 전 | |
@@ -68,9 +68,24 @@
 - `app/my/page.tsx`: 본인 신청 목록(컬럼 명시 조회), 저장된 사주, 약관 동의 카드.
 - `scripts/check-responsive.mjs`: 임시 계정에 신청 1건·사주 1건을 넣어 `/my` 목록 화면도 확인(정리 순서 orders → saju_profiles → 계정).
 
+**5단계(신청 폼 3종)**
+- `lib/products.ts`: `APPLY_FORMS_OPEN`(접수 스위치, **커밋 값 false**). false이면 화면은 보이되 버튼이 "오픈 준비 중"이고, 서버 액션 3개와 `createOrder`(신년 리포트 외 상품)가 접수하지 않음. 열려면 true로 바꿔 배포.
+- `lib/apply/options.ts`: 선택 항목 허용값·표시 이름, 길이 상한(한 줄 60자, 문장 100자, 글자 40자, 긴 글 500자), 기간 상한(6개월), 아기 예정일 상한(300일), `ApplyState`. 화면과 서버가 같은 값을 씀.
+- `lib/apply/shared.ts`(server-only): 입력 읽기 도구(`line`, `longText`, `choice`, `optionalChoice`, `choices`), `resolveSaju`(저장된 내 사주는 DB에서 읽어 복사, 직접 입력은 `readSajuForm`), `submitOrder`(연락처·동의만 읽어 `createOrder` 호출 → `/my?notice=requested`).
+- `lib/apply/date.ts`, `lib/apply/name-biz.ts`, `lib/apply/name-person.ts`(server-only): 폼별 검증. 정해진 이름만 읽어 payload를 새로 만듦(모르는 키는 버려짐).
+- `lib/apply/viewer.ts`(server-only): 폼 화면에 넘길 값(스위치, 로그인 여부, 계정 이메일, 저장된 사주, 한국 시각 오늘).
+- `app/apply/date|name|person/actions.ts`: 서버 액션 3개. 스위치 확인 → 로그인 확인 → 폼 검증 → `submitOrder`.
+- `app/apply/date|name|person/page.tsx`: 빈 페이지를 실제 폼으로 교체.
+- `components/apply/ApplyParts.tsx`(공통 조각: 폼 훅, 단계 카드, 입력, 칩, 패키지 카드, 사주 선택, 연락처, 동의, 요약, 하단 바), `ApplyHeader.tsx`(탭·제목), `DateForm.tsx`, `NameForm.tsx`, `PersonForm.tsx`.
+- `components/saju/SajuFields.tsx`: 입력 이름 접두어(`namePrefix`, 동업자용), 성별 숨김(`withGender`), 라벨·예시 문구, 오류 표시 추가. 기존 사용처 동작은 같음.
+- `lib/saju.ts`: `readBirthForm`(성별 없는 생년월일·시각 검증) 추가, `readSajuForm`에 `prefix`·`maxFutureDays` 옵션과 오류 `field` 추가.
+- `lib/validation.ts`: `parseBirthDate(value, maxFutureDays)`, `parseLine`, `parseLongText`(제어문자 제거), `parseDate`, `todayInSeoul`, `addMonths`, `pickAllowed` 추가.
+- `lib/orders.ts`: 스위치가 꺼져 있으면 신년 리포트 외 상품 거부(`reason: "closed"`), 이메일·전화 오류에 `field` 추가.
+- `app/my/page.tsx`: `notice=requested` 문구 추가. `app/pages.css`: 폼 화면 스타일.
+
 **문서·검증**
 - `docs/RESPONSIVE.md`: v2 토큰, 720px 분기점, 하단 고정 바 규칙 반영.
-- `scripts/check-responsive.mjs`: 변경 없음(8개 폭, WebKit+Chromium).
+- `scripts/check-responsive.mjs`: 신청 폼 3종의 로그인 상태 변형 6개 추가(저장된 사주 사용 / 직접 입력+동업자 / 직접 입력+상세 / 아기 / 개명). 경로가 13개에서 19개로 늘어 한 번 실행에 10분 넘게 걸림.
 
 ## 3. DB 상태 (Supabase 프로젝트 ref `jmolzaubbseytkdaadgf`)
 
@@ -100,7 +115,13 @@
 
 **함수 `public.set_updated_at()`**: orders, saju_profiles의 updated_at 트리거.
 
-현재 세 테이블 모두 0행.
+2026-10-13 기준 `profiles` 1행, `saju_profiles` 1행, `orders` 1행(사장님이 실사이트에서 만든 것으로 보임. 검증 스크립트는 이 행들을 건드리지 않고, 전후 행 수가 같은지만 확인함).
+
+**5단계 payload 형태**(DB 변경 없음, `orders.payload` jsonb에 저장)
+- `date`: `form, open_type, business, area, saju_source, saju, date_from, date_to, avoid, weekday_pref, partner, partner_saju, memo`
+- `name_biz`: `form, name_type, business, area, intro, customers, moods, include_chars, avoid_chars, saju_source, saju, candidates, memo`
+- `name_person`: `form, kind, saju_source, saju, family_name, current_name, rename_reason, parent_birth_date, avoid_chars, moods, name_length, include_chars, candidates`
+- `saju`는 `birth_date, calendar, birth_time, time_unknown, gender`(이름표 없음). `partner_saju`는 성별 없이 4개.
 
 **4단계 DB 검증 결과**(2026-10-11, 임시 계정 3개로 수행 후 삭제, 잔여 행 0)
 - 사전 점검 6건, ①~⑨, ⑪, ⑬~㉔ 모두 통과(거부는 42501/23514/23502/23505 정확히 일치, 허용은 행 수 일치).
@@ -140,7 +161,7 @@
 ## 5. 미커밋·미push
 
 - 2026-10-11 사장님의 "push 진행"으로 `b795676`까지 push함. Vercel 프로덕션 배포 Ready(`sajuboss-l2pwtbapn`), `www.sajuboss.com`에 연결됨.
-- 그 뒤의 문서 갱신 커밋(이 문서)은 로컬에만 있음. **push는 매번 사장님 승인 후에만.** push하면 Vercel 프로덕션에 배포됨.
+- 그 뒤의 문서 갱신 커밋 2개(`5120fd9`, `a8336f6`)와 5단계 커밋은 로컬에만 있음. **push는 매번 사장님 승인 후에만.** push하면 Vercel 프로덕션에 배포됨.
 - 원격: `https://github.com/tenpang24/sajuboss-web.git`, 브랜치 `main`.
 - 커밋 작성자는 이 저장소 로컬 설정(`tenpang24 <tenpang24@gmail.com>`). 전역 git 설정은 건드리지 않음.
 - 보관 브랜치 `wip/stage3-old-design`은 push하지 않음(로컬 전용).
@@ -153,7 +174,13 @@
 
 ## 6. 사장님 확인·결정 대기
 
-1. **4단계 승인**. (⑫·㉕는 사장님이 수용함: 삭제가 막히고 계정·주문이 남는 것으로 충분.)
+0. **5단계 승인**과 아래 5단계 결정 사항.
+0-1. **신청 동의 문구**: 지시는 "사전신청 카드와 같은 문구"였지만 시안이 폼마다 다름(작명: "사업 성과나 상표 등록 가능 여부를", 개인: "결과를 보장하지 않는다"). 시안 문구로 구현함. 하나로 통일하려면 `OrderConsents`의 `disclaimer` 값만 바꾸면 됨.
+0-2. **아기 성별**: 시안대로 여성/남성 필수. 태어나기 전이라 모르는 경우를 받을지 결정 필요.
+0-3. **아기 출산 예정일 상한 300일**, **가장 빠른 개업일은 오늘부터 2년 안**(시안·지시에 없던 상한, `lib/apply/options.ts`).
+0-4. **스위치를 켜는 시점**: `APPLY_FORMS_OPEN`을 true로 바꾸면 결제 화면 없이 "결제 확인 대기" 주문이 쌓임. 6단계 뒤에 켜는 것을 권장.
+0-5. **프로덕션 검증(2026-10-12)에서 나온 것**: 기본 메일 발송 한도(`over_email_send_rate_limit`)로 가입이 막힌 적 있음. 관리자 생성 링크는 `#access_token` 형식이라 콜백에서 실패하고, `token_hash` 형식은 성공. `signUp` 실패 시 오류 코드가 서버 로그에 남지 않음. 사장님이 실사이트 확인을 마쳤다고 했으나, SMTP·메일 템플릿·오류 로그를 어떻게 정했는지는 전달받지 못함.
+1. 4단계 승인됨. (⑫·㉕는 사장님이 수용함: 삭제가 막히고 계정·주문이 남는 것으로 충분.)
 1-1. **사전신청 완료 후 이동 위치**: 지시문은 `/done/[id]`지만 그 화면이 6단계라, 지금은 `/my?notice=preorder-done`으로 보냄. 6단계에서 바꿀 예정.
 1-2. **연속 제출 제한 값**: 같은 사용자 20초 간격, 1시간 10건(`lib/orders.ts`). 조정이 필요하면 알려 주기.
 1-3. **같은 사주로 사전신청을 여러 번 하는 것**은 막지 않음(다른 사람 사주로도 신청할 수 있어서). 중복 방지가 필요하면 규칙 결정 필요.
@@ -170,7 +197,13 @@
 ## 7. 알려진 문제와 임시 처리(TODO)
 
 - `components/home/TodayForm.tsx`: 검증 통과 시 "준비 중" 안내만 표시. 실제 계산은 8단계.
-- 신청 폼 3종(5단계)이 아직 없어, 실제로 만들 수 있는 신청은 신년 리포트 사전신청뿐. `createOrder`는 4개 상품을 모두 받지만 택일·작명의 폼별 입력 검증은 5단계에서 추가.
+- 신청 폼 3종은 스위치가 꺼져 있어(`APPLY_FORMS_OPEN = false`) 배포해도 접수되지 않음. 실제로 만들 수 있는 신청은 신년 리포트 사전신청뿐.
+- 신청 폼의 버튼 문구는 시안의 "신청하고 결제로"가 아니라 "신청하기"(결제 화면이 없어서). 6단계에서 되돌릴지 결정.
+- 신청 폼은 길이 상한 때문에 payload가 8KB를 넘을 수 없음(최대 약 3KB). `createOrder`의 8KB 확인은 뒤쪽 안전장치로만 남아 있고, 폼으로는 그 분기에 닿지 않음.
+- 금액·status·user_id·모르는 키를 주입한 요청은 "거부"가 아니라 그 값을 버리고 정상 값으로 저장됨(서버가 그 이름을 읽지 않음).
+- 비로그인 상태에서 폼을 채운 뒤 로그인하러 가면 입력이 지워짐. 폼 위 안내와 "로그인하고 신청하기" 버튼으로 먼저 로그인하게 안내함.
+- `parseBirthDate`는 날짜를 UTC 자정으로 비교해, 한국 시각 0~9시에는 "오늘" 생년월일이 거부됨(4단계부터 있던 동작. 아기 이름은 예정일 허용이라 영향 없음).
+- 검증 스크립트는 `next start`로 뜬 로컬 서버를 운영 DB에 붙여 확인함(임시 계정 2개, 끝나면 삭제). Vercel 배포본에서 신청 폼 제출은 확인하지 않음(스위치가 꺼져 있음).
 - 가입 화면의 실제 가입 성공 → 동의 기록 경로는 실제 메일이 필요해 끝까지 확인하지 못함. 같은 기록 함수(`recordSignupConsents`)를 쓰는 /my의 약관 동의 경로는 브라우저로 확인함.
 - 가입 동의 기록 실패 안내(`consentRetry`)는 실패 상황을 만들 수 없어 실제 동작을 확인하지 못함(코드 검토와 빌드만).
 - 사장님 화면에서 언어 표시가 붙은 코드 블록이 보이지 않는 일이 반복됨. 코드·SQL 전문을 보여줄 때는 언어 표시 없는 코드 블록으로 출력하고, 검토용 묶음 파일도 함께 만든다(`Desktopsajuboss-review`, 저장소 밖).
@@ -178,7 +211,7 @@
 - 메인의 "오늘의 사업운" 입력은 저장된 사주와 아직 연결하지 않음(8단계).
 - 검증 스크립트(DB 검증, 4단계 브라우저 검증)는 저장소에 없음(세션 임시 폴더). `scripts/check-responsive.mjs`만 저장소에 있음.
 - 메인 히어로의 예시 카드: 시안에는 날짜("10월 11일")가 있으나, 고정 날짜는 금방 틀려 보여 "예시 · 오늘의 한마디"로 표기.
-- `/apply/*`, `/pay/[orderId]`, `/done/[orderId]`, `/admin/orders`: 제목만 있는 빈 페이지(`PageStub`). v2 시안은 `design/v2/Date·Name·Person·Pay·Done.dc.html`.
+- `/pay/[orderId]`, `/done/[orderId]`, `/admin/orders`: 제목만 있는 빈 페이지(`PageStub`). v2 시안은 `design/v2/Pay·Done.dc.html`.
 - 푸터 "이용약관", "개인정보처리방침": 링크가 `#`(문서 미정).
 - 파비콘: Next.js 기본 아이콘.
 - 미정 문구가 두 종류: `[확정 후 기재]`(계열 문구 포함)와 `[확인 후 기재]`(신고번호). 9단계에서 둘 다 검색.
@@ -201,9 +234,9 @@ npm run check:responsive           # 처음이면 먼저: npx playwright install
 ```
 
 1. 이 문서와 `docs/RESPONSIVE.md`를 읽고 현재 상태를 요약한다.
-2. 6번 목록에서 사장님 답이 온 항목을 처리한다(특히 4단계 SQL 승인, "push 진행").
-3. SQL이 승인되고 사장님이 SQL Editor에서 실행했다고 하면(`…_profile_consents.sql` → `…_saju_profiles.sql` → `…_orders.sql` 순서) 아래 검증을 수행. 결정에 따라 SQL을 고쳤다면 고친 파일 전문을 다시 보여주고 승인받는다.
-4. 실행 확인 후 검증 ①~㉒을 REST로 수행(목록은 4단계 보고에 있음: 지시문 ①~⑩ + ⑪ 음수 금액 23514, ⑫ 주문 있는 계정 삭제 23503, ⑬~⑯ 가입 동의 컬럼, ⑰ preorder를 report_2027 외에 쓰면 23514, ⑱ deleted_at만 있고 canceled가 아니면 23514, ⑲ saju_profiles 권한과 본인 사주 2개째 23505, ⑳ 계정 삭제 시 saju_profiles 함께 삭제, ㉑ birth_time null + time_unknown false 23514, ㉒ birth_time 있음 + time_unknown true 23514)(임시 계정은 무작위 `@example.com`, `email_confirm: true`, 끝나면 삭제하고 잔여 행 확인. 거부는 기대 오류 코드로 판정, `PGRST205`/`PGRST202`는 실패. 사전 점검에서 이 코드가 나오면 멈추고 보고).
+2. 6번 목록에서 사장님 답이 온 항목을 처리한다(특히 5단계 승인, "push 진행").
+3. `lib/products.ts`의 `APPLY_FORMS_OPEN`이 false인지 먼저 확인한다. 검증할 때만 로컬에서 true로 바꾸고, 커밋 전에 false로 되돌린다.
+4. DB를 바꾸는 작업이 생기면 SQL 전문을 보여주고 승인 → 사장님이 SQL Editor에서 실행 → REST 검증 순서(임시 계정은 무작위 `@example.com`, `email_confirm: true`, 끝나면 orders → saju_profiles → 계정 순서로 삭제하고 잔여 행 확인. 거부는 기대 오류 코드로 판정, `PGRST205`/`PGRST202`는 실패. 사전 점검에서 이 코드가 나오면 멈추고 보고).
 5. 새 화면은 `design/v2/`의 해당 시안과 `app/site.css` 클래스를 쓰고, 금액 + 버튼이 있는 화면에는 `MobileBar`를 넣는다.
 6. 단계 보고 직전에 이 문서를 갱신해 같은 커밋에 넣고, 보고 끝에 "HANDOFF.md 갱신됨(변경 요약 3줄)"을 붙인다.
 

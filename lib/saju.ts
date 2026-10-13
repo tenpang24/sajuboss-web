@@ -31,35 +31,41 @@ export type SajuRow = SajuInput & { id: string; is_self: boolean };
 const SAJU_COLUMNS = "id, is_self, label, birth_date, calendar, birth_time, time_unknown, gender";
 const LABEL_MAX = 40;
 
-type Parsed = { ok: true; value: SajuInput } | { ok: false; error: string };
+type Parsed = { ok: true; value: SajuInput } | { ok: false; error: string; field: string };
 
-// 폼 입력을 검증해 저장 형태로 바꿉니다.
-export function readSajuForm(formData: FormData): Parsed {
-  const birthDate = parseBirthDate(formData.get("birth"));
+export type BirthInput = Pick<SajuInput, "birth_date" | "calendar" | "birth_time" | "time_unknown">;
+type ParsedBirth = { ok: true; value: BirthInput } | { ok: false; error: string; field: string };
+
+// prefix: 한 폼에 사주 입력이 두 벌 있을 때(동업자) 입력 이름 앞에 붙는 말.
+// maxFutureDays: 생년월일을 앞날까지 받을 일수(아기 이름의 출산 예정일 전용). 기본은 오늘까지.
+export type SajuFormOptions = { prefix?: string; maxFutureDays?: number };
+
+// 생년월일, 양력·음력, 태어난 시각만 검증합니다(성별을 받지 않는 동업자 정보에도 씁니다).
+export function readBirthForm(formData: FormData, options: SajuFormOptions = {}): ParsedBirth {
+  const prefix = options.prefix ?? "";
+  const birthDate = parseBirthDate(formData.get(`${prefix}birth`), options.maxFutureDays ?? 0);
   if (!birthDate) {
-    return { ok: false, error: "생년월일을 다시 확인해 주세요. 예: 1972-03-15" };
+    return {
+      ok: false,
+      error: "생년월일을 다시 확인해 주세요. 예: 1972-03-15",
+      field: `${prefix}birth`,
+    };
   }
 
-  const calendar = formData.get("calendar");
+  const calendar = formData.get(`${prefix}calendar`);
   if (!isOneOf(calendar, CALENDARS)) {
-    return { ok: false, error: "양력·음력을 선택해 주세요." };
-  }
-
-  const gender = formData.get("gender");
-  if (!isOneOf(gender, GENDERS)) {
-    return { ok: false, error: "성별을 선택해 주세요." };
+    return { ok: false, error: "양력·음력을 선택해 주세요.", field: `${prefix}calendar` };
   }
 
   // "태어난 시각을 몰라요"를 체크했으면 입력된 시각은 무시합니다.
-  const unknownChecked = formData.get("timeUnknown") === "on";
-  const birthTime = unknownChecked ? null : parseBirthTime(formData.get("time"));
+  const unknownChecked = formData.get(`${prefix}timeUnknown`) === "on";
+  const birthTime = unknownChecked ? null : parseBirthTime(formData.get(`${prefix}time`));
   if (birthTime === undefined) {
-    return { ok: false, error: "태어난 시각을 다시 확인해 주세요. 예: 14:30" };
-  }
-
-  const label = parseText(formData.get("label"), LABEL_MAX);
-  if (label === undefined) {
-    return { ok: false, error: `이름표는 ${LABEL_MAX}자 이하로 입력해 주세요.` };
+    return {
+      ok: false,
+      error: "태어난 시각을 다시 확인해 주세요. 예: 14:30",
+      field: `${prefix}time`,
+    };
   }
 
   return {
@@ -70,10 +76,31 @@ export function readSajuForm(formData: FormData): Parsed {
       birth_time: birthTime,
       // DB 규칙: (birth_time is null) = time_unknown. 시각을 비워 두면 서버가 true로 명시합니다.
       time_unknown: birthTime === null,
-      gender,
-      label,
     },
   };
+}
+
+// 폼 입력을 검증해 저장 형태로 바꿉니다.
+export function readSajuForm(formData: FormData, options: SajuFormOptions = {}): Parsed {
+  const prefix = options.prefix ?? "";
+  const birth = readBirthForm(formData, options);
+  if (!birth.ok) return birth;
+
+  const gender = formData.get(`${prefix}gender`);
+  if (!isOneOf(gender, GENDERS)) {
+    return { ok: false, error: "성별을 선택해 주세요.", field: `${prefix}gender` };
+  }
+
+  const label = parseText(formData.get(`${prefix}label`), LABEL_MAX);
+  if (label === undefined) {
+    return {
+      ok: false,
+      error: `이름표는 ${LABEL_MAX}자 이하로 입력해 주세요.`,
+      field: `${prefix}label`,
+    };
+  }
+
+  return { ok: true, value: { ...birth.value, gender, label } };
 }
 
 function toRow(data: Record<string, unknown>): SajuRow {

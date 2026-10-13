@@ -49,6 +49,11 @@ export const DELETABLE_STATUSES: OrderStatus[] = ["preorder", "requested"];
 // 신년 리포트는 12월 1일 오픈 전까지 사전신청(결제 아님)으로 받습니다. 오픈하면 false로 바꿉니다.
 export const REPORT_2027_IS_PREORDER = true;
 
+// 신청 폼 3종(개업택일, 상호·브랜드 작명, 개인·개명 작명)의 접수 스위치.
+// false이면 화면은 보이되 제출 버튼이 "오픈 준비 중"으로 바뀌고, 서버 액션과 createOrder도 접수하지 않습니다.
+// 검증할 때만 로컬에서 true로 바꾸고, 커밋에는 false로 남깁니다.
+export const APPLY_FORMS_OPEN = false;
+
 // 신청 번호: 주문 id 앞 8자리
 export function orderNumber(orderId: string) {
   return orderId.slice(0, 8).toUpperCase();

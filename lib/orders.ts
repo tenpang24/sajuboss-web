@@ -1,9 +1,11 @@
 import "server-only";
+import { APPLY_CLOSED_MESSAGE } from "@/lib/apply/options";
 import { getUser } from "@/lib/auth";
 import { brand } from "@/lib/brand";
 import { hasSignupConsents } from "@/lib/consents";
 import { orderAmount } from "@/lib/pricing";
 import {
+  APPLY_FORMS_OPEN,
   DELETABLE_STATUSES,
   PACKAGE_REQUIRED,
   PACKAGES,
@@ -41,15 +43,16 @@ export type OrderResult =
   | { ok: true; orderId: string }
   | {
       ok: false;
-      reason: "login" | "signup_consent" | "invalid" | "rate" | "error";
+      reason: "login" | "signup_consent" | "invalid" | "rate" | "closed" | "error";
       message: string;
+      field?: "email" | "phone"; // 어느 입력이 틀렸는지(화면이 그 칸으로 안내할 때 씁니다)
     };
 
 const fail = (
   reason: Exclude<OrderResult, { ok: true }>["reason"],
   message: string,
-): OrderResult => ({ ok: false, reason, message });
-
+  field?: "email" | "phone",
+): OrderResult => ({ ok: false, reason, message, field });
 export async function createOrder(input: NewOrderInput): Promise<OrderResult> {
   // 1) 로그인한 사용자만. id는 서버가 세션에서 확인한 값입니다.
   const user = await getUser();
@@ -62,6 +65,10 @@ export async function createOrder(input: NewOrderInput): Promise<OrderResult> {
     return fail("invalid", "신청할 상품을 다시 선택해 주세요.");
   }
   const product: Product = input.product;
+  // 신청 폼 3종은 오픈 스위치가 켜져 있을 때만 접수합니다(폼 서버 액션에서도 먼저 막습니다).
+  if (product !== "report_2027" && !APPLY_FORMS_OPEN) {
+    return fail("closed", APPLY_CLOSED_MESSAGE);
+  }
   let pkg: Package | null = null;
   if (PACKAGE_REQUIRED[product]) {
     if (!isOneOf(input.pkg, PACKAGES)) {
@@ -83,11 +90,11 @@ export async function createOrder(input: NewOrderInput): Promise<OrderResult> {
       ? parseEmail(user.email)
       : parseEmail(input.contactEmail);
   if (!contactEmail) {
-    return fail("invalid", "결과를 받을 이메일 주소를 확인해 주세요.");
+    return fail("invalid", "결과를 받을 이메일 주소를 확인해 주세요.", "email");
   }
   const contactPhone = parsePhone(input.contactPhone);
   if (contactPhone === undefined) {
-    return fail("invalid", "휴대폰 번호를 다시 확인해 주세요. 예: 010-0000-0000");
+    return fail("invalid", "휴대폰 번호를 다시 확인해 주세요. 예: 010-0000-0000", "phone");
   }
 
   // 5) payload 크기 상한

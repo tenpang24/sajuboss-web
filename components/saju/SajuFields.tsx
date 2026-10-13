@@ -28,14 +28,42 @@ export function SajuFields({
   idPrefix,
   defaults,
   withLabel,
+  namePrefix = "",
+  withGender = true,
+  birthLabel = "생년월일",
+  birthPlaceholder = "예: 1972-03-15",
+  timePlaceholder = "예: 14:30",
+  unknownNote,
+  error,
+  errorField,
 }: {
   idPrefix: string;
   defaults?: SajuDefaults;
   withLabel?: boolean; // 누구의 사주인지 적는 칸(다른 사람 사주 입력용)
+  namePrefix?: string; // 한 폼에 두 벌을 넣을 때 입력 이름 앞에 붙는 말(readSajuForm의 prefix와 같게)
+  withGender?: boolean;
+  birthLabel?: string;
+  birthPlaceholder?: string;
+  timePlaceholder?: string;
+  unknownNote?: string;
+  error?: string; // 서버 검증 오류 문구
+  errorField?: string; // 오류가 난 입력의 name
 }) {
   const [birth, setBirth] = useState(defaults?.birth ?? "");
   const [time, setTime] = useState(defaults?.time ?? "");
   const [timeUnknown, setTimeUnknown] = useState(defaults?.timeUnknown ?? false);
+
+  const name = (key: string) => `${namePrefix}${key}`;
+  const errorId = `${idPrefix}-saju-error`;
+  const ownsError = Boolean(
+    error &&
+      errorField &&
+      ["birth", "calendar", "time", "gender", "label"].some((key) => name(key) === errorField),
+  );
+  const invalid = (key: string) =>
+    ownsError && errorField === name(key)
+      ? ({ "aria-invalid": true, "aria-describedby": errorId } as const)
+      : {};
 
   return (
     <div className="saju-fields">
@@ -48,26 +76,28 @@ export function SajuFields({
             <input
               className="input"
               id={`${idPrefix}-label`}
-              name="label"
+              name={name("label")}
               type="text"
               maxLength={40}
               placeholder="예: 동업자, 배우자"
+              {...invalid("label")}
             />
           </div>
         )}
         <div className="field">
-          <label htmlFor={`${idPrefix}-birth`}>생년월일</label>
+          <label htmlFor={`${idPrefix}-birth`}>{birthLabel}</label>
           <input
             className="input"
             id={`${idPrefix}-birth`}
-            name="birth"
+            name={name("birth")}
             type="text"
             inputMode="numeric"
-            placeholder="예: 1972-03-15"
+            placeholder={birthPlaceholder}
             maxLength={10}
             value={birth}
             onChange={(event) => setBirth(formatBirth(event.target.value))}
             required
+            {...invalid("birth")}
           />
         </div>
         <div className="field">
@@ -75,8 +105,9 @@ export function SajuFields({
           <select
             className="input"
             id={`${idPrefix}-cal`}
-            name="calendar"
+            name={name("calendar")}
             defaultValue={defaults?.calendar ?? "solar"}
+            {...invalid("calendar")}
           >
             {CALENDARS.map((value) => (
               <option key={value} value={value}>
@@ -92,10 +123,10 @@ export function SajuFields({
           <input
             className="input"
             id={`${idPrefix}-time`}
-            name="time"
+            name={name("time")}
             type="text"
             inputMode="numeric"
-            placeholder="예: 14:30"
+            placeholder={timePlaceholder}
             maxLength={5}
             value={time}
             // 시각을 입력하면 "몰라요" 체크가 풀리고, 체크하면 입력한 시각이 지워집니다.
@@ -103,36 +134,47 @@ export function SajuFields({
               setTime(formatTime(event.target.value));
               if (event.target.value) setTimeUnknown(false);
             }}
+            {...invalid("time")}
           />
         </div>
-        <div className="field">
-          <label htmlFor={`${idPrefix}-gender`}>성별</label>
-          <select
-            className="input"
-            id={`${idPrefix}-gender`}
-            name="gender"
-            defaultValue={defaults?.gender ?? "female"}
-          >
-            {GENDERS.map((value) => (
-              <option key={value} value={value}>
-                {genderNames[value]}
-              </option>
-            ))}
-          </select>
-        </div>
+        {withGender && (
+          <div className="field">
+            <label htmlFor={`${idPrefix}-gender`}>성별</label>
+            <select
+              className="input"
+              id={`${idPrefix}-gender`}
+              name={name("gender")}
+              defaultValue={defaults?.gender ?? "female"}
+              {...invalid("gender")}
+            >
+              {GENDERS.map((value) => (
+                <option key={value} value={value}>
+                  {genderNames[value]}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
       <label className="check">
         <input
           type="checkbox"
-          name="timeUnknown"
+          name={name("timeUnknown")}
           checked={timeUnknown}
           onChange={(event) => {
             setTimeUnknown(event.target.checked);
             if (event.target.checked) setTime("");
           }}
         />
-        태어난 시각을 몰라요
+        <span>
+          태어난 시각을 몰라요{unknownNote && <span className="muted small"> {unknownNote}</span>}
+        </span>
       </label>
+      {ownsError && (
+        <p className="field-error" id={errorId} role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

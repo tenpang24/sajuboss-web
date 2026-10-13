@@ -24,8 +24,9 @@ export function isUuid(value: unknown): value is string {
   return typeof value === "string" && UUID_PATTERN.test(value);
 }
 
-// YYYY-MM-DD, 실제 달력 날짜, 1900년 이후, 오늘 이전
-export function parseBirthDate(value: unknown): string | null {
+// YYYY-MM-DD, 실제 달력 날짜, 1900년 이후, 오늘 이전.
+// maxFutureDays를 주면 그 일수만큼 앞날도 받습니다(아기 이름의 출산 예정일 전용).
+export function parseBirthDate(value: unknown, maxFutureDays = 0): string | null {
   if (typeof value !== "string") return null;
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
   if (!match) return null;
@@ -33,7 +34,8 @@ export function parseBirthDate(value: unknown): string | null {
   const date = new Date(Date.UTC(year, month - 1, day));
   const real =
     date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
-  if (!real || year < 1900 || date.getTime() > Date.now()) return null;
+  const latest = Date.now() + maxFutureDays * 24 * 60 * 60 * 1000;
+  if (!real || year < 1900 || date.getTime() > latest) return null;
   return match[0];
 }
 
@@ -70,4 +72,67 @@ export function parseText(value: unknown, maxLength: number): string | null | un
   const text = value.trim();
   if (text === "") return null;
   return text.length <= maxLength ? text : undefined;
+}
+
+// 눈에 보이지 않는 제어문자(널, 방향 전환 문자, 폭 없는 공백 등)
+const CONTROL_CHARS =
+  /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u200B-\u200F\u2028-\u202E\u2060-\u2064\uFEFF]/g;
+
+// 한 줄 입력(신청 폼용). 제어문자 제거, 줄바꿈·탭은 공백으로, 앞뒤 공백 제거, 길이 제한.
+// 비어 있으면 null, 문자열이 아니거나 너무 길면 undefined
+export function parseLine(value: unknown, maxLength: number): string | null | undefined {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "string") return undefined;
+  const text = value
+    .replace(/[\t\r\n]+/g, " ")
+    .replace(CONTROL_CHARS, "")
+    .replace(/ {2,}/g, " ")
+    .trim();
+  if (text === "") return null;
+  return text.length <= maxLength ? text : undefined;
+}
+
+// 여러 줄 입력(요청사항, 후보 이름). 줄바꿈은 남기고 그 밖의 제어문자는 지웁니다.
+export function parseLongText(value: unknown, maxLength: number): string | null | undefined {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "string") return undefined;
+  const text = value
+    .replace(/\r\n?/g, "\n")
+    .replace(/\t/g, " ")
+    .replace(CONTROL_CHARS, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  if (text === "") return null;
+  return text.length <= maxLength ? text : undefined;
+}
+
+// YYYY-MM-DD이고 실제 달력에 있는 날짜인지 확인합니다. 아니면 null
+export function parseDate(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (!match) return null;
+  const [year, month, day] = match.slice(1).map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const real =
+    date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+  return real ? match[0] : null;
+}
+
+// 한국 시각 기준 오늘(YYYY-MM-DD)
+export function todayInSeoul(): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" }).format(new Date());
+}
+
+// YYYY-MM-DD에 달 수를 더합니다. 그 달에 같은 날이 없으면 말일로 맞춥니다(8월 31일 + 6개월 = 2월 말일).
+export function addMonths(isoDate: string, months: number): string {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  const lastDay = new Date(Date.UTC(year, month - 1 + months + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(year, month - 1 + months, Math.min(day, lastDay)))
+    .toISOString()
+    .slice(0, 10);
+}
+
+// 여러 개 고르는 항목: 허용된 값만 남기고 중복을 없앱니다.
+export function pickAllowed<T extends string>(values: unknown[], allowed: readonly T[]): T[] {
+  return allowed.filter((item) => values.includes(item));
 }

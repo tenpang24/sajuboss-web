@@ -1116,3 +1116,134 @@
     padding: 22px 24px;
   }
 }
+
+/* 5단계: 신청 폼 3종(개업택일, 상호·브랜드 작명, 개인·개명 작명) */
+.apply-head {
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.apply-head .lead {
+  margin-top: 8px;
+}
+
+.apply-body {
+  padding-top: 24px;
+  padding-bottom: 40px;
+}
+
+.apply-loading {
+  min-height: 420px;
+}
+
+.step-help {
+  margin-top: 2px;
+}
+
+.apply-saved {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 18px;
+}
+
+.apply-partner {
+  font-weight: 700;
+}
+
+.apply-plus {
+  color: var(--p);
+  white-space: nowrap;
+}
+
+.apply-partner-box {
+  background: #f0f8f3;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.apply-legal {
+  margin: 0;
+  padding: 16px 18px;
+  font-size: 1rem;
+  color: var(--body);
+}
+
+.apply-note {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 18px 20px;
+}
+
+.apply-note svg {
+  flex: none;
+  margin-top: 3px;
+}
+
+.apply-note p {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--body);
+}
+
+.apply-consents {
+  gap: 6px;
+}
+
+.pkg-title {
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.pkg-desc {
+  font-size: 1rem;
+}
+
+/* 패키지 카드 안의 라디오는 화면에서 숨기므로, 키보드 초점은 카드 테두리로 보여 줍니다. */
+.pkg:focus-within {
+  outline: 3px solid rgba(11, 122, 90, 0.55);
+  outline-offset: 2px;
+}
+
+.sum-title {
+  font-size: 1.1875rem;
+}
+
+.total-label {
+  font-weight: 700;
+}
+
+/* iOS Safari의 날짜 입력은 기본 모양이 폭을 넘길 수 있어 일반 입력과 같게 맞춥니다. */
+input[type="date"].input {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+  max-width: 100%;
+  text-align: left;
+  line-height: 1.4;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+input[type="date"].input::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+@media (min-width: 721px) {
+  .apply-head {
+    padding-top: 28px;
+    gap: 20px;
+  }
+
+  .apply-body {
+    padding-top: 28px;
+    padding-bottom: 72px;
+  }
+
+  .apply-partner-box {
+    padding: 18px;
+  }
+}
