@@ -1,6 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { getUser, isAdmin } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { TBD } from "@/lib/brand";
 import { PAYMENT_MODE, PAYMENT_PG_PROVIDER } from "@/lib/products";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -12,9 +12,10 @@ import { isUuid } from "@/lib/validation";
 // 1) 결제 성공 여부와 금액은 항상 서버가 PG 서버 API(또는 서명 검증된 웹훅)로 확인합니다.
 //    클라이언트가 보낸 금액·성공 값은 읽지 않습니다.
 // 2) 확인된 금액이 orders.amount_krw와 다르면 거부하고 payments에 failed로 기록만 남깁니다.
-// 3) orders.status를 requested → paid로 바꾸는 곳은 settlePayment(DB 함수 confirm_order_payment) 하나입니다.
+// 3) orders.status를 requested → paid로 바꾸는 곳은 DB 함수 confirm_order_payment 하나입니다.
+//    PG 결제는 이 파일의 settlePayment가, 관리자의 수동 입금 확인은 lib/admin/orders.ts가 그 함수를 거칩니다.
 //    payments 기록과 주문 상태 변경이 한 트랜잭션으로 처리되고, 이미 반영된 결제는 다시 반영하지 않습니다.
-//    paid → refunded는 관리자 처리(7단계)에서만 합니다. 사용자 서버 액션이 status를 직접 바꾸지 않습니다.
+//    paid → refunded는 관리자 처리(lib/admin/orders.ts, DB 함수 refund_order_payment)에서만 합니다. 사용자 서버 액션이 status를 직접 바꾸지 않습니다.
 // 4) 결제 키, 이메일, 신청 내용은 로그에 남기지 않습니다(오류 코드와 결과 종류만 기록).
 // 5) 카드번호·계좌번호 같은 결제 수단 정보는 받지도 저장하지도 않습니다.
 
@@ -280,34 +281,8 @@ export async function requestManualPayment(orderId: unknown): Promise<PaymentRes
   return { ok: true, outcome: "deposit_requested" };
 }
 
-// 입금 확인(manual 모드, 관리자 전용). 관리자가 주문 금액 전액 입금을 확인했을 때 호출합니다.
-// 7단계 관리자 화면에서 연결합니다. 그 전까지 이 함수를 부르는 화면은 없습니다.
-export async function confirmManualPayment(orderId: unknown): Promise<PaymentResult> {
-  const user = await getUser();
-  if (!user) return failure("login", "로그인 후 이용해 주세요.");
-  if (!(await isAdmin())) return failure("not_found", "신청 내역을 찾지 못했습니다.");
-  if (!isUuid(orderId)) return failure("not_found", "신청 내역을 찾지 못했습니다.");
-
-  const admin = await createAdminClient();
-  const { data, error } = await admin
-    .from("orders")
-    .select("id, amount_krw")
-    .eq("id", orderId)
-    .maybeSingle();
-  if (error || !data) {
-    if (error) console.error("confirmManualPayment lookup failed", error.code);
-    return failure("not_found", "신청 내역을 찾지 못했습니다.");
-  }
-  return toResult(
-    await settlePayment({
-      orderId: data.id,
-      provider: "manual",
-      providerName: null,
-      providerPaymentId: null,
-      verifiedAmountKrw: data.amount_krw,
-    }),
-  );
-}
+// 입금 확인(관리자 전용)은 lib/admin/orders.ts의 adminConfirmPayment가 합니다.
+// DB 함수 admin_confirm_manual_payment가 confirm_order_payment(manual)를 호출하고 처리 기록을 함께 남깁니다.
 
 // 주문의 결제 진행 상태(화면 표시용). 주문이 본인 것인지 확인한 뒤에만 호출합니다.
 // payments에는 사용자용 조회 권한이 없어 서버(service_role)로 읽습니다.

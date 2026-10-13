@@ -2,14 +2,15 @@
 
 다음 세션이 이 문서만 읽고 이어서 작업할 수 있게 유지합니다. 키와 비밀번호는 쓰지 않습니다.
 
-최종 갱신: 2026-10-13 (6-A 승인·push·배포 확인 완료. 다음은 7단계 관리자 화면, 설계 보고부터)
+최종 갱신: 2026-10-13 (7단계: 관리자 화면 구현·검증 완료, 승인 대기, 미push)
 
 ## 1. 현재 단계
 
+- **7단계 구현·검증 완료(2026-10-13), 사장님 승인 대기, 미push**: 관리자 처리 기록 테이블 `order_events`와 관리자 처리 함수 4개(SQL 적용됨), 관리자 화면 `/admin/orders`(목록·필터), `/admin/orders/[orderId]`(상세·입금 확인·상태 변경·환불 기록·내부 메모). 검증: DB 77건, 브라우저 79건, 반응형 quick 20개 경로 160회 모두 통과. 스위치 커밋 값은 그대로(`APPLY_FORMS_OPEN = false`, `PAYMENT_MODE = "off"`, `PAYMENT_PG_PROVIDER = "none"`).
 - **6-A 승인됨(2026-10-13), push·배포 완료(`96163e6`)**: 결제 기록 테이블 `payments`와 결제 확인 함수 `confirm_order_payment`(SQL 적용됨), 결제 모듈 `lib/payment.ts`, 결제 화면 `/pay/[orderId]`, 완료 화면 `/done/[orderId]`, 결제 모드 스위치. **PG는 연결하지 않았고 실제 결제는 일어나지 않는다.** 커밋 값은 `PAYMENT_MODE = "off"`, `PAYMENT_PG_PROVIDER = "none"`, `APPLY_FORMS_OPEN = false`. 검증: DB 52건, 브라우저 82건(off 25, manual 계좌 없음 6, manual 19, pg 미연결 8, pg 모의 결제 운영 빌드 8, pg 모의 결제 개발 서버 16), 5단계 회귀(열림 88, 닫힘 16), 반응형 quick 19개 경로 152회 모두 통과.
 
 - **현재**: 4단계 승인됨(2026-10-12). 사장님이 프로덕션 가입·사전신청 실사이트 확인을 마쳤다고 알림. **5단계 구현 완료, 사장님 승인 대기**: 신청 폼 3종(`/apply/date`, `/apply/name`, `/apply/person`), 폼별 서버 검증, 오픈 스위치 `APPLY_FORMS_OPEN`(커밋 값 false). 브라우저 조작 검증: 닫힌 상태 16건, 열린 상태 88건 통과(결정 반영 뒤 다시 실행).
-- **다음**: 7단계(관리자 화면). **구현 전에 설계를 먼저 보고하고 승인받는다.** 포함할 것: 주문 목록·상세, 수동 입금 확인(`confirm_order_payment` 호출, 관리자 확인 후에만), 환불 처리 방식, payload는 텍스트로만 출력, 같은 사주 중복 표시, 관리자 접근 차단(`is_admin`). SQL이 필요하면 전문을 먼저 보여 준다. 6-B(PG 연동)는 사장님이 PG를 정하고 키를 환경변수에 직접 넣은 뒤. 고칠 곳은 `lib/payment.ts`의 provider 하나와 결제창 흐름.
+- **다음**: 7단계 승인과 "push 진행" 대기. 그 뒤는 사장님 결정에 따라 6-B(PG 연동, PG 결정·키 필요) 또는 8단계(풀이 연결, 계산 소스 파일 필요) 또는 9단계(QA). manual 모드는 관리자 확인 화면이 생겼으므로 켤 수 있는 조건이 됐지만, 켜기 전에 계좌 환경변수 3개 입력, 입금 안내 문구 확인, manual 모드 화면 반응형 검사가 필요하다.
 - 작업 지시 원문: `지시문_sajuboss.md`(1~9단계). 디자인 기준: `design/v2/`(시안 v2). 반응형 기준: `docs/RESPONSIVE.md`.
 
 | 단계 | 내용 | 상태 | 커밋 |
@@ -23,7 +24,7 @@
 | 5 | 신청 폼 3종(개업택일, 상호·브랜드 작명, 개인·개명 작명) | 구현·검증 완료, 결정 반영, push됨(접수 스위치 꺼짐) | `d8ab582`, `a37ecaa` |
 | 6-A | 결제 기록(payments), 결제 모드 스위치, 결제·완료 화면(PG 연동 없음) | 승인됨, push됨 | `96163e6` |
 | 6-B | PG 연동 | 시작 전(PG 결정·키 대기) | |
-| 7 | 관리자 화면 | 설계 보고 단계 | |
+| 7 | 관리자 화면(신청 목록·상세, 입금 확인, 상태 변경, 환불 기록, 메모, 처리 기록) | 구현·검증 완료, 승인 대기, 미push | 이 문서와 같은 커밋 |
 | 8 | 풀이 연결(후순위) | 시작 전 | |
 | 9 | QA, 오픈 전 점검 | 시작 전 | |
 
@@ -109,6 +110,15 @@
 - `app/my/page.tsx`: requested 주문에 "결제하기" 링크. `app/pages.css`: 결제·완료 화면 스타일. `.env.example`: 계좌 환경변수 이름.
 - `scripts/check-responsive.mjs`: `/pay/[orderId]`, `/done/[orderId]`를 임시 주문으로 검사, 정리 순서에 payments 추가.
 
+**7단계(관리자 화면)**
+- `supabase/migrations/20261013150000_admin_actions.sql`(신규): `order_events` 테이블, 관리자 처리 함수 4개. 아래 3번 참고.
+- `lib/admin/orders.ts`(신규, server-only): 목록·상세 조회와 처리 4가지. 모든 함수가 맨 앞에서 세션 클라이언트의 `is_admin()`으로 관리자를 확인하고, 통과한 뒤에만 service_role로 DB 함수를 호출한다. 처리한 사람은 세션의 사용자 id. orders·payments를 직접 고치지 않는다.
+- `lib/admin/payload.ts`(신규): 신청 내용(payload)을 이름표와 글자로만 바꾸는 함수, 같은 사주 판별 키. `lib/admin/format.ts`(신규): 표시용 이름·날짜.
+- `app/admin/orders/page.tsx`(목록·필터), `app/admin/orders/[orderId]/page.tsx`(상세, 신규), `app/admin/orders/actions.ts`(서버 액션, 신규), `components/admin/AdminActions.tsx`(확인 단계가 있는 처리 버튼, 메모 폼, 신규).
+- `lib/payment.ts`: 부르는 곳이 없던 `confirmManualPayment`를 지움(관리자 입금 확인은 `lib/admin/orders.ts`의 `adminConfirmPayment` → DB 함수 `admin_confirm_manual_payment`).
+- `app/pages.css`: 관리자 화면 스타일. `scripts/check-responsive.mjs`: `/admin/orders/[orderId]` 추가, 정리 순서에 order_events 추가.
+- 처리 뒤 화면 갱신은 서버 액션에서 `refresh()`(next/cache)를 쓴다. **`revalidatePath`로 지금 보고 있는 동적 경로(`/admin/orders/[id]`)를 다시 그리게 하면 서버 액션 응답이 끝나지 않는 문제가 있었다**(처리는 DB에 반영되지만 화면이 멈춤). 관리자 화면은 캐시하지 않으므로 `refresh()`로 충분하다.
+
 ## 3. DB 상태 (Supabase 프로젝트 ref `jmolzaubbseytkdaadgf`)
 
 마이그레이션은 **사장님이 SQL Editor에서 직접 실행**합니다. Claude는 DDL을 실행할 수단이 없고, CLI 로그인·DB 비밀번호는 쓰지 않기로 했습니다. SQL 파일 전문을 코드 블록으로 보여주고 승인 → 실행 → REST 검증 순서입니다.
@@ -120,11 +130,12 @@
 | `supabase/migrations/20261011150050_saju_profiles.sql` | 적용됨(2026-10-11). 실행 순서 2. `saju_profiles` 테이블, `set_updated_at()` |
 | `supabase/migrations/20261011150100_orders.sql` | 적용됨(2026-10-11). 실행 순서 3. `orders` 테이블 |
 | `supabase/migrations/20261013120000_payments.sql` | 적용됨(2026-10-13). `payments` 테이블, 함수 `confirm_order_payment`. REST 검증 52/52 통과 |
+| `supabase/migrations/20261013150000_admin_actions.sql` | 적용됨(2026-10-13). `order_events` 테이블, 함수 `admin_confirm_manual_payment`, `refund_order_payment`, `admin_change_order_status`, `admin_set_order_note`. REST 검증 77/77 통과 |
 
 **테이블 `public.profiles`**: `id`(auth.users FK, on delete cascade), `role`('user'|'admin', 기본 'user'), `created_at`.
 - RLS 켜짐. 정책: `profiles_select_own`, `profiles_update_own`(둘 다 본인 행, authenticated).
 - 권한: anon 없음. authenticated는 `select`만. **update grant는 어떤 컬럼에도 없음**(role 변경을 권한으로 차단). service_role은 all.
-- 실제 가입 계정 0(관리자 없음).
+- 관리자(`role = 'admin'`) 계정 1개(2026-10-11 사장님이 지정, 2026-10-13 개수로 확인). 이전에 "관리자 없음"이라고 적혀 있던 것은 틀린 기록이었다.
 
 **함수**
 - `public.handle_new_user()`: auth.users insert 트리거(`on_auth_user_created`). SECURITY DEFINER, `search_path=''`, role은 항상 'user', 메타데이터 미사용.
@@ -141,6 +152,16 @@
 
 **함수 `public.confirm_order_payment(p_order_id, p_provider, p_provider_name, p_provider_payment_id, p_amount_krw)`**(6-A): 주문을 잠그고 금액을 비교한 뒤 payments 기록과 `orders.status = paid`를 한 트랜잭션으로 처리. 결과 문자열: `paid`, `already_paid`, `amount_mismatch`(주문 그대로, failed 행 1개), `duplicate_payment`, `not_payable`, `not_found`, `invalid`. `search_path = ''`. execute는 service_role만(anon·authenticated 호출은 42501).
 
+**테이블 `public.order_events`**(7단계): 관리자 처리 기록. `id`, `order_id`(orders FK, **restrict**), `actor_id`(auth.users FK, set null), `action`('payment_confirmed'|'status_changed'|'refunded'|'canceled'|'note_updated'), `from_status`, `to_status`, `created_at`.
+- RLS 켜짐, 정책 없음. anon·authenticated는 권한 없음(42501). service_role만 읽고, 쓰기는 아래 함수가 한다. 메모 내용·신청 내용·연락처는 저장하지 않는다.
+- 처리 기록이 있는 주문은 삭제할 수 없음(23503). 임시 데이터 정리 순서는 **order_events → payments → orders → saju_profiles → 계정**.
+
+**관리자 처리 함수 4개**(7단계): 모두 `search_path = ''`, execute는 service_role만(anon·authenticated 호출 42501), `p_actor_id`가 null이면 `invalid`, `profiles.role`이 admin이 아니면 `forbidden`. 주문 행을 잠그고 상태 변경과 `order_events` 기록을 한 트랜잭션으로 쓴다.
+- `admin_confirm_manual_payment(p_order_id, p_actor_id)`: DB의 주문 금액으로 `confirm_order_payment(manual)`을 호출. `paid`일 때만 기록. 결과: paid, already_paid, not_payable, not_found, forbidden, invalid.
+- `refund_order_payment(p_order_id, p_actor_id)`: 전액 환불 기록(돈은 움직이지 않음). paid·in_progress·delivered만. 결과: refunded, already_refunded, not_refundable, no_payment, not_found, forbidden, invalid. paid 결제 행이 2개 이상이면 예외(P0001)로 전부 되돌림.
+- `admin_change_order_status(p_order_id, p_from, p_to, p_actor_id)`: 허용 전이 6개(paid→in_progress, in_progress→delivered, delivered→in_progress, in_progress→paid, preorder→canceled, requested→canceled)만. 현재 상태가 `p_from`과 다르면 `conflict`. 취소는 남은 ready 결제 행도 canceled로, payload·연락처는 유지. 결과: changed, conflict, not_found, forbidden, invalid.
+- `admin_set_order_note(p_order_id, p_note, p_actor_id)`: 메모 저장 + note_updated 기록(내용 없음). 2,000자 초과 invalid. 결과: saved, not_found, forbidden, invalid.
+
 **profiles 동의 컬럼 4개**: `age_confirmed_at`, `terms_agreed_at`, `privacy_agreed_at`, `marketing_opt_in_at`. 사용자 수정 불가.
 
 **함수 `public.set_updated_at()`**: orders, saju_profiles의 updated_at 트리거.
@@ -152,6 +173,13 @@
 - `name_biz`: `form, name_type, business, area, intro, customers, moods, include_chars, avoid_chars, saju_source, saju, candidates, memo`
 - `name_person`: `form, kind, saju_source, saju, family_name, current_name, rename_reason, parent_birth_date, avoid_chars, moods, name_length, include_chars, candidates`
 - `saju`는 `birth_date, calendar, birth_time, time_unknown, gender`(이름표 없음). `partner_saju`는 성별 없이 4개.
+
+**7단계 DB 검증 결과**(2026-10-13, 임시 계정 3개(임시 관리자 포함)로 수행 후 삭제, 잔여 행 0, 전체 행 수·관리자 수 전과 같음)
+- 사전 점검 5건(order_events 컬럼 명시 조회, 함수 4개 호출 → forbidden) 통과 뒤 진행. 77건 모두 통과.
+- order_events: anon·authenticated(관리자 계정의 세션 포함) 조회·추가·수정·삭제 42501, 잘못된 action·상태 23514, 없는 주문·없는 계정 23503, order_id·action 없음 23502, 기록이 있는 주문 삭제 23503, 처리한 관리자 계정을 지우면 기록은 남고 actor_id만 null.
+- 함수 4개: anon·authenticated(관리자 계정의 세션 포함) 호출 42501, actor null → invalid, actor가 일반 계정·없는 id → forbidden, 주문 id null → invalid, 없는 주문 → not_found.
+- 전이: 허용 6개 changed, 그 밖의 (from, to) 조합 43개 전부 invalid, 없는 상태 이름·null·대문자 invalid, 현재 상태 불일치 conflict. 동시 5개 호출은 입금 확인·환불·상태 변경 모두 1번만 반영되고 기록 1행.
+- 테스트 주문 42개에서 처음 상태에 기록을 차례로 적용한 결과가 현재 상태와 같음(기록 없는 상태 변경 0건). 거부된 호출은 기록 0행.
 
 **6-A DB 검증 결과**(2026-10-13, 임시 계정 2개로 수행 후 삭제, 잔여 행 0, 전후 전체 행 수 같음)
 - 사전 점검 2건(테이블은 컬럼을 명시한 일반 조회로, 함수는 없는 주문 → `not_found`로 확인) 통과 뒤 진행. 52건 모두 통과.
@@ -200,6 +228,8 @@
 
 ## 5. 미커밋·미push
 
+- **7단계 커밋은 로컬에만 있음(미push)**. 그 앞의 문서 갱신 커밋 `f28fb14`도 미push. push는 사장님의 "push 진행" 뒤에. push 직전에는 전체 반응형 검사와 빌드 결과물의 키 검색을 한다.
+
 - 2026-10-13 사장님의 "push 진행"으로 `96163e6`까지 push함(`a3b66ac`, `96163e6`). 인증 계정 `tenpang24`. Vercel 프로덕션 배포 Ready(`sajuboss-34nvf221m`). 그 뒤의 문서 갱신 커밋(이 문서)은 로컬에만 있음.
 - 첫 push 시도는 3분 넘게 응답이 없다가 PC 메모리 부족으로 중단됐고(원격 변화 없음), 다시 실행해 성공함. push가 오래 걸리면 3분에서 끊고 보고한다.
 
@@ -230,6 +260,13 @@
 - 배포된 페이지·스크립트에서 service_role 키, `service_role` 문자열, `sb_secret_` 형식 키 0건. `.env*`, `.git/config`, 마이그레이션·문서 파일은 404. git 이력에 키 값 0건.
 
 ## 6. 사장님 확인·결정 대기
+
+000. **7단계 승인**과 아래 확인 사항.
+000-1. (결정됨, 2026-10-13) order_events 포함, 한 칸 되돌리기 포함, 관리자 취소는 payload·연락처 유지, 환불은 전액만. SQL의 추가 2개(함수 안의 관리자 재확인 `forbidden`, 메모 저장 함수)도 승인됨.
+000-2. **처리 뒤 안내 문구**: 입금 확인·상태 변경·환불이 성공하면 화면이 새로 그려지면서 버튼 옆의 "처리했습니다" 문구는 보이지 않고, 바뀐 상태 표시와 처리 기록으로 결과를 확인한다. 메모는 "마지막 저장: 시각"으로 확인한다. 성공 문구를 따로 띄우길 원하면 알려 주기.
+000-3. **없는 신청 id의 관리자 상세 주소**는 관리자에게 "찾을 수 없음" 화면이 나오지만 HTTP 상태는 200일 수 있음(관리자만 볼 수 있는 화면이라 그대로 둠).
+000-4. **관리자 화면으로 가는 메뉴 링크는 없음**. 주소(`/admin/orders`)로 직접 들어간다. 헤더나 내 신청에 관리자용 링크가 필요하면 알려 주기.
+000-5. **이메일로 신청 찾기 없음**: 개인정보를 주소에 넣지 않으려고 뺐다. 신청 번호·상품·상태·금액·신청일로 찾는다.
 
 00. 6-A 승인됨(2026-10-13). 아래는 결정된 것과 남은 것.
 00-1. **지시에 없던 DB 항목 2개**: 주문당 결제 대기 행 1개 제한 인덱스, 결제 확인 함수 `confirm_order_payment`(SQL 전문을 보고 실행하심).
@@ -276,7 +313,15 @@
 - 메인의 "오늘의 사업운" 입력은 저장된 사주와 아직 연결하지 않음(8단계).
 - 검증 스크립트(DB 검증, 4단계 브라우저 검증)는 저장소에 없음(세션 임시 폴더). `scripts/check-responsive.mjs`만 저장소에 있음.
 - 메인 히어로의 예시 카드: 시안에는 날짜("10월 11일")가 있으나, 고정 날짜는 금방 틀려 보여 "예시 · 오늘의 한마디"로 표기.
-- `/admin/orders`: 제목만 있는 빈 페이지(`PageStub`). 7단계에서 만든다. `/pay/[orderId]`, `/done/[orderId]`는 6-A에서 구현함(v2 시안 `design/v2/Pay·Done.dc.html`).
+- `/admin/orders`, `/admin/orders/[orderId]`: 7단계에서 구현함. 관리자 화면 시안은 없어서 기존 공통 스타일(`site.css`, 내 신청 화면의 카드)로 만들었다.
+- 관리자 접근 차단은 세 겹: 프록시(`/admin/*`는 `is_admin()`이 아니면 404), 페이지·`lib/admin/orders.ts`의 `is_admin()` 확인, DB 함수의 `profiles.role` 확인. 일반 계정이 관리자 서버 액션 요청을 다른 주소로 직접 보내도 프레임워크가 그 요청을 관리자 주소로 넘기고 프록시가 막는다(빈 응답, 변화 없음). 그래서 **둘째 겹(`lib/admin/orders.ts` 안의 확인)만 따로 떼어 브라우저로 확인하지는 못했다**(첫째·셋째 겹은 확인함).
+- 관리자 화면의 실제 관리자 계정(사장님 계정) 로그인은 확인하지 않음. 검증은 임시 관리자 계정으로 했다.
+- 환불은 기록만 바꾼다(돈은 사장님이 직접 돌려준 뒤 누름). 부분 환불, PG 취소 연동(6-B) 없음. 결제 기록이 없는 paid 주문(직접 DB에서 바꾼 경우)은 환불로 기록할 수 없다.
+- 같은 사주 비교는 서버 코드에서 한다(생년월일이 같은 주문의 사주 값 4개만 읽음, payload 전체는 읽지 않음). 시각은 앞 5글자로 맞춤. 동업자 사주·삭제 요청된 신청은 비교하지 않음. 목록 비교는 한 번에 2,000건까지만 읽는다(주문이 많아지면 DB 쪽으로 옮겨야 함).
+- 목록은 한 쪽 30건. 신청 번호 검색은 8자리를 모두 입력해야 한다.
+- 브라우저 검증 중 서버 로그에 `Error: aborted`(ECONNRESET) 2줄이 남았다. 일반 계정으로 관리자 주소에 본문이 있는 요청을 직접 보냈을 때 프록시가 본문을 읽기 전에 404로 끊어서 생긴 것으로, 그 밖의 오류 줄은 없었다.
+- 검증 스크립트가 중간에 끊기면(시간 초과, 강제 중지) 임시 계정이 남는다. 이번에 두 번 남았고 이름 규칙(`sajuboss-…test-…@example.com`)으로 찾아 order_events → payments → orders → saju_profiles → 계정 순서로 지웠다(잔여 0, 전체 행 수·관리자 수 확인).
+- 이 PC는 남은 메모리가 적어(0.4GB) 검증 중 브라우저가 한 번 죽었다(`Target crashed`). 다시 실행해 통과했다.
 - 결제 스위치는 코드 상수라 바꾸려면 커밋·배포가 필요함(환경변수 아님). 모드별 화면은 스위치를 로컬에서만 바꿔 빌드해 확인했고, 커밋에는 `off`·`none`으로 남김.
 - 모의 결제(`PAYMENT_PG_PROVIDER = "mock"`)는 `NODE_ENV`가 production이면 결제 준비·확인 양쪽에서 거부함. 운영 빌드(`next start`)에서는 "이 결제 방식은 사용할 수 없습니다"만 나오고 기록이 생기지 않음을 확인. 결제 성공 흐름은 개발 서버(`next dev`)에서만 확인함.
 - 실제 PG로는 아무것도 확인하지 않음(6-B). 금액 불일치 거부는 DB 함수 검증으로만 확인했고(모의 결제는 주문 금액을 그대로 돌려줘 화면으로는 불일치를 만들 수 없음), 웹훅·결제 취소·환불은 구현하지 않음(provider에 자리만 있음).
@@ -308,7 +353,7 @@ npm run check:responsive:quick     # 평소. push 직전·9단계 QA는 npm run 
 1. 이 문서와 `docs/RESPONSIVE.md`를 읽고 현재 상태를 요약한다.
 2. 6번 목록에서 사장님 답이 온 항목을 처리한다(특히 5단계 승인, "push 진행").
 3. `lib/products.ts`의 `APPLY_FORMS_OPEN`이 false, `PAYMENT_MODE`가 `off`, `PAYMENT_PG_PROVIDER`가 `none`인지 먼저 확인한다. 검증할 때만 로컬에서 바꾸고, 커밋 전에 되돌린다.
-4. DB를 바꾸는 작업이 생기면 SQL 전문을 보여주고 승인 → 사장님이 SQL Editor에서 실행 → REST 검증 순서(임시 계정은 무작위 `@example.com`, `email_confirm: true`, 끝나면 payments → orders → saju_profiles → 계정 순서로 삭제하고 잔여 행 확인. 거부는 기대 오류 코드로 판정, `PGRST205`/`PGRST202`는 실패. 사전 점검에서 이 코드가 나오면 멈추고 보고).
+4. DB를 바꾸는 작업이 생기면 SQL 전문을 보여주고 승인 → 사장님이 SQL Editor에서 실행 → REST 검증 순서(임시 계정은 무작위 `@example.com`, `email_confirm: true`, 끝나면 order_events → payments → orders → saju_profiles → 계정 순서로 삭제하고 잔여 행 확인. 거부는 기대 오류 코드로 판정, `PGRST205`/`PGRST202`는 실패. 사전 점검에서 이 코드가 나오면 멈추고 보고).
 5. 새 화면은 `design/v2/`의 해당 시안과 `app/site.css` 클래스를 쓰고, 금액 + 버튼이 있는 화면에는 `MobileBar`를 넣는다.
 6. 단계 보고 직전에 이 문서를 갱신해 같은 커밋에 넣고, 보고 끝에 "HANDOFF.md 갱신됨(변경 요약 3줄)"을 붙인다.
 

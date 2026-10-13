@@ -1457,3 +1457,125 @@ input[type="date"].input::-webkit-date-and-time-value {
     gap: 28px;
   }
 }
+
+/* 관리자: 신청 목록·상세 */
+.admin-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.admin-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+
+.admin-filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-filter-actions .btn {
+  flex: 1 1 140px;
+}
+
+.admin-pages {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-action {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-note {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.admin-note .field {
+  width: 100%;
+}
+
+/* 신청자가 입력한 글자는 줄바꿈만 살려 그대로 보여 줍니다. 긴 글자도 화면 밖으로 나가지 않게 합니다. */
+.admin-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.admin-kv {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-kv > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.admin-kv > div:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.admin-kv dt {
+  flex: 0 0 150px;
+  color: var(--muted);
+}
+
+.admin-kv dd {
+  flex: 1 1 240px;
+  min-width: 0;
+  margin: 0;
+}
+
+.admin-log,
+.admin-same {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-log li,
+.admin-same li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+.admin-log li:first-child,
+.admin-same li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.admin-same a {
+  font-weight: 700;
+  color: var(--p-d);
+}

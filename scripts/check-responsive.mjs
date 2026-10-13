@@ -13,6 +13,7 @@
 //          app/<경로>/ 아래 파일          → 그 경로 (예: app/apply/date/actions.ts → /apply/date)
 //          components/apply/DateForm 등   → 해당 폼, 그 밖의 components/apply, lib/apply → 신청 폼 3종
 //          components/pay, lib/payment.ts, lib/order-view.ts → /pay/[orderId], /done/[orderId]
+//          components/admin, lib/admin → /admin/orders, /admin/orders/[orderId]
 //          components/report → /report/2027, components/my → /my, components/auth → /login 계열, components/home → /
 //          components/saju, components/order → 그 부품을 쓰는 화면(신청 폼 3종, /my, /report/2027)
 //          전역 파일(app/layout.tsx, app/*.css, components/ui, 헤더·푸터) → 모든 경로
@@ -61,6 +62,7 @@ const authRoutes = [
   "/my",
   "/login/update-password",
   "/admin/orders",
+  "/admin/orders/[orderId]",
   "/pay/[orderId]",
   "/done/[orderId]",
 ];
@@ -130,6 +132,8 @@ function pickQuickRoutes() {
       add(...APPLY_ROUTES);
     } else if (file.startsWith("components/pay/") || ["lib/payment.ts", "lib/order-view.ts"].includes(file)) {
       add("/pay/[orderId]", "/done/[orderId]");
+    } else if (file.startsWith("components/admin/") || file.startsWith("lib/admin/")) {
+      add("/admin/orders", "/admin/orders/[orderId]");
     } else if (file.startsWith("components/report/")) {
       add("/report/2027");
     } else if (file.startsWith("components/my/")) {
@@ -201,11 +205,12 @@ async function createTempSession(env) {
   if (error) throw new Error(`임시 계정 생성 실패 (${error.code ?? error.status})`);
   const userId = data.user.id;
 
-  // 정리 순서: payments → orders → saju_profiles → 계정(주문이 있으면 계정 삭제가 막힙니다).
+  // 정리 순서: order_events → payments → orders → saju_profiles → 계정(주문이 있으면 계정 삭제가 막힙니다).
   const cleanup = async () => {
-    // 결제 기록이 있는 주문은 지울 수 없어(restrict) payments부터 지웁니다.
+    // 처리 기록·결제 기록이 있는 주문은 지울 수 없어(restrict) 그 둘부터 지웁니다.
     const { data: mine } = await admin.from("orders").select("id").eq("user_id", userId);
     const orderIds = (mine ?? []).map((row) => row.id);
+    if (orderIds.length) await admin.from("order_events").delete().in("order_id", orderIds);
     if (orderIds.length) await admin.from("payments").delete().in("order_id", orderIds);
     await admin.from("orders").delete().eq("user_id", userId);
     await admin.from("saju_profiles").delete().eq("user_id", userId);
