@@ -2,10 +2,11 @@
 
 다음 세션이 이 문서만 읽고 이어서 작업할 수 있게 유지합니다. 키와 비밀번호는 쓰지 않습니다.
 
-최종 갱신: 2026-10-14 (7단계 push·배포 완료, `cb27a77`)
+최종 갱신: 2026-10-14 (8-A 사주 계산 엔진 이식·정확도 검증 완료, 승인 대기, 미push)
 
 ## 1. 현재 단계
 
+- **8-A 구현·검증 완료(2026-10-14), 승인 대기, 미push**: 소상공닷컴 사주 계산 코드 원본 보관(`_import/sosangkong/`), 우리 엔진 `lib/saju-engine/`(server-only, 4주·일진·관계·보정 옵션·한국 음력 변환), 한국천문연구원 자료로 만든 자동 테스트 29개(`npm run test:saju`) 모두 통과. 보정 기본값은 모두 꺼짐(사장님 결정 대기, 6번 0000). 화면·DB·스위치 변경 없음. 십성·대운·택일·작명·문구는 아직 없음.
 - **7단계 push·배포 완료(2026-10-14, `cb27a77`)**: 관리자 처리 기록 테이블 `order_events`와 관리자 처리 함수 4개(SQL 적용됨), 관리자 화면 `/admin/orders`(목록·필터), `/admin/orders/[orderId]`(상세·입금 확인·상태 변경·환불 기록·내부 메모). 검증: DB 77건, 브라우저 79건, 반응형 quick 20개 경로 160회 모두 통과. 스위치 커밋 값은 그대로(`APPLY_FORMS_OPEN = false`, `PAYMENT_MODE = "off"`, `PAYMENT_PG_PROVIDER = "none"`).
 - **6-A 승인됨(2026-10-13), push·배포 완료(`96163e6`)**: 결제 기록 테이블 `payments`와 결제 확인 함수 `confirm_order_payment`(SQL 적용됨), 결제 모듈 `lib/payment.ts`, 결제 화면 `/pay/[orderId]`, 완료 화면 `/done/[orderId]`, 결제 모드 스위치. **PG는 연결하지 않았고 실제 결제는 일어나지 않는다.** 커밋 값은 `PAYMENT_MODE = "off"`, `PAYMENT_PG_PROVIDER = "none"`, `APPLY_FORMS_OPEN = false`. 검증: DB 52건, 브라우저 82건(off 25, manual 계좌 없음 6, manual 19, pg 미연결 8, pg 모의 결제 운영 빌드 8, pg 모의 결제 개발 서버 16), 5단계 회귀(열림 88, 닫힘 16), 반응형 quick 19개 경로 152회 모두 통과.
 
@@ -25,7 +26,8 @@
 | 6-A | 결제 기록(payments), 결제 모드 스위치, 결제·완료 화면(PG 연동 없음) | 승인됨, push됨 | `96163e6` |
 | 6-B | PG 연동 | 시작 전(PG 결정·키 대기) | |
 | 7 | 관리자 화면(신청 목록·상세, 입금 확인, 상태 변경, 환불 기록, 메모, 처리 기록) | push됨 | `cb27a77` |
-| 8 | 풀이 연결(후순위) | 시작 전 | |
+| 8-A | 사주 계산 엔진 이식과 정확도 검증(화면 연결 없음) | 구현·검증 완료, 승인 대기, 미push | 이 문서와 같은 커밋 |
+| 8 | 풀이 연결(나머지: 십성·대운·택일·작명·문구, 화면 연결) | 시작 전 | |
 | 9 | QA, 오픈 전 점검 | 시작 전 | |
 
 **보관 브랜치 `wip/stage3-old-design`** (`f45980a`, 로컬에만 있음): 구 시안으로 만든 3단계 코드. 참고용이며 main에 합치지 않습니다.
@@ -118,6 +120,14 @@
 - `lib/payment.ts`: 부르는 곳이 없던 `confirmManualPayment`를 지움(관리자 입금 확인은 `lib/admin/orders.ts`의 `adminConfirmPayment` → DB 함수 `admin_confirm_manual_payment`).
 - `app/pages.css`: 관리자 화면 스타일. `scripts/check-responsive.mjs`: `/admin/orders/[orderId]` 추가, 정리 순서에 order_events 추가.
 - 처리 뒤 화면 갱신은 서버 액션에서 `refresh()`(next/cache)를 쓴다. **`revalidatePath`로 지금 보고 있는 동적 경로(`/admin/orders/[id]`)를 다시 그리게 하면 서버 액션 응답이 끝나지 않는 문제가 있었다**(처리는 DB에 반영되지만 화면이 멈춤). 관리자 화면은 캐시하지 않으므로 `refresh()`로 충분하다.
+
+**8-A(사주 계산 엔진)**
+- `_import/sosangkong/`: 소상공닷컴(`C:Usersppparksosangkong-web`, 커밋 `3c08968`)의 `lib/saju/` 3개 파일, `types/lunar-javascript.d.ts`, lunar-javascript LICENSE를 원본 그대로 보관. 출처·해시는 `SOURCE.md`. tsconfig·eslint에서 제외, 앱이 import하지 않음.
+- `lib/saju-engine/`(모두 `import "server-only"`): `pillars.ts`(`calcPillars`: saju_profiles 형식 입력 → 4주, 일간, 오행 개수, 시각 불확실·경계 위험, 적용한 보정 기록), `corrections.ts`(보정 옵션 `CorrectionOptions`, 기본 `DEFAULT_CORRECTIONS` 모두 꺼짐, 서울 시간대 이력 표), `korean-lunar.ts` + `korean-lunar-data.ts`(한국천문연구원 1900~2050 한국 음력 표, 자동 생성), `iljin.ts`, `relation.ts`.
+- 원본과 다른 점: lunar-javascript 절기는 중국 기준시(UTC+8)라 출생 순간을 UTC+8로 바꿔 비교, 년·월주는 입춘·절입 **시각** 기준(원본은 **당일** 기준), 음력은 한국 음력(원본은 중국 음력). 원본 방식은 절입일 당일 출생 표본 16,560건 중 8,279건에서 월주, 입춘일 표본 1,379건 중 692건에서 년주가 틀렸다(보고용 계산, 저장소 밖).
+- `types/lunar-javascript.d.ts`: 우리가 쓰는 API만 적은 타입. `package.json`: `lunar-javascript` 정확히 `1.7.7`, 스크립트 `test:saju`. `tsconfig.json`: `allowImportingTsExtensions`(Node 테스트 러너가 .ts를 직접 실행하도록), `_import` 제외.
+- `tests/saju-engine/`: 테스트 4개 파일과 정답 자료(`fixtures/`, 모두 한국천문연구원, 출처는 `fixtures/README.md`). `scripts/saju/`: 정답 자료 받기(`fetch-kasi-lunar.mjs`, `fetch-kasi-samples.mjs`, 인터넷 필요, 요청 0.3초 간격)와 음력 표 만들기(`build-korean-lunar.mjs`).
+- 엔진은 아직 어떤 화면도 쓰지 않음. 임시 화면으로 서버에서는 동작(2024-02-10 12:00 → 甲辰 丙寅 甲辰 庚午)하고 클라이언트 번들에 0건, 클라이언트 컴포넌트에서 import하면 빌드가 막히는 것을 확인한 뒤 임시 화면은 지움.
 
 ## 3. DB 상태 (Supabase 프로젝트 ref `jmolzaubbseytkdaadgf`)
 
@@ -228,6 +238,7 @@
 
 ## 5. 미커밋·미push
 
+- **8-A 커밋은 로컬에만 있음(미push)**. 그 앞의 문서 갱신 커밋 `8d9c195`(7단계 배포 확인 기록)도 미push. push는 사장님 승인 뒤에.
 - 2026-10-14 사장님 승인으로 `cb27a77`까지 push함(`f28fb14`, `cb27a77`). 인증 계정 `tenpang24`(원격 URL의 사용자 이름, 인증 창 없음). Vercel 프로덕션 배포 Ready(GitHub 상태 `success`). 그 뒤의 문서 갱신 커밋(이 문서)은 로컬에만 있음.
 - 이번 push 전에는 전체 반응형 검사를 다시 하지 않음(사장님 지시: 6-A 전체 19개 경로 380회 + 7단계 quick 20개 경로 160회를 근거로). lint·tsc·build 통과, 로컬 `.next/static` 147개 파일 키 0건.
 
@@ -270,6 +281,15 @@
 
 ## 6. 사장님 확인·결정 대기
 
+0000. **8-A 승인**과 아래 결정.
+0000-1. **보정 기본값**(지금은 모두 꺼짐 = 적힌 시각을 UTC+9로 봄, 한국천문연구원 24기 표와 같은 가정): 진태양시(켜면 몇 분? 서울 약 -32, 지역별로 다르게 할지), 서머타임(1948~51, 1955~60, 1987~88), 표준시 이력(1908 전 지방평균시, 1908~1911·1954~1961 UTC+8:30), 자시(00:00 변경 / 23:00 변경). 결과에 무엇을 적용했는지와 그 시기 안내(`periodNotes`)는 항상 기록된다.
+0000-2. **자시 시주 천간**: 기본(00:00 변경)에서 23:00~23:59의 시주 천간은 다음 날 기준(lunar-javascript 기본, 원본과 같음). 같은 날 기준을 원하면 옵션 추가 필요.
+0000-3. **경계 위험 범위 60분**(`BOUNDARY_RISK_MINUTES`): 시각을 알 때 절입·날짜 변경에서 60분 안이면 알림. 서머타임·표준시 보정 여부로 1시간까지 달라질 수 있어서 정한 값.
+0000-4. **라이브러리 절입 시각 오차**: 한국천문연구원 표와 0~3분 차이(2,172건 중 1분 이상 593건). 절입 3분 안 출생은 결과가 표와 다를 수 있다. 1920~2100은 한국천문연구원 표를 엔진에 직접 넣는 방법도 있음(정하면 반영).
+0000-5. **한국천문연구원 자료 이용**: 테스트 정답 자료와 음력 표(`korean-lunar-data.ts`, 앱이 씀)가 한국천문연구원 자료다. 저작권정책(공공누리 유형 등)은 확인하지 못함. 사장님 확인 필요.
+0000-6. **음력 입력 범위**: 1900년 1월 1일 ~ 2050년 11월(한국천문연구원 변환 범위). 그 밖은 `out_of_range`. 양력은 1900-01-01 ~ 2100-12-31.
+0000-7. **1954년 표준시 변경 시각**: IANA는 3월 21일 00:00, 국가기록원 자료는 "오전 0시 30분부터". 그날 0~1시 출생만 영향. 1961-08-10 복귀는 IANA로만 확인.
+
 000. **7단계 승인**과 아래 확인 사항.
 000-1. (결정됨, 2026-10-13) order_events 포함, 한 칸 되돌리기 포함, 관리자 취소는 payload·연락처 유지, 환불은 전액만. SQL의 추가 2개(함수 안의 관리자 재확인 `forbidden`, 메모 저장 함수)도 승인됨.
 000-2. **처리 뒤 안내 문구**: 입금 확인·상태 변경·환불이 성공하면 화면이 새로 그려지면서 버튼 옆의 "처리했습니다" 문구는 보이지 않고, 바뀐 상태 표시와 처리 기록으로 결과를 확인한다. 메모는 "마지막 저장: 시각"으로 확인한다. 성공 문구를 따로 띄우길 원하면 알려 주기.
@@ -307,6 +327,11 @@
 
 ## 7. 알려진 문제와 임시 처리(TODO)
 
+- 사주 엔진(8-A)은 화면에 연결되지 않음. 메인 "오늘의 사업운"은 여전히 준비 중 안내.
+- 사주 엔진의 오행 개수는 천간·지지 겉글자만 센다(지장간 없음, 원본과 같음). 시주 경계(홀수 시 정각) 근처 위험은 알리지 않음.
+- 진태양시 보정은 경도 차이만(분 단위 상수), 균시차는 넣지 않음. 출생지 입력 칸은 없음.
+- 시각을 모를 때 결과의 년·월·일주는 그 날 12:00 기준. 경계 위험이 있으면 `boundaryRisks`에 앞뒤 후보가 있음.
+- 테스트는 Node 내장 러너(`node --test`)로 .ts를 직접 실행. 그래서 엔진 안 import는 `.ts` 확장자를 붙인다.
 - `components/home/TodayForm.tsx`: 검증 통과 시 "준비 중" 안내만 표시. 실제 계산은 8단계.
 - 신청 폼 3종은 스위치가 꺼져 있어(`APPLY_FORMS_OPEN = false`) 배포해도 접수되지 않음. 실제로 만들 수 있는 신청은 신년 리포트 사전신청뿐.
 - 신청 폼의 버튼 문구는 시안의 "신청하고 결제로"가 아니라 "신청하기". 결제 화면이 생겼으니 결제 모드를 켤 때 되돌릴지 결정.
@@ -356,6 +381,7 @@ npm install                        # 필요 시
 npx tsc --noEmit
 npm run lint
 npm run build
+npm run test:saju                  # 사주 엔진 테스트(인터넷 필요 없음, 15초 안팎)
 npm run check:responsive:quick     # 평소. push 직전·9단계 QA는 npm run check:responsive (처음이면 먼저: npx playwright install chromium webkit)
 ```
 

@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // 원본 보관용(빌드·검사 제외). _import/sosangkong/SOURCE.md 참고
+    "_import/**",
   ]),
 ]);
 

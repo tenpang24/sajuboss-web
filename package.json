@@ -8,11 +8,13 @@
     "start": "next start",
     "lint": "eslint",
     "check:responsive": "node scripts/check-responsive.mjs",
-    "check:responsive:quick": "node scripts/check-responsive.mjs --quick"
+    "check:responsive:quick": "node scripts/check-responsive.mjs --quick",
+    "test:saju": "node --test --conditions=react-server --disable-warning=MODULE_TYPELESS_PACKAGE_JSON \"tests/saju-engine/*.test.ts\""
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.3",
+    "lunar-javascript": "1.7.7",
     "next": "16.4.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
