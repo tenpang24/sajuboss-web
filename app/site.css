@@ -1,4 +1,4 @@
-/* 사장님 운세 공통 스타일. 기준은 design/v2/site.css(시안 v2)입니다.
+/* 사주보스 공통 스타일. 기준은 design/v2/site.css(시안 v2)입니다.
    색: 주색 #0B7A5A, 잉크 #13302A, 본문 #2F4740, 보조 #53675F, 라인 #D5E8DF, 배경 #F6FBF8, 포인트 #FFD84D
    글꼴: Noto Sans KR 하나. 기본 17px, 줄간격 1.7 (40~60대 가독성 기준)
    반응형: 시안의 "720px 이하 1단"을 모바일 우선으로 옮겼습니다.
@@ -675,13 +675,6 @@ textarea.input {
   font-weight: 700;
   font-size: 1.1875rem;
   letter-spacing: -0.01em;
-}
-
-.logo-badge {
-  flex: none;
-  font-size: 0.75rem;
-  font-weight: 500;
-  padding: 0 8px;
 }
 
 .hdr-nav {

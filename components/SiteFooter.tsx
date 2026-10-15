@@ -13,10 +13,7 @@ export function SiteFooter() {
     <footer className="ftr">
       <div className="wrap ftr-in">
         <div className="ftr-top">
-          <strong className="ftr-name">
-            {brand.name}
-            {brand.showTentativeBadge && " (가칭)"}
-          </strong>
+          <strong className="ftr-name">{brand.name}</strong>
           <a href="#">이용약관</a>
           <a href="#">
             <strong>개인정보처리방침</strong>

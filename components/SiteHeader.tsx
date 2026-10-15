@@ -35,7 +35,6 @@ export function SiteHeader() {
             <circle cx="17" cy="17" r="2.4" fill="#FFD84D" />
           </svg>
           <span className="logo-name">{brand.name}</span>
-          {brand.showTentativeBadge && <span className="badge badge-line logo-badge">가칭</span>}
         </Link>
         <nav className="hdr-nav" aria-label="주요 메뉴">
           <Suspense fallback={<HeaderNavLinks pathname="" />}>
