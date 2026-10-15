@@ -240,7 +240,14 @@
 
 ## 5. 미커밋·미push
 
-- 2026-10-15 사장님 지시로 `8d9c195`, `4444568`(8-A), 서비스명 변경 커밋을 함께 push. push 전 검증: lint·tsc·build·`npm run test:saju`(29개) 통과, 반응형 quick 20개 경로 160회 통과(헤더 "사주보스" 한 줄 유지). 배포 확인 결과는 다음 문서 커밋에 기록.
+- 2026-10-15 사장님 지시로 `8d9c195`, `4444568`(8-A), 서비스명 변경 커밋을 함께 push. push 전 검증: lint·tsc·build·`npm run test:saju`(29개) 통과, 반응형 quick 20개 경로 160회 통과(헤더 "사주보스" 한 줄 유지). `cb27a77..fb5d827` push 성공, 인증 계정 `tenpang24`(원격 URL의 사용자 이름, 인증 창 없음). 이 문서 갱신 커밋은 로컬에만 있음.
+
+**배포 확인 결과(2026-10-15, `fb5d827`)**
+- Vercel 프로덕션 배포 Ready(GitHub 상태 `success`, 배포 `ESqEn9My4krSEWDqyuJG8BxPAoVL`).
+- 공용 DNS(8.8.8.8) 주소로 `/`, `/report/2027`, `/login`(signup 포함), `/apply/date|name|person`, `/robots.txt` 200. 비로그인 `/admin/orders`, `/admin/orders/[id]`, `/my`, `/pay/*`, `/done/*` 307로 로그인 이동. www 4개 경로 308로 루트 이동. 이 PC의 curl은 인증서 폐기 확인이 오프라인이라 실패해 `--ssl-no-revoke`로 확인.
+- 페이지 9개: title이 "사주보스" 또는 "… | 사주보스", 헤더 로고·푸터·`og:site_name` "사주보스", "가칭"과 옛 이름 0건, `noindex, nofollow` 유지. 신청 폼 3종 "오픈 준비 중", 제출 버튼 0개.
+- 페이지 9개와 JS·CSS 15개에서 service_role 키 값·이름·`sb_secret_` 0건. 사주 라이브러리 흔적(`LunarUtil`, `GanZhi`, `甲子`) 0건. 문자열 "lunar"는 26건 있으나 모두 기존 폼의 달력 선택값(`"lunar"`=음력, `"lunar_leap"`)이고 라이브러리 코드가 아님.
+- 스위치는 push된 커밋에서 `APPLY_FORMS_OPEN = false`, `PAYMENT_MODE = "off"`, `PAYMENT_PG_PROVIDER = "none"`.
 - 2026-10-14 사장님 승인으로 `cb27a77`까지 push함(`f28fb14`, `cb27a77`). 인증 계정 `tenpang24`(원격 URL의 사용자 이름, 인증 창 없음). Vercel 프로덕션 배포 Ready(GitHub 상태 `success`). 그 뒤의 문서 갱신 커밋(이 문서)은 로컬에만 있음.
 - 이번 push 전에는 전체 반응형 검사를 다시 하지 않음(사장님 지시: 6-A 전체 19개 경로 380회 + 7단계 quick 20개 경로 160회를 근거로). lint·tsc·build 통과, 로컬 `.next/static` 147개 파일 키 0건.
 
