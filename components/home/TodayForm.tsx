@@ -92,8 +92,9 @@ export function TodayResultCard({ view, mine }: { view: TodayView; mine?: boolea
           </div>
         ))}
       </div>
+      {/* 사업운 문장은 오늘의 한마디로 이미 보여 주므로 여기서는 매출운·거래운만 */}
       <dl className="today-lines">
-        {view.fields.map((field) => (
+        {view.fields.filter((field) => field.field !== "사업운").map((field) => (
           <div key={field.field}>
             <dt>{field.field}</dt>
             <dd>{field.text}</dd>

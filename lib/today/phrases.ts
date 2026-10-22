@@ -4,10 +4,11 @@ import "server-only";
 // 출처: 소상공닷컴(sosangkong-web, 같은 사업자 소유 문구)
 //  - supabase/migrations/20260923000000_fortune_content_bank.sql (커밋 5f8841032cbfdc8015f72436f3902c263dbe71cf): 45개(조합당 3개)
 //  - supabase/migrations/20260927000000_fortune_content_bank_expand.sql (커밋 4f8a578f869d66aa878188e4ee647bb429b599cb): 105개(조합당 7개)
-// 옮긴 날: 2026-10-22. 문장은 고치지 않았다. ID는 분야·관계마다 SQL 순서대로 01~10("오늘-매출운-합-03").
+// 옮긴 날: 2026-10-22. ID는 분야·관계마다 SQL 순서대로 01~10("오늘-매출운-합-03").
+// 2026-10-22 사주보스에서 13문장 끝맺음 수정(오늘-사업운-생-06, 오늘-사업운-합-07, 오늘-매출운-생-07, 오늘-매출운-합-04, 오늘-매출운-합-06, 오늘-매출운-합-07, 오늘-매출운-충-06, 오늘-매출운-비화-05, 오늘-매출운-비화-09, 오늘-매출운-비화-10, 오늘-거래운-생-06, 오늘-거래운-생-07, 오늘-거래운-합-07). 뜻과 길·중·흉은 그대로.
 // 문장을 바꾸면 TODAY_PHRASE_VERSION을 올린다. ID는 바꾸지 않는다.
 
-export const TODAY_PHRASE_VERSION = "today-sosangkong-2026-10-22";
+export const TODAY_PHRASE_VERSION = "today-sajuboss-2026-10-22-r1";
 
 export const TODAY_FIELDS = ["사업운","매출운","거래운"] as const;
 export type TodayField = (typeof TODAY_FIELDS)[number];
@@ -22,7 +23,7 @@ export const TODAY_PHRASES: readonly TodayPhrase[] = [
   { id: "오늘-사업운-생-03", field: "사업운", relation: "생", tone: "길", text: "새로운 아이디어가 순조롭게 풀리는 기운입니다. 기획했던 일을 실행에 옮겨보세요." },
   { id: "오늘-사업운-생-04", field: "사업운", relation: "생", tone: "길", text: "평소 소원했던 인맥에서 반가운 연락이 올 수 있습니다. 먼저 안부를 전해보세요." },
   { id: "오늘-사업운-생-05", field: "사업운", relation: "생", tone: "길", text: "배우고 있는 분야에서 뜻밖의 기회가 열릴 수 있는 날입니다." },
-  { id: "오늘-사업운-생-06", field: "사업운", relation: "생", tone: "길", text: "후배나 동료의 도움으로 일이 한결 수월하게 풀립니다." },
+  { id: "오늘-사업운-생-06", field: "사업운", relation: "생", tone: "길", text: "후배나 동료의 도움으로 일이 한결 수월하게 풀리기 쉽습니다." },
   { id: "오늘-사업운-생-07", field: "사업운", relation: "생", tone: "길", text: "준비해온 제안서나 기획안을 내보이기 좋은 타이밍입니다." },
   { id: "오늘-사업운-생-08", field: "사업운", relation: "생", tone: "중", text: "작은 도움이라도 감사히 받아들이면 좋은 흐름이 이어집니다." },
   { id: "오늘-사업운-생-09", field: "사업운", relation: "생", tone: "중", text: "급하게 서두르지 않아도 일이 자연스럽게 풀리는 하루입니다." },
@@ -45,7 +46,7 @@ export const TODAY_PHRASES: readonly TodayPhrase[] = [
   { id: "오늘-사업운-합-04", field: "사업운", relation: "합", tone: "길", text: "오랫동안 준비한 사업 아이템이 빛을 볼 수 있는 기운입니다." },
   { id: "오늘-사업운-합-05", field: "사업운", relation: "합", tone: "길", text: "투자자나 협력사와의 미팅이 좋은 결과로 이어질 수 있습니다." },
   { id: "오늘-사업운-합-06", field: "사업운", relation: "합", tone: "길", text: "사업 확장을 고민 중이라면 오늘 논의를 시작해보세요." },
-  { id: "오늘-사업운-합-07", field: "사업운", relation: "합", tone: "길", text: "뜻이 통하는 사람과의 만남이 새로운 기회로 연결됩니다." },
+  { id: "오늘-사업운-합-07", field: "사업운", relation: "합", tone: "길", text: "뜻이 통하는 사람과의 만남이 새로운 기회로 연결될 수 있습니다." },
   { id: "오늘-사업운-합-08", field: "사업운", relation: "합", tone: "중", text: "협업 조건은 서두르지 말고 차근차근 조율하는 것이 좋습니다." },
   { id: "오늘-사업운-합-09", field: "사업운", relation: "합", tone: "중", text: "좋은 제안이 들어와도 세부 사항은 꼼꼼히 검토하세요." },
   { id: "오늘-사업운-합-10", field: "사업운", relation: "합", tone: "중", text: "관계가 무르익는 시기이니 조급하게 결론 내지 마세요." },
@@ -78,7 +79,7 @@ export const TODAY_PHRASES: readonly TodayPhrase[] = [
   { id: "오늘-매출운-생-04", field: "매출운", relation: "생", tone: "길", text: "기존 고객의 소개로 새로운 매출이 발생할 수 있습니다." },
   { id: "오늘-매출운-생-05", field: "매출운", relation: "생", tone: "길", text: "재구매율이 높아지는 흐름이니 리마인드 메시지를 보내보세요." },
   { id: "오늘-매출운-생-06", field: "매출운", relation: "생", tone: "길", text: "온라인 채널에서 반응이 좋아질 수 있는 날입니다." },
-  { id: "오늘-매출운-생-07", field: "매출운", relation: "생", tone: "길", text: "시즌 상품이나 이벤트 판매가 순조롭게 진행됩니다." },
+  { id: "오늘-매출운-생-07", field: "매출운", relation: "생", tone: "길", text: "시즌 상품이나 이벤트 판매가 순조롭게 진행되기 쉽습니다." },
   { id: "오늘-매출운-생-08", field: "매출운", relation: "생", tone: "중", text: "매출은 안정적이나 큰 변동은 기대하기 어렵습니다." },
   { id: "오늘-매출운-생-09", field: "매출운", relation: "생", tone: "중", text: "평소 관리해온 고객 응대가 빛을 발하는 하루입니다." },
   { id: "오늘-매출운-생-10", field: "매출운", relation: "생", tone: "중", text: "소소하지만 꾸준한 주문이 이어지는 날입니다." },
@@ -97,10 +98,10 @@ export const TODAY_PHRASES: readonly TodayPhrase[] = [
   { id: "오늘-매출운-합-01", field: "매출운", relation: "합", tone: "길", text: "신규 거래처와의 첫 거래가 순조롭게 성사될 수 있는 기운입니다." },
   { id: "오늘-매출운-합-02", field: "매출운", relation: "합", tone: "길", text: "프로모션이나 이벤트 반응이 좋을 수 있는 날입니다." },
   { id: "오늘-매출운-합-03", field: "매출운", relation: "합", tone: "중", text: "평소보다 문의는 늘지만 실제 매출로 이어지려면 시간이 필요합니다." },
-  { id: "오늘-매출운-합-04", field: "매출운", relation: "합", tone: "길", text: "협업 마케팅이나 공동 프로모션이 좋은 반응을 얻습니다." },
+  { id: "오늘-매출운-합-04", field: "매출운", relation: "합", tone: "길", text: "협업 마케팅이나 공동 프로모션이 좋은 반응을 얻기 쉽습니다." },
   { id: "오늘-매출운-합-05", field: "매출운", relation: "합", tone: "길", text: "신규 채널 입점 제안이 들어올 수 있는 기운입니다." },
-  { id: "오늘-매출운-합-06", field: "매출운", relation: "합", tone: "길", text: "단가 협상이 순조롭게 진행되는 날입니다." },
-  { id: "오늘-매출운-합-07", field: "매출운", relation: "합", tone: "길", text: "소개받은 거래처와의 첫 거래가 원활히 성사됩니다." },
+  { id: "오늘-매출운-합-06", field: "매출운", relation: "합", tone: "길", text: "단가 협상이 순조롭게 진행되기 좋은 날입니다." },
+  { id: "오늘-매출운-합-07", field: "매출운", relation: "합", tone: "길", text: "소개받은 거래처와의 첫 거래가 원활히 성사될 수 있습니다." },
   { id: "오늘-매출운-합-08", field: "매출운", relation: "합", tone: "중", text: "좋은 제안이 와도 마진을 꼼꼼히 따져보세요." },
   { id: "오늘-매출운-합-09", field: "매출운", relation: "합", tone: "중", text: "매출 목표를 재조정하기 좋은 타이밍입니다." },
   { id: "오늘-매출운-합-10", field: "매출운", relation: "합", tone: "중", text: "여러 채널의 판매 데이터를 점검해보면 좋은 인사이트를 얻습니다." },
@@ -110,7 +111,7 @@ export const TODAY_PHRASES: readonly TodayPhrase[] = [
   { id: "오늘-매출운-충-03", field: "매출운", relation: "충", tone: "흉", text: "예상치 못한 클레임이 들어올 수 있으니 응대를 신중히 하세요." },
   { id: "오늘-매출운-충-04", field: "매출운", relation: "충", tone: "흉", text: "갑작스러운 가격 경쟁으로 마진이 줄어들 수 있습니다." },
   { id: "오늘-매출운-충-05", field: "매출운", relation: "충", tone: "흉", text: "대량 주문 취소나 미수금 문제에 유의하세요." },
-  { id: "오늘-매출운-충-06", field: "매출운", relation: "충", tone: "흉", text: "성수기임에도 매출이 기대에 못 미칠 수 있습니다." },
+  { id: "오늘-매출운-충-06", field: "매출운", relation: "충", tone: "흉", text: "기대만큼 매출이 오르지 않을 수 있습니다." },
   { id: "오늘-매출운-충-07", field: "매출운", relation: "충", tone: "흉", text: "거래처와의 정산 시기를 두고 마찰이 생길 수 있습니다." },
   { id: "오늘-매출운-충-08", field: "매출운", relation: "충", tone: "중", text: "수요 예측이 빗나갈 수 있으니 재고를 보수적으로 운영하세요." },
   { id: "오늘-매출운-충-09", field: "매출운", relation: "충", tone: "중", text: "고객 불만이 접수되면 신속하게 대응하는 것이 중요합니다." },
@@ -120,20 +121,20 @@ export const TODAY_PHRASES: readonly TodayPhrase[] = [
   { id: "오늘-매출운-비화-02", field: "매출운", relation: "비화", tone: "길", text: "꾸준히 해온 방식이 좋은 결과로 이어지는 날입니다." },
   { id: "오늘-매출운-비화-03", field: "매출운", relation: "비화", tone: "중", text: "큰 기복 없이 안정적으로 흘러가는 기운입니다." },
   { id: "오늘-매출운-비화-04", field: "매출운", relation: "비화", tone: "중", text: "평소와 다름없는 매출 흐름이 이어지는 하루입니다." },
-  { id: "오늘-매출운-비화-05", field: "매출운", relation: "비화", tone: "중", text: "특별한 이벤트 없이도 꾸준한 주문이 들어옵니다." },
+  { id: "오늘-매출운-비화-05", field: "매출운", relation: "비화", tone: "중", text: "특별한 이벤트 없이도 꾸준한 주문이 들어오기 쉽습니다." },
   { id: "오늘-매출운-비화-06", field: "매출운", relation: "비화", tone: "중", text: "기존 고객 관리에 집중하기 좋은 날입니다." },
   { id: "오늘-매출운-비화-07", field: "매출운", relation: "비화", tone: "중", text: "큰 기복 없이 안정적인 하루를 보낼 수 있습니다." },
   { id: "오늘-매출운-비화-08", field: "매출운", relation: "비화", tone: "길", text: "단골 고객과의 관계가 매출로 이어지는 기운입니다." },
-  { id: "오늘-매출운-비화-09", field: "매출운", relation: "비화", tone: "길", text: "꾸준히 쌓아온 신뢰가 매출 안정으로 나타납니다." },
-  { id: "오늘-매출운-비화-10", field: "매출운", relation: "비화", tone: "길", text: "무리하지 않고 하던 대로 해도 좋은 결과를 얻습니다." },
+  { id: "오늘-매출운-비화-09", field: "매출운", relation: "비화", tone: "길", text: "꾸준히 쌓아온 신뢰가 매출 안정으로 나타날 수 있습니다." },
+  { id: "오늘-매출운-비화-10", field: "매출운", relation: "비화", tone: "길", text: "무리하지 않고 하던 대로 해도 좋은 결과를 얻기 쉽습니다." },
   // 거래운 / 생
   { id: "오늘-거래운-생-01", field: "거래운", relation: "생", tone: "길", text: "거래처와의 신뢰가 두터워지는 날입니다. 장기 계약 논의를 해보기 좋습니다." },
   { id: "오늘-거래운-생-02", field: "거래운", relation: "생", tone: "길", text: "상대방이 먼저 좋은 조건을 제시할 수 있는 기운입니다." },
   { id: "오늘-거래운-생-03", field: "거래운", relation: "생", tone: "중", text: "대화가 순조롭게 이어지지만 결론은 다음으로 넘어갈 수 있습니다." },
   { id: "오늘-거래운-생-04", field: "거래운", relation: "생", tone: "길", text: "상대방이 먼저 신뢰를 보이며 다가올 수 있는 날입니다." },
   { id: "오늘-거래운-생-05", field: "거래운", relation: "생", tone: "길", text: "오래된 거래처가 좋은 조건을 제안할 수 있습니다." },
-  { id: "오늘-거래운-생-06", field: "거래운", relation: "생", tone: "길", text: "소개받은 거래처와의 첫 만남이 순조롭습니다." },
-  { id: "오늘-거래운-생-07", field: "거래운", relation: "생", tone: "길", text: "협상 자리에서 나에게 유리한 분위기가 조성됩니다." },
+  { id: "오늘-거래운-생-06", field: "거래운", relation: "생", tone: "길", text: "소개받은 거래처와의 첫 만남이 순조롭게 풀리기 쉽습니다." },
+  { id: "오늘-거래운-생-07", field: "거래운", relation: "생", tone: "길", text: "협상 자리에서 나에게 유리한 분위기가 조성되기 쉽습니다." },
   { id: "오늘-거래운-생-08", field: "거래운", relation: "생", tone: "중", text: "대화는 순조롭지만 계약은 시간을 두고 진행하세요." },
   { id: "오늘-거래운-생-09", field: "거래운", relation: "생", tone: "중", text: "서로의 조건을 확인하며 신뢰를 쌓아가기 좋은 날입니다." },
   { id: "오늘-거래운-생-10", field: "거래운", relation: "생", tone: "중", text: "상대방의 제안을 여유 있게 검토해볼 수 있습니다." },
@@ -155,7 +156,7 @@ export const TODAY_PHRASES: readonly TodayPhrase[] = [
   { id: "오늘-거래운-합-04", field: "거래운", relation: "합", tone: "길", text: "조건이 척척 맞아떨어지는 순조로운 협상이 기대됩니다." },
   { id: "오늘-거래운-합-05", field: "거래운", relation: "합", tone: "길", text: "오래 끌어온 거래가 오늘 마무리될 수 있습니다." },
   { id: "오늘-거래운-합-06", field: "거래운", relation: "합", tone: "길", text: "신규 거래처와의 관계가 급속도로 가까워질 수 있습니다." },
-  { id: "오늘-거래운-합-07", field: "거래운", relation: "합", tone: "길", text: "서로에게 이득이 되는 조건으로 합의가 이루어집니다." },
+  { id: "오늘-거래운-합-07", field: "거래운", relation: "합", tone: "길", text: "서로에게 이득이 되는 조건으로 합의가 이루어지기 쉽습니다." },
   { id: "오늘-거래운-합-08", field: "거래운", relation: "합", tone: "중", text: "좋은 분위기 속에서도 세부 조항은 꼼꼼히 확인하세요." },
   { id: "오늘-거래운-합-09", field: "거래운", relation: "합", tone: "중", text: "상대방과의 의견 조율이 원만하게 이루어지는 날입니다." },
   { id: "오늘-거래운-합-10", field: "거래운", relation: "합", tone: "중", text: "관계가 무르익고 있으니 서두르지 않아도 좋습니다." },
