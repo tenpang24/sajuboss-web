@@ -427,6 +427,50 @@
   gap: 4px 28px;
 }
 
+/* 오늘의 사업운 결과(예시 카드 .sample과 같은 모양) */
+.today-out {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.today-out > .today-form {
+  align-self: stretch;
+}
+
+.today-result {
+  width: 100%;
+  max-width: 560px;
+  box-shadow: none;
+}
+
+.today-lines {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.today-lines div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.today-lines dt {
+  font-weight: 700;
+}
+
+.today-lines dd {
+  margin: 0;
+  color: var(--body);
+}
+
+.today-result > p {
+  margin: 0;
+}
+
 /* 메인: 상품, 고민, 풀이 방식 */
 .product {
   display: flex;

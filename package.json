@@ -10,7 +10,7 @@
     "check:responsive": "node scripts/check-responsive.mjs",
     "check:responsive:quick": "node scripts/check-responsive.mjs --quick",
     "test:saju": "node --test --conditions=react-server --disable-warning=MODULE_TYPELESS_PACKAGE_JSON \"tests/saju-engine/*.test.ts\"",
-    "test:report": "node --test --experimental-transform-types --import ./tests/support/alias.mjs --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --disable-warning=ExperimentalWarning \"tests/report/*.test.ts\""
+    "test:report": "node --test --experimental-transform-types --import ./tests/support/alias.mjs --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --disable-warning=ExperimentalWarning \"tests/report/*.test.ts\" \"tests/today/*.test.ts\""
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

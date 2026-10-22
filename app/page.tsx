@@ -1,19 +1,34 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { TodayForm } from "@/components/home/TodayForm";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { CheckIcon, IconCircle } from "@/components/ui/IconCircle";
+import { getUser } from "@/lib/auth";
 import { formatKrw, formatKrwFrom, pricing } from "@/lib/pricing";
+import { getSelfSaju } from "@/lib/saju";
+import { calcToday, toTodayView } from "@/lib/today/today";
 
 const heroPoints = ["절기 기준 만세력 계산", "결제 전 미리보기", "입력 정보는 언제든 삭제"];
 
-// 히어로의 "오늘의 사업운" 카드는 예시입니다. 실제 풀이는 8단계에서 연결합니다.
+// 히어로의 "오늘의 사업운" 카드는 예시입니다. 실제 풀이는 아래 "내 사주로 오늘의 사업운 보기"에서 계산합니다.
+// 막대는 결과 카드와 같은 기준(좋음 80%, 보통 60%, 조심 35%)입니다.
 const sampleScores = [
-  { label: "매출운", percent: 80, text: "좋음" },
-  { label: "계약운", percent: 60, text: "보통" },
-  { label: "관계운", percent: 100, text: "아주 좋음" },
+  { label: "사업운", percent: 80, text: "좋음" },
+  { label: "매출운", percent: 60, text: "보통" },
+  { label: "거래운", percent: 80, text: "좋음" },
 ];
+
+// 로그인했고 저장된 내 사주가 있으면 입력 없이 오늘의 사업운을 바로 보여 줍니다(저장된 사주를 다시 저장하지 않음).
+async function TodaySection() {
+  const user = await getUser();
+  if (!user) return <TodayForm />;
+  const saju = await getSelfSaju(user.id);
+  if (!saju) return <TodayForm />;
+  const today = calcToday({ birth_date: saju.birth_date, calendar: saju.calendar, birth_time: saju.birth_time });
+  return <TodayForm saved={today.ok ? toTodayView(today) : null} />;
+}
 
 const products = [
   {
@@ -190,7 +205,9 @@ export default function HomePage() {
               가입하지 않아도 볼 수 있습니다. 생년월일과 태어난 시각을 넣어 주세요.
             </p>
           </div>
-          <TodayForm />
+          <Suspense fallback={<TodayForm />}>
+            <TodaySection />
+          </Suspense>
         </Card>
       </section>
 
