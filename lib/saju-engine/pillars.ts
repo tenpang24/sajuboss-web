@@ -21,7 +21,7 @@ import { GAN_OHAENG, ZHI_OHAENG, type Ohaeng } from "./relation.ts";
 
 const { Solar } = lunarJs;
 
-export const ENGINE_VERSION = "saju-engine 8-A (lunar-javascript 1.7.7)";
+export const ENGINE_VERSION = "saju-engine 8-B1 (lunar-javascript 1.7.7)";
 
 /** 경계(절입, 날짜 변경)에서 이 시간(분) 안이면 위험으로 알린다. 서머타임·표준시 보정 여부에 따라 1시간까지 달라질 수 있어서. */
 export const BOUNDARY_RISK_MINUTES = 60;
@@ -138,7 +138,7 @@ const CHINA_OFFSET_MS = 8 * 3600 * 1000;
 const KST_OFFSET_MS = 9 * 3600 * 1000;
 
 /** 출생 순간 → 년주·월주(절입 시각 기준) */
-function yearMonthAt(utcMs: number): { year: string; month: string } {
+export function yearMonthAt(utcMs: number): { year: string; month: string } {
   const lunar = solarAt(utcMs + CHINA_OFFSET_MS).getLunar();
   return { year: lunar.getYearInGanZhiExact(), month: lunar.getMonthInGanZhiExact() };
 }
@@ -153,7 +153,7 @@ function dayHourAt(localMs: number, ziHour: CorrectionOptions["ziHour"]): { day:
 }
 
 /** utcMs 앞뒤의 12절 목록(UTC ms) */
-function jieAround(utcMs: number): Array<{ name: string; utcMs: number }> {
+export function jieAround(utcMs: number): Array<{ name: string; utcMs: number }> {
   const year = new Date(utcMs + CHINA_OFFSET_MS).getUTCFullYear();
   const seen = new Map<number, string>();
   for (const y of [year - 1, year, year + 1]) {
