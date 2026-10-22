@@ -12,7 +12,7 @@ export const brand = {
     company: "위스트롱",
     representative: "박진혁",
     registrationNumber: "278-72-00560",
-    mailOrderNumber: "[확인 후 기재]", // 신고번호 확인 중
+    mailOrderNumber: "2024-부산해운대-0205",
     address: "부산 해운대구 반여로17-1 C동 102호",
   },
   // 고객센터 연락처는 확정되면 채웁니다.
