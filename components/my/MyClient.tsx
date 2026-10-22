@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useState, type FormEvent } from "react";
 import {
   agreeToTerms,
   deleteMySaju,
@@ -80,6 +80,13 @@ export function SajuPanel({ saju }: { saju: SavedSaju | null }) {
   );
 
   const editing = mode === "edit" || !saju;
+  // 서버가 오류·안내를 돌려줘도 고른 값(양력·음력, 성별, 시각 모름)과 입력이 지워지지 않게 폼 자동 초기화 없이 제출합니다.
+  const onSaveSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (saving) return;
+    const formData = new FormData(event.currentTarget);
+    startTransition(() => saveAction(formData));
+  };
 
   return (
     <>
@@ -108,7 +115,7 @@ export function SajuPanel({ saju }: { saju: SavedSaju | null }) {
       )}
 
       {editing && (
-        <form action={saveAction} className="my-form">
+        <form action={saveAction} onSubmit={onSaveSubmit} className="my-form">
           {!saju && <p className="muted">저장해 두면 신청할 때 다시 입력하지 않아도 됩니다.</p>}
           <SajuFields
             key={saju?.id ?? "new"}

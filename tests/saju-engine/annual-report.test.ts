@@ -1,7 +1,7 @@
 // 8-B1: 십성, 지지 관계, 2027 신년 리포트 계산 데이터.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { calcAnnualReport, type AnnualReportResult } from "../../lib/saju-engine/annual-report.ts";
+import { calcAnnualReport, pickMonths, type AnnualReportResult } from "../../lib/saju-engine/annual-report.ts";
 import { branchRelations } from "../../lib/saju-engine/branch-relations.ts";
 import { DEFAULT_CORRECTIONS } from "../../lib/saju-engine/corrections.ts";
 import { JUDGMENT_TABLE } from "../../lib/saju-engine/judgment-table.ts";
@@ -108,8 +108,22 @@ test("확정 판정표(2026-10-22): 1975-03-20 09:00 양력 여성의 12개월 �
     ["중", "중", "흉", "중", "중", "중", "길", "길", "길", "흉", "길", "중"],
   );
   assert.deepEqual(r.bestMonths, { indexes: [7, 8, 9], provisional: false });
-  assert.deepEqual(r.cautionMonths, { indexes: [3, 10, 1], provisional: false });
+  // 조심할 달은 "흉" 등급만(3·10번째 2개). 1번째 달(중)은 들어가지 않는다.
+  assert.deepEqual(r.cautionMonths, { indexes: [3, 10], provisional: false });
   assert.equal(r.bestMonths.indexes.filter((i) => r.cautionMonths.indexes.includes(i)).length, 0);
+});
+
+test("움직일 달·조심할 달 규칙: 길만·흉만, 점수 순·동점이면 이른 달, 최대 3개, 없으면 빈 목록", () => {
+  const m = (index: number, grade: "길" | "중" | "흉", score: number) => ({ index, grade, score });
+  // 길 4개(점수 3·2·2·2) → 점수 높은 순, 동점은 이른 달: 9, 2, 5
+  // 흉 4개(점수 -1·0·0·0) → 점수 낮은 순, 동점은 이른 달: 11, 1, 4
+  const months = [
+    m(1, "흉", 0), m(2, "길", 2), m(3, "중", 1), m(4, "흉", 0), m(5, "길", 2), m(6, "중", 1),
+    m(7, "흉", 0), m(8, "길", 2), m(9, "길", 3), m(10, "중", 1), m(11, "흉", -1), m(12, "중", 1),
+  ];
+  assert.deepEqual(pickMonths(months), { best: [9, 2, 5], caution: [11, 1, 4] });
+  // 모두 "중"이면 둘 다 없음
+  assert.deepEqual(pickMonths(months.map((x) => ({ ...x, grade: "중" as const, score: 1 }))), { best: [], caution: [] });
 });
 
 test("점수는 표에서만: 월 천간 십성 점수 + 월지·일지 보정(연지·지지 십성·세운은 점수에 없음)", () => {

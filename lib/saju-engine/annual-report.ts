@@ -69,9 +69,9 @@ export type AnnualReportResult = {
     relations: Array<{ position: NatalPosition; branch: string; relations: BranchRelation[] }>;
   };
   months: AnnualMonth[];
-  /** 움직일 달(점수 높은 순, 동점이면 이른 달) */
+  /** 움직일 달("길" 등급만, 점수 높은 순, 동점이면 이른 달, 최대 3개. 없으면 빈 목록) */
   bestMonths: { indexes: number[]; provisional: boolean };
-  /** 조심할 달(움직일 달을 뺀 나머지에서 점수 낮은 순, 동점이면 이른 달) */
+  /** 조심할 달("흉" 등급만, 점수 낮은 순, 동점이면 이른 달, 최대 3개. 없으면 빈 목록) */
   cautionMonths: { indexes: number[]; provisional: boolean };
   judgmentConfirmed: boolean;
   timeUncertain: boolean;
@@ -97,7 +97,17 @@ function gradeFor(score: number): Grade {
   return JUDGMENT_TABLE.grades.find((g) => score >= g.min)?.grade ?? JUDGMENT_TABLE.fallbackGrade;
 }
 
-const byScoreThenEarly = (dir: 1 | -1) => (a: AnnualMonth, b: AnnualMonth) => dir * (b.score - a.score) || a.index - b.index;
+type PickableMonth = Pick<AnnualMonth, "index" | "score" | "grade">;
+
+const byScoreThenEarly = (dir: 1 | -1) => (a: PickableMonth, b: PickableMonth) =>
+  dir * (b.score - a.score) || a.index - b.index;
+
+/** 움직일 달·조심할 달(결정됨 2026-10-22). 리포트 화면도 저장된 등급·점수로 이 함수를 다시 불러 고른다. */
+export function pickMonths(months: PickableMonth[]): { best: number[]; caution: number[] } {
+  const best = months.filter((m) => m.grade === "길").sort(byScoreThenEarly(1)).slice(0, 3);
+  const caution = months.filter((m) => m.grade === "흉").sort(byScoreThenEarly(-1)).slice(0, 3);
+  return { best: best.map((m) => m.index), caution: caution.map((m) => m.index) };
+}
 
 export function calcAnnualReport(
   input: SajuInput,
@@ -144,8 +154,7 @@ export function calcAnnualReport(
     };
   });
 
-  const best = [...months].sort(byScoreThenEarly(1)).slice(0, 3);
-  const caution = months.filter((m) => !best.includes(m)).sort(byScoreThenEarly(-1)).slice(0, 3);
+  const picked = pickMonths(months);
   const provisional = !JUDGMENT_TABLE.confirmed;
 
   return {
@@ -160,8 +169,8 @@ export function calcAnnualReport(
       relations: natalBranches.map((n) => ({ ...n, relations: branchRelations(seunPillar[1], n.branch) })),
     },
     months,
-    bestMonths: { indexes: best.map((m) => m.index), provisional },
-    cautionMonths: { indexes: caution.map((m) => m.index), provisional },
+    bestMonths: { indexes: picked.best, provisional },
+    cautionMonths: { indexes: picked.caution, provisional },
     judgmentConfirmed: JUDGMENT_TABLE.confirmed,
     timeUncertain: natal.timeUncertain,
     boundaryRisk: natal.boundaryRisk,

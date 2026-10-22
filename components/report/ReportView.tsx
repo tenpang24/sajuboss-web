@@ -3,12 +3,14 @@ import { PrintButton } from "@/components/report/PrintButton";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { pickMonths } from "@/lib/saju-engine/annual-report";
 import type { Grade } from "@/lib/saju-engine/judgment-table";
 import { visibleText, type StoredReport } from "@/lib/report/view";
 
 // 고객용 신년 리포트 본문(설계서 2장 순서).
 // ① 표지 ② 2027년 한눈에 보기 ③ 나의 사업 기질 ④ 월별 사업운 12개월 ⑤ 움직일 달·조심할 달 ⑥ 상반기·하반기 제안 ⑦ 계산 기준과 유의
 // 문장은 저장된 그대로 보여 주고, 문구 확정 전 자리표시는 운영 환경에서 숨깁니다(visibleText). 문장이 하나도 안 남는 섹션은 통째로 숨깁니다.
+// 등급은 고객 화면에서만 "좋은 달·보통 달·조심할 달"로 씁니다(저장값과 관리자 화면은 길·중·흉 그대로).
 
 type StoredMonth = StoredReport["calc"]["months"][number];
 
@@ -18,7 +20,16 @@ const FIELDS = [
   { key: "D", label: "거래운" },
 ] as const;
 
-const gradeTone: Record<Grade, "y" | "line" | "tint"> = { 길: "y", 중: "tint", 흉: "line" };
+const gradeName: Record<Grade, string> = { 길: "좋은 달", 중: "보통 달", 흉: "조심할 달" };
+// 색만으로 구분되지 않게 표지 막대 아래에 함께 쓰는 표시
+const gradeMark: Record<Grade, string> = { 길: "▲", 중: "", 흉: "▼" };
+const gradeBar: Record<Grade, string> = { 길: "is-good", 중: "is-normal", 흉: "is-careful" };
+
+function GradeBadge({ grade }: { grade: Grade }) {
+  if (grade === "길") return <Badge tone="y">{gradeName[grade]}</Badge>;
+  if (grade === "흉") return <Badge className="badge-careful">{gradeName[grade]}</Badge>;
+  return <Badge>{gradeName[grade]}</Badge>;
+}
 
 // "2027-02-04 10:46:12" → 2월 4일. 끝은 다음 절입 날짜의 전날(그날 절입 시각 전까지가 이 달)
 function dayLabel(kst: string, minusDays = 0) {
@@ -31,16 +42,52 @@ export function monthRange(month: StoredMonth) {
   return `${dayLabel(month.startKst)} ~ ${dayLabel(month.endKst, 1)} (${month.pillar}월)`;
 }
 
-function MonthList({ title, indexes, months }: { title: string; indexes: number[]; months: StoredMonth[] }) {
+// "+08:30" → "UTC+8:30"
+function utcLabel(offset: string) {
+  return `UTC${offset.replace(/^([+-])0(\d)/, "$1$2")}`;
+}
+
+function MonthList({
+  title,
+  indexes,
+  months,
+  empty,
+}: {
+  title: string;
+  indexes: number[];
+  months: StoredMonth[];
+  empty: string;
+}) {
   return (
     <div className="rv-pick">
       <strong>{title}</strong>
-      <ul>
-        {indexes.map((index) => {
-          const month = months.find((item) => item.index === index);
-          return month ? <li key={index}>{monthRange(month)}</li> : null;
-        })}
-      </ul>
+      {indexes.length === 0 ? (
+        <p className="muted">{empty}</p>
+      ) : (
+        <ul>
+          {indexes.map((index) => {
+            const month = months.find((item) => item.index === index);
+            return month ? <li key={index}>{monthRange(month)}</li> : null;
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function Legend() {
+  return (
+    <div className="chart-legend rv-legend">
+      <span>
+        <i className="is-good" aria-hidden="true" />▲ 좋은 달
+      </span>
+      <span>
+        <i className="is-normal" aria-hidden="true" />
+        보통 달
+      </span>
+      <span>
+        <i className="is-careful" aria-hidden="true" />▼ 조심할 달
+      </span>
     </div>
   );
 }
@@ -52,6 +99,11 @@ export function ReportView({ report, orderNo }: { report: StoredReport; orderNo:
   const firstHalf = visibleText(report.halves?.first.phrase.text);
   const secondHalf = visibleText(report.halves?.second.phrase.text);
   const applied = calc.corrections.applied;
+  // 이미 저장된 리포트도 지금 규칙(길만·흉만, 최대 3개)으로 다시 고릅니다. 저장값은 바꾸지 않습니다.
+  const picked = pickMonths(calc.months);
+  const barsLabel = `12개월 등급. 좋은 달 ${calc.months.filter((m) => m.grade === "길").length}개, 조심할 달 ${
+    calc.months.filter((m) => m.grade === "흉").length
+  }개`;
 
   return (
     <article className="rv">
@@ -77,20 +129,33 @@ export function ReportView({ report, orderNo }: { report: StoredReport; orderNo:
             신청 번호 {orderNo}
           </Badge>
         </div>
-        <div className="cover-bars" aria-hidden="true">
-          {calc.months.map((month) => (
-            <div
-              key={month.index}
-              className={month.grade === "길" ? "is-good" : month.grade === "흉" ? "is-careful" : undefined}
-              style={{ height: `${36 + Math.max(0, Math.min(month.score, 3)) * 28}px` }}
-            />
-          ))}
+        <div role="img" aria-label={barsLabel}>
+          <div className="cover-bars rv-bars">
+            {calc.months.map((month) => (
+              <div
+                key={month.index}
+                className={gradeBar[month.grade]}
+                style={{ height: `${36 + Math.max(0, Math.min(month.score, 3)) * 28}px` }}
+              />
+            ))}
+          </div>
+          <div className="rv-bar-marks" aria-hidden="true">
+            {calc.months.map((month) => (
+              <span key={month.index}>
+                <span className="rv-bar-mark">{gradeMark[month.grade]}</span>
+                {month.pillar[1]}
+              </span>
+            ))}
+          </div>
         </div>
-        <div className="cover-caption">노랑: 길한 달 · 흰색: 흉한 달 · 입춘부터 시작하는 절기 달 기준</div>
+        <div className="cover-caption">
+          노랑 ▲ 좋은 달 · 주황 빗금 ▼ 조심할 달 · 연초록 보통 달 · 입춘부터 시작하는 절기 달 기준
+        </div>
         <div className="rv-cover-saju">
           <PillarTable pillars={calc.natal} />
           <p className="rv-basis">
-            한국 표준시 기준, 입춘을 해의 경계로 봅니다. 서머타임·옛 표준시 시기는 보정했습니다.
+            한국 표준시 기준, 입춘을 해의 경계로 봅니다. 서머타임·옛 표준시 시기에 태어난 경우 그 시각을 보정해
+            계산합니다.
           </p>
           {calc.boundaryRisk && <p className="rv-basis">태어난 시각에 따라 일부 결과가 달라질 수 있습니다.</p>}
           <p className="rv-basis">전통 명리 원리에 따른 참고용 자료이며 투자·법률·의료 판단을 대신하지 않습니다.</p>
@@ -120,17 +185,7 @@ export function ReportView({ report, orderNo }: { report: StoredReport; orderNo:
         <h2 className="t2" id="rv-months-title">
           월별 사업운 12개월
         </h2>
-        <div className="chart-legend rv-legend">
-          <span>
-            <i className="is-good" aria-hidden="true" />길
-          </span>
-          <span>
-            <i className="is-normal" aria-hidden="true" />중
-          </span>
-          <span>
-            <i className="is-careful" aria-hidden="true" />흉
-          </span>
-        </div>
+        <Legend />
         <ol className="rv-month-list">
           {calc.months.map((month, i) => {
             const phrases = report.months[i];
@@ -143,9 +198,7 @@ export function ReportView({ report, orderNo }: { report: StoredReport; orderNo:
                 <Card className="month-card rv-month">
                   <div className="rv-month-head">
                     <span className="month-label">{monthRange(month)}</span>
-                    <Badge tone={gradeTone[month.grade]} className="rv-grade">
-                      {month.grade}
-                    </Badge>
+                    <GradeBadge grade={month.grade} />
                   </div>
                   {rows.length > 0 && (
                     <div className="month-rows">
@@ -168,8 +221,18 @@ export function ReportView({ report, orderNo }: { report: StoredReport; orderNo:
       <Card className="rv-sec">
         <h2 className="t3">움직일 달 · 조심할 달</h2>
         <div className="rv-picks">
-          <MonthList title="움직일 달" indexes={calc.bestMonths.indexes} months={calc.months} />
-          <MonthList title="조심할 달" indexes={calc.cautionMonths.indexes} months={calc.months} />
+          <MonthList
+            title="움직일 달"
+            indexes={picked.best}
+            months={calc.months}
+            empty="올해는 특별히 크게 움직일 달이 따로 없습니다. 꾸준함이 힘이 되는 해입니다."
+          />
+          <MonthList
+            title="조심할 달"
+            indexes={picked.caution}
+            months={calc.months}
+            empty="올해는 특별히 조심할 달이 따로 없습니다."
+          />
         </div>
       </Card>
 
@@ -195,12 +258,12 @@ export function ReportView({ report, orderNo }: { report: StoredReport; orderNo:
         <h2 className="t3">계산 기준과 유의</h2>
         <ul>
           <li>생년월일시를 한국 표준시 기준 절기 만세력으로 계산했습니다. 해는 입춘, 달은 절기(입춘·경칩 등 12절)로 나눕니다.</li>
-          <li>
-            서머타임 보정 {applied.summerTimeHourRemoved ? "적용(1시간 뺌)" : "해당 없음"} · 계산에 쓴 표준시{" "}
-            {applied.standardOffset}
-          </li>
+          {applied.summerTimeHourRemoved && <li>서머타임 기간에 태어나 1시간을 빼고 계산했습니다.</li>}
+          {applied.standardOffset !== "+09:00" && (
+            <li>당시 표준시({utcLabel(applied.standardOffset)})에 맞춰 계산했습니다.</li>
+          )}
           {calc.timeUncertain && <li>태어난 시각을 몰라 시주 없이 계산했습니다.</li>}
-          <li>길·중·흉은 그 달 천간과 내 일간의 관계, 그 달 지지와 내 일지의 관계로 정했습니다.</li>
+          <li>좋은 달·보통 달·조심할 달은 그 달 천간과 내 일간의 관계, 그 달 지지와 내 일지의 관계로 정했습니다.</li>
           <li>참고용 자료이며 투자·법률·의료 판단을 대신하지 않습니다. 중요한 결정은 실제 상황과 함께 판단해 주세요.</li>
         </ul>
         <p className="muted small">
