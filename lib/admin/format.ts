@@ -47,6 +47,9 @@ export const eventNames: Record<string, string> = {
   refunded: "환불 기록",
   canceled: "관리자 취소",
   note_updated: "메모 수정",
+  report_generated: "리포트 생성",
+  report_regenerated: "리포트 다시 만들기",
+  report_viewed: "고객이 리포트 열어 봄",
 };
 
 export const paymentStatusNames: Record<string, string> = {

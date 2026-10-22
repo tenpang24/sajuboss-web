@@ -205,12 +205,13 @@ async function createTempSession(env) {
   if (error) throw new Error(`임시 계정 생성 실패 (${error.code ?? error.status})`);
   const userId = data.user.id;
 
-  // 정리 순서: order_events → payments → orders → saju_profiles → 계정(주문이 있으면 계정 삭제가 막힙니다).
+  // 정리 순서: order_events → order_reports → payments → orders → saju_profiles → 계정(주문이 있으면 계정 삭제가 막힙니다).
   const cleanup = async () => {
     // 처리 기록·결제 기록이 있는 주문은 지울 수 없어(restrict) 그 둘부터 지웁니다.
     const { data: mine } = await admin.from("orders").select("id").eq("user_id", userId);
     const orderIds = (mine ?? []).map((row) => row.id);
     if (orderIds.length) await admin.from("order_events").delete().in("order_id", orderIds);
+    if (orderIds.length) await admin.from("order_reports").delete().in("order_id", orderIds);
     if (orderIds.length) await admin.from("payments").delete().in("order_id", orderIds);
     await admin.from("orders").delete().eq("user_id", userId);
     await admin.from("saju_profiles").delete().eq("user_id", userId);
@@ -270,10 +271,36 @@ async function createTempSession(env) {
       })
       .select("id")
       .single();
-    if (seededOrder.error || seededSaju.error || payOrder.error) {
-      throw new Error(
-        `임시 데이터 준비 실패 (${seededOrder.error?.code ?? seededSaju.error?.code ?? payOrder.error?.code})`,
-      );
+    // 관리자 상세의 "리포트 상태" 카드용: 리포트가 만들어진(전달 완료) 신년 리포트 신청 1건
+    const reportOrder = await admin
+      .from("orders")
+      .insert({
+        user_id: userId,
+        product: "report_2027",
+        package: null,
+        status: "delivered",
+        amount_krw: 3900,
+        contact_email: email,
+        consent_privacy_at: now,
+        consent_disclaimer_at: now,
+        payload: { test: true },
+      })
+      .select("id")
+      .single();
+    const seededReport = reportOrder.error
+      ? null
+      : await admin.from("order_reports").insert({
+          order_id: reportOrder.data.id,
+          product: "report_2027",
+          engine_version: "saju-engine 8-B1 (lunar-javascript 1.7.7)",
+          phrase_version: "phrases-2027 draft-1",
+          input_snapshot: { test: true },
+          report: { test: true },
+        });
+    const seedError =
+      seededOrder.error ?? seededSaju.error ?? payOrder.error ?? reportOrder.error ?? seededReport?.error;
+    if (seedError) {
+      throw new Error(`임시 데이터 준비 실패 (${seedError.code})`);
     }
 
     const jar = new Map();
@@ -287,7 +314,7 @@ async function createTempSession(env) {
     const signedIn = await client.auth.signInWithPassword({ email, password });
     if (signedIn.error) throw new Error(`임시 계정 로그인 실패 (${signedIn.error.code})`);
     const cookies = [...jar].map(([name, value]) => ({ name, value, url: baseUrl }));
-    return { cookies, cleanup, orderId: payOrder.data.id };
+    return { cookies, cleanup, orderId: payOrder.data.id, reportOrderId: reportOrder.data.id };
   } catch (error) {
     await cleanup();
     throw error;
@@ -383,13 +410,24 @@ async function main() {
           }))
         : []),
       ...(session ? applyVariants.map((variant) => ({ ...variant, auth: true })) : []),
+      // 신년 리포트 신청의 관리자 상세(리포트 상태 카드). 빠른 모드에서는 /admin/orders/[orderId]와 함께 고릅니다.
+      ...(session
+        ? [
+            {
+              route: `/admin/orders/${session.reportOrderId}`,
+              name: "/admin/orders/[orderId] (신년 리포트)",
+              match: "/admin/orders/[orderId]",
+              auth: true,
+            },
+          ]
+        : []),
     ];
     // 빠른 모드에서는 고른 경로만 남깁니다(/login은 ?mode= 변형도 함께).
     const routes =
       !picked || picked.all
         ? allRoutes
-        : allRoutes.filter(({ route, name }) =>
-            picked.routes.has((name.includes("[") ? name : route).split("?")[0]),
+        : allRoutes.filter(({ route, name, match }) =>
+            picked.routes.has(match ?? (name.includes("[") ? name : route).split("?")[0]),
           );
 
     const chromiumBrowser = await chromium.launch();

@@ -17,6 +17,7 @@ import {
   resolveSaju,
   runForm,
 } from "@/lib/apply/shared";
+import { LUNAR_DATE_ERROR } from "@/lib/saju";
 import { parseBirthDate } from "@/lib/validation";
 
 // 개인·개명 작명 신청 폼 검증. 아래에 적힌 이름만 읽어 payload를 만듭니다.
@@ -35,7 +36,8 @@ export function readNamePersonForm(formData: FormData, userId: string) {
       allowSelf: kind !== "baby",
       allowUnknownGender: kind === "baby",
     }).catch((error: unknown) => {
-      if (kind === "baby" && error instanceof InputError && error.field === "birth") {
+      // 음력에 없는 날짜 안내는 그대로 보여 줍니다.
+      if (kind === "baby" && error instanceof InputError && error.field === "birth" && error.message !== LUNAR_DATE_ERROR) {
         throw new InputError(
           "출생일 또는 출산 예정일을 다시 확인해 주세요. 예정일은 오늘부터 약 10개월 안으로 입력해 주세요.",
           "birth",

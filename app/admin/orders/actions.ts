@@ -5,6 +5,7 @@ import {
   adminChangeStatus,
   adminConfirmPayment,
   adminRefund,
+  adminRegenerateReport,
   adminSaveNote,
   type AdminActionResult,
 } from "@/lib/admin/orders";
@@ -46,6 +47,14 @@ export async function changeStatusAction(
 ): Promise<AdminFormState> {
   const orderId = formData.get("orderId");
   return finish(await adminChangeStatus(orderId, formData.get("from"), formData.get("to")));
+}
+
+// 신년 리포트 만들기·다시 만들기
+export async function regenerateReportAction(
+  _prev: AdminFormState,
+  formData: FormData,
+): Promise<AdminFormState> {
+  return finish(await adminRegenerateReport(formData.get("orderId")));
 }
 
 // 내부 메모 저장

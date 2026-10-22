@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { createOrder } from "@/lib/orders";
-import { getSelfSaju, readSajuForm, type SajuInput } from "@/lib/saju";
+import { getSelfSaju, lunarDateError, readSajuForm, type SajuInput } from "@/lib/saju";
 
 // 신년 리포트 사전신청. 저장·검증·금액 계산은 lib/orders.ts의 createOrder가 맡고,
 // 여기서는 이 폼의 입력(풀이할 사주)만 검증해 payload를 만듭니다.
@@ -29,6 +29,11 @@ export async function submitReportPreorder(
         error: "저장된 내 사주가 없습니다. 내 신청에서 먼저 저장하거나 '다른 사람 사주 입력'을 골라 주세요.",
         needsSaju: true,
       };
+    }
+    // 음력 날짜 검사가 생기기 전에 저장된 사주일 수 있어 다시 확인합니다.
+    const lunarError = lunarDateError(saved.birth_date, saved.calendar);
+    if (lunarError) {
+      return { error: `저장된 내 사주: ${lunarError}`, needsSaju: true };
     }
     saju = {
       birth_date: saved.birth_date,

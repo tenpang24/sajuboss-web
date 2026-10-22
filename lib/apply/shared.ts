@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { LIMITS, SAJU_SOURCES, type ApplyState, type SajuSource } from "@/lib/apply/options";
 import { createOrder } from "@/lib/orders";
 import type { Package, Product } from "@/lib/products";
-import { getSelfSaju, readBirthForm, readSajuForm, type SajuInput } from "@/lib/saju";
+import { getSelfSaju, lunarDateError, readBirthForm, readSajuForm, type SajuInput } from "@/lib/saju";
 import {
   GENDER_UNKNOWN,
   isOneOf,
@@ -146,6 +146,11 @@ export async function resolveSaju(
     const saved = await getSelfSaju(userId);
     if (!saved) {
       throw new InputError("저장된 내 사주가 없습니다. '직접 입력'을 골라 주세요.", "sajuSource");
+    }
+    // 음력 날짜 검사가 생기기 전에 저장된 사주일 수 있어 다시 확인합니다.
+    const lunarError = lunarDateError(saved.birth_date, saved.calendar);
+    if (lunarError) {
+      throw new InputError(`저장된 내 사주: ${lunarError}`, "sajuSource");
     }
     return { source, saju: toOrderSaju(saved) };
   }

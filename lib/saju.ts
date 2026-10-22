@@ -1,4 +1,5 @@
 import "server-only";
+import { koreanLunarToSolar } from "@/lib/saju-engine/korean-lunar";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -40,6 +41,16 @@ type ParsedBirth = { ok: true; value: BirthInput } | { ok: false; error: string;
 // maxFutureDays: 생년월일을 앞날까지 받을 일수(아기 이름의 출산 예정일 전용). 기본은 오늘까지.
 export type SajuFormOptions = { prefix?: string; maxFutureDays?: number };
 
+export const LUNAR_DATE_ERROR = "음력에 없는 날짜입니다. 다시 확인해 주세요.";
+
+// 음력·윤달 입력이면 한국 음력(한국천문연구원 표, 사주 엔진과 같은 변환)에 실제로 있는 날짜인지 확인합니다.
+// 있으면 null, 없으면(30일이 없는 달의 30일, 윤달이 없는 해의 윤달 등) 안내 문구.
+export function lunarDateError(birthDate: string, calendar: Calendar): string | null {
+  if (calendar === "solar") return null;
+  const [year, month, day] = birthDate.split("-").map(Number);
+  return koreanLunarToSolar(year, month, day, calendar === "lunar_leap").ok ? null : LUNAR_DATE_ERROR;
+}
+
 // 생년월일, 양력·음력, 태어난 시각만 검증합니다(성별을 받지 않는 동업자 정보에도 씁니다).
 export function readBirthForm(formData: FormData, options: SajuFormOptions = {}): ParsedBirth {
   const prefix = options.prefix ?? "";
@@ -55,6 +66,10 @@ export function readBirthForm(formData: FormData, options: SajuFormOptions = {})
   const calendar = formData.get(`${prefix}calendar`);
   if (!isOneOf(calendar, CALENDARS)) {
     return { ok: false, error: "양력·음력을 선택해 주세요.", field: `${prefix}calendar` };
+  }
+  const lunarError = lunarDateError(birthDate, calendar);
+  if (lunarError) {
+    return { ok: false, error: lunarError, field: `${prefix}birth` };
   }
 
   // "태어난 시각을 몰라요"를 체크했으면 입력된 시각은 무시합니다.

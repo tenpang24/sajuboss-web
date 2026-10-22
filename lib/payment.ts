@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { getUser } from "@/lib/auth";
 import { TBD } from "@/lib/brand";
 import { PAYMENT_MODE, PAYMENT_PG_PROVIDER } from "@/lib/products";
+import { generateAfterPayment } from "@/lib/report/generate";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isUuid } from "@/lib/validation";
 
@@ -217,15 +218,16 @@ export async function confirmPayment(orderId: unknown, providerPaymentId: unknow
     return failure("failed", FAILED);
   }
 
-  return toResult(
-    await settlePayment({
-      orderId: order.id,
-      provider: "pg",
-      providerName: provider.name,
-      providerPaymentId: confirmed.providerPaymentId,
-      verifiedAmountKrw: confirmed.amountKrw, // PG가 알려 준 금액. DB 함수가 주문 금액과 비교합니다.
-    }),
-  );
+  const outcome = await settlePayment({
+    orderId: order.id,
+    provider: "pg",
+    providerName: provider.name,
+    providerPaymentId: confirmed.providerPaymentId,
+    verifiedAmountKrw: confirmed.amountKrw, // PG가 알려 준 금액. DB 함수가 주문 금액과 비교합니다.
+  });
+  // 결제 확인 직후 신년 리포트 생성(다른 상품은 아무것도 하지 않음). 실패해도 결제 확인은 그대로 두고 paid로 남깁니다.
+  if (outcome === "paid") await generateAfterPayment(order.id);
+  return toResult(outcome);
 }
 
 // 결제 시작. pg 모드에서 결제 버튼을 눌렀을 때 호출합니다.

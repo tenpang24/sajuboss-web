@@ -2,12 +2,13 @@
 
 다음 세션이 이 문서만 읽고 이어서 작업할 수 있게 유지합니다. 키와 비밀번호는 쓰지 않습니다.
 
-최종 갱신: 2026-10-22 (통신판매업 신고번호 push, 8-B1 계산 데이터·판정표·보정 기본값 확정, 로컬 커밋)
+최종 갱신: 2026-10-22 (8-B2 신년 리포트 생성·저장 로컬 커밋, SQL 적용됨)
 
 ## 1. 현재 단계
 
-- **8-B1 판정표·보정 기본값 확정(2026-10-22), 로컬 커밋만(push 안 함)**: 판정표 `confirmed: true`(정재·편재·식신·정관 2, 상관·정인·편인·비견 1, 겁재·편관 0, 월지·일지 합 +1·충 -1·형(子卯) -1·형(부분)·자형 0, 2 이상 길·1 중·0 이하 흉), 지장간 본기 그대로 확정, `DEFAULT_CORRECTIONS` = 서머타임·표준시 이력 켜짐(진태양시 꺼짐, 자시 00:00). 한국천문연구원 표와 비교하는 기존 테스트는 "보정 모두 꺼짐"(`tests/saju-engine/kasi.ts`의 `ALL_OFF`)을 명시해 넘기고 기대값은 그대로. 테스트 44개 통과.
-- **8-B1 구현·검증 완료(2026-10-22), 로컬 커밋만(push 안 함)**: 십성(`sipsung.ts`), 지지 육충·육합·형(`branch-relations.ts`), 판정표(`judgment-table.ts`, 데이터만), 2027 신년 리포트 계산(`annual-report.ts`의 `calcAnnualReport`). 세운 丁未와 12개월 월주(壬寅~癸丑)는 엔진 절입 시각으로 구함. (처음 커밋 때는 판정표 확정 전이라 모든 달이 "중"이었고, 같은 날 확정값으로 바꿈.) `ENGINE_VERSION`은 `saju-engine 8-B1 (lunar-javascript 1.7.7)`. 화면·DB·문구·스위치 변경 없음.
+- **8-B2 신년 리포트 생성·저장(2026-10-22), 로컬 커밋만(push 안 함)**: SQL `20261022120000_order_reports.sql` 적용됨(사장님 실행). 리포트 저장 테이블 `order_reports`와 함수 `save_order_report`, `mark_report_viewed`. 결제 확인 직후(PG `confirmPayment`, 관리자 입금 확인) 신년 리포트 자동 생성 → 상태 delivered. 실패해도 결제 확인은 그대로(paid). 관리자 상세에 "리포트 상태" 카드와 "리포트 만들기/다시 만들기"(처음 열어 보기 전까지, 두 단계 확인). 문구는 자리표시(`[문구 확정 전]`)라 `PHRASES_CONFIRMED = false`이고, 운영(production)에서는 생성을 거부한다. 미리보기 계산 `lib/report/preview.ts`(화면 연결 전). 음력·윤달 입력은 한국 음력에 있는 날짜인지 서버에서 확인. **고객이 리포트를 보는 화면과 메일 발송은 아직 없음.** 검증: 단위 테스트 14개(`npm run test:report`), DB 검증 39/39, 반응형 quick 15개 경로 120회 통과.
+- **8-B1 판정표·보정 기본값 확정(2026-10-22), push·배포 완료(06fcf65, 2026-10-22)**: 판정표 `confirmed: true`(정재·편재·식신·정관 2, 상관·정인·편인·비견 1, 겁재·편관 0, 월지·일지 합 +1·충 -1·형(子卯) -1·형(부분)·자형 0, 2 이상 길·1 중·0 이하 흉), 지장간 본기 그대로 확정, `DEFAULT_CORRECTIONS` = 서머타임·표준시 이력 켜짐(진태양시 꺼짐, 자시 00:00). 한국천문연구원 표와 비교하는 기존 테스트는 "보정 모두 꺼짐"(`tests/saju-engine/kasi.ts`의 `ALL_OFF`)을 명시해 넘기고 기대값은 그대로. 테스트 44개 통과.
+- **8-B1 구현·검증 완료(2026-10-22), push·배포 완료(06fcf65, 2026-10-22)**: 십성(`sipsung.ts`), 지지 육충·육합·형(`branch-relations.ts`), 판정표(`judgment-table.ts`, 데이터만), 2027 신년 리포트 계산(`annual-report.ts`의 `calcAnnualReport`). 세운 丁未와 12개월 월주(壬寅~癸丑)는 엔진 절입 시각으로 구함. (처음 커밋 때는 판정표 확정 전이라 모든 달이 "중"이었고, 같은 날 확정값으로 바꿈.) `ENGINE_VERSION`은 `saju-engine 8-B1 (lunar-javascript 1.7.7)`. 화면·DB·문구·스위치 변경 없음.
 - **통신판매업 신고번호 반영(2026-10-22, `f944fb9`, push됨)**: `lib/brand.ts`의 `mailOrderNumber` = `2024-부산해운대-0205`. 프로덕션 푸터에 표시 확인.
 - **서비스명 변경(2026-10-15)**: 가칭이던 옛 이름을 **"사주보스"**로 확정. `lib/brand.ts`의 `name`만 바꾸면 title·description 템플릿·openGraph `siteName`/`title`·헤더 로고·헤더 `aria-label`·푸터가 모두 따라감. "가칭" 배지(헤더)와 "(가칭)"(푸터), `brand.showTentativeBadge`, `.logo-badge` 스타일 삭제. 고객 호칭 "사장님"(예: description의 "사장님을 위한")은 그대로. `design/` 시안 파일은 원본 보존이라 옛 이름이 남아 있음. 8-A 승인과 함께 push 지시를 받음.
 - **8-A 구현·검증 완료(2026-10-14), 승인 대기, 미push**: 소상공닷컴 사주 계산 코드 원본 보관(`_import/sosangkong/`), 우리 엔진 `lib/saju-engine/`(server-only, 4주·일진·관계·보정 옵션·한국 음력 변환), 한국천문연구원 자료로 만든 자동 테스트 29개(`npm run test:saju`) 모두 통과. 보정 기본값은 그때 모두 꺼짐(2026-10-22 서머타임·표준시 이력 켜짐으로 확정). 화면·DB·스위치 변경 없음. 십성·대운·택일·작명·문구는 아직 없음.
@@ -33,9 +34,10 @@
 | 8-A | 사주 계산 엔진 이식과 정확도 검증(화면 연결 없음) | push 지시받음(2026-10-15) | `4444568` |
 | - | 서비스명 변경: 사주보스(가칭 배지 제거) | push됨 | `fb5d827` |
 | - | 통신판매업 신고번호 반영 | push됨(2026-10-22) | `f944fb9` |
-| 8-B1 | 신년 사업운 리포트 계산 데이터(십성, 지지 관계, 2027 세운·월운, 판정표 틀) | 로컬 커밋, 미push | `cf1af88` |
-| 8-B1 | 판정표·보정 기본값 확정 | 로컬 커밋, 미push | 이 문서와 같은 커밋 |
-| 8 | 풀이 연결(나머지: 십성·대운·택일·작명·문구, 화면 연결) | 시작 전 | |
+| 8-B1 | 신년 사업운 리포트 계산 데이터(십성, 지지 관계, 2027 세운·월운, 판정표 틀) | push됨(2026-10-22) | `cf1af88` |
+| 8-B1 | 판정표·보정 기본값 확정 | push됨(2026-10-22) | `06fcf65` |
+| 8-B2 | 신년 리포트 생성·저장(order_reports, 결제 직후 생성, 관리자 다시 만들기, 미리보기 계산, 음력 날짜 검사) | SQL 적용됨, 로컬 커밋, 미push | 이 문서와 같은 커밋 |
+| 8 | 풀이 연결(나머지: 리포트 고객 화면·메일, 대운·택일·작명·문구) | 시작 전 | |
 | 9 | QA, 오픈 전 점검 | 시작 전 | |
 
 **보관 브랜치 `wip/stage3-old-design`** (`f45980a`, 로컬에만 있음): 구 시안으로 만든 3단계 코드. 참고용이며 main에 합치지 않습니다.
@@ -146,6 +148,17 @@
 - `tests/saju-engine/annual-report.test.ts`(신규, 11개): 십성 甲 일간·10×10, 본기 12개, 지지 관계 대칭·relation.ts 충 일치·형 규칙, 세운 丁未·월주 순서, 12개월 시작·끝이 한국천문연구원 12절과 같은 날·3분 이내(2027 입춘 10:46, 2028 입춘 16:31), 판정·목록 겹침, 같은 입력 같은 결과, 시각 모름·음력·윤달·없는 음력 날짜.
 - 예시(1975-03-20 09:00 양력 여성, 원국 乙卯 己卯 乙丑 辛巳): 세운 丁未(식신/편재, 일지 丑과 충+형(부분)). 6월(丁未) 월지·일지 충+형(부분), 9월(庚戌) 형(부분), 11월(壬子) 합. 확정 판정표로 12개월 등급 중·중·흉·중·중·중·길·길·길·흉·길·중, 움직일 달 7·8·9번째, 조심할 달 3·10·1번째.
 
+**8-B2(신년 리포트 생성·저장, 2026-10-22)**
+- `supabase/migrations/20261022120000_order_reports.sql`(신규, 적용됨): 아래 3번 DB 상태 참고.
+- `lib/report/phrases/`(신규): 월별 문구 90개(십성 10 × 사업운 B·매출운 S·거래운 D × 3, ID "정재-S2"), 세운 총평·일간 기질·오행 과부족·충합 보조·반기 제안 묶음(자리만). `PHRASES_CONFIRMED = false`, `PHRASE_VERSION = "phrases-2027 draft-1"`.
+- `lib/report/build.ts`(신규, DB 없음): `buildReport(orderId, payload.saju)` → `calcAnnualReport` + 달마다 그 달 천간 십성의 B·S·D 문장 1개씩. 선택은 "주문 id | 달 번호 | 분야"의 sha256 해시로 시작 위치를 정하고, 한 리포트 안에서 이미 쓴 문장이면 다음 후보로. 결과 JSON: `schemaVersion: 1`, 엔진 버전, 문구 버전, `calc`(계산 결과 전체), `seunSummary`(세운 총평 ID), `months`(달마다 B·S·D의 ID와 문장). `phrasesBlocked()`: production이고 문구 미확정이면 생성 거부.
+- `lib/report/generate.ts`(신규): `generateOrderReport(orderId, actorId)` → 주문을 읽어(신년 리포트가 아니면 `not_report`) 만들고 `save_order_report`로 저장. `generateAfterPayment`는 예외를 던지지 않는다.
+- `lib/report/preview.ts`(신규): 사주표 + 세운 총평 1문장만 계산(저장 안 함, 화면 연결 전).
+- `lib/payment.ts`: PG 결제 확인이 `paid`이면 `generateAfterPayment`. `lib/admin/orders.ts`: 입금 확인이 `paid`이면 생성(결과에 따라 안내 문구), `adminRegenerateReport`, 상세에 리포트 상태(`report`) 추가. `app/admin/orders/actions.ts`: `regenerateReportAction`. `components/admin/AdminActions.tsx`: `RegenerateReportControl`. `app/admin/orders/[orderId]/page.tsx`: 신년 리포트 신청에만 "리포트 상태" 카드(없음 / 생성 시각·자동·관리자 / 처음 열어 본 시각 / 엔진·문구 버전). `lib/admin/format.ts`: 처리 기록 이름 3개.
+- `lib/saju.ts`: `lunarDateError`, `LUNAR_DATE_ERROR`("음력에 없는 날짜입니다. 다시 확인해 주세요."). `readBirthForm`이 음력·윤달이면 엔진의 한국 음력 변환으로 확인(사주 저장, 신년 리포트 사전신청 직접 입력, 신청 폼 3종과 동업자 모두 이 함수를 거침). 저장된 내 사주를 고르는 경로(`app/report/2027/actions.ts`, `lib/apply/shared.ts`의 `resolveSaju`)도 다시 확인. `lib/apply/name-person.ts`: 아기 이름의 생년월일 안내 문구가 음력 오류 문구를 덮지 않게.
+- 테스트: `tests/report/report.test.ts`(문구 90개, 같은 주문 같은 결과, 한 리포트 안 중복 없음(주문 300개), production 거부, 미리보기), `tests/report/lunar-input.test.ts`(세 곳 + 동업자 + 아기). `tests/support/alias.mjs`·`alias-hooks.mjs`: 테스트에서 `@/` 경로와 확장자 없는 import를 풀고 `server-only`를 빈 모듈로. `package.json`: `test:report`(`--experimental-transform-types`, react-server 조건 없이).
+- `scripts/check-responsive.mjs`: 리포트가 있는 신년 리포트 신청의 관리자 상세(`/admin/orders/[orderId] (신년 리포트)`)를 함께 검사, 정리 순서에 `order_reports` 추가.
+
 ## 3. DB 상태 (Supabase 프로젝트 ref `jmolzaubbseytkdaadgf`)
 
 마이그레이션은 **사장님이 SQL Editor에서 직접 실행**합니다. Claude는 DDL을 실행할 수단이 없고, CLI 로그인·DB 비밀번호는 쓰지 않기로 했습니다. SQL 파일 전문을 코드 블록으로 보여주고 승인 → 실행 → REST 검증 순서입니다.
@@ -158,6 +171,7 @@
 | `supabase/migrations/20261011150100_orders.sql` | 적용됨(2026-10-11). 실행 순서 3. `orders` 테이블 |
 | `supabase/migrations/20261013120000_payments.sql` | 적용됨(2026-10-13). `payments` 테이블, 함수 `confirm_order_payment`. REST 검증 52/52 통과 |
 | `supabase/migrations/20261013150000_admin_actions.sql` | 적용됨(2026-10-13). `order_events` 테이블, 함수 `admin_confirm_manual_payment`, `refund_order_payment`, `admin_change_order_status`, `admin_set_order_note`. REST 검증 77/77 통과 |
+| `supabase/migrations/20261022120000_order_reports.sql` | 적용됨(2026-10-22, 사장님이 begin/commit으로 실행, 설명 주석만 뺀 같은 내용). `order_reports` 테이블, `order_events` action 3개 추가, 함수 `save_order_report`, `mark_report_viewed`. 사전 점검 통과, DB 검증 39/39 |
 
 **테이블 `public.profiles`**: `id`(auth.users FK, on delete cascade), `role`('user'|'admin', 기본 'user'), `created_at`.
 - RLS 켜짐. 정책: `profiles_select_own`, `profiles_update_own`(둘 다 본인 행, authenticated).
@@ -179,9 +193,16 @@
 
 **함수 `public.confirm_order_payment(p_order_id, p_provider, p_provider_name, p_provider_payment_id, p_amount_krw)`**(6-A): 주문을 잠그고 금액을 비교한 뒤 payments 기록과 `orders.status = paid`를 한 트랜잭션으로 처리. 결과 문자열: `paid`, `already_paid`, `amount_mismatch`(주문 그대로, failed 행 1개), `duplicate_payment`, `not_payable`, `not_found`, `invalid`. `search_path = ''`. execute는 service_role만(anon·authenticated 호출은 42501).
 
-**테이블 `public.order_events`**(7단계): 관리자 처리 기록. `id`, `order_id`(orders FK, **restrict**), `actor_id`(auth.users FK, set null), `action`('payment_confirmed'|'status_changed'|'refunded'|'canceled'|'note_updated'), `from_status`, `to_status`, `created_at`.
+**테이블 `public.order_events`**(7단계): 관리자 처리 기록. `id`, `order_id`(orders FK, **restrict**), `actor_id`(auth.users FK, set null), `action`('payment_confirmed'|'status_changed'|'refunded'|'canceled'|'note_updated', 8-B2에서 'report_generated'|'report_regenerated'|'report_viewed' 추가), `from_status`, `to_status`, `created_at`. 자동 생성 기록은 `actor_id` null, `report_viewed`는 열어 본 사용자.
 - RLS 켜짐, 정책 없음. anon·authenticated는 권한 없음(42501). service_role만 읽고, 쓰기는 아래 함수가 한다. 메모 내용·신청 내용·연락처는 저장하지 않는다.
-- 처리 기록이 있는 주문은 삭제할 수 없음(23503). 임시 데이터 정리 순서는 **order_events → payments → orders → saju_profiles → 계정**.
+- 처리 기록이 있는 주문은 삭제할 수 없음(23503). 임시 데이터 정리 순서는 **order_events → order_reports → payments → orders → saju_profiles → 계정**.
+
+**테이블 `public.order_reports`**(8-B2): `id`, `order_id`(orders FK, unique, restrict), `product`('report_2027'만), `engine_version`, `phrase_version`, `input_snapshot`(계산에 쓴 사주), `report`(계산 결과 + 문장 ID·문장), `created_at`, `created_by`(관리자 다시 만들기면 그 id, 자동이면 null, auth.users FK set null), `first_viewed_at`, `updated_at`(트리거).
+- RLS 켜짐. 정책 `order_reports_select_own_delivered`: 본인 주문이고 status가 delivered인 것만(삭제된 주문은 orders 정책이 하위 조회에서 걸러 냄. `orders.deleted_at`에는 사용자 컬럼 권한이 없어 직접 비교하지 않음).
+- authenticated는 컬럼 단위 select만(`input_snapshot`, `created_by` 제외, `select('*')`는 42501). 쓰기는 service_role만. anon은 권한 없음.
+- 함수(둘 다 `search_path = ''`, execute는 service_role만): `save_order_report(p_order_id, p_engine_version, p_phrase_version, p_input, p_report, p_actor_id)` 결과 saved, regenerated, already_exists, viewed_locked, not_payable, forbidden, not_found, invalid. 새로 저장은 report_2027·삭제 안 됨·paid 또는 in_progress일 때만, 다시 만들기는 관리자이고 first_viewed_at이 null이고 paid·in_progress·delivered일 때만. `mark_report_viewed(p_order_id, p_user_id)` 결과 viewed, already_viewed, not_found, invalid.
+
+**8-B2 DB 검증 결과**(2026-10-22, 임시 계정 3개(임시 관리자 포함)로 수행 후 삭제, 잔여 행 0): 39/39 통과. 결제 전(requested)·사전신청은 not_payable, 리포트 상품이 아니면 not_report, 입금 확인 → 자동 생성 saved·delivered·report_generated(자동), 다시 자동 생성 already_exists, 관리자가 아닌 actor forbidden, in_progress로 되돌리면 사용자 0행, 관리자 다시 만들기 regenerated(created_by 관리자), 본인 delivered 1행·`input_snapshot`/`created_by`/`*` 42501, 다른 사용자 0행, anon 42501, 사용자 insert·update·함수 실행 42501, 남의 주문 열람 기록 not_found, 본인 viewed → already_viewed(시각 그대로), 열어 본 뒤 다시 만들기 viewed_locked, 환불되면 사용자 0행.
 
 **관리자 처리 함수 4개**(7단계): 모두 `search_path = ''`, execute는 service_role만(anon·authenticated 호출 42501), `p_actor_id`가 null이면 `invalid`, `profiles.role`이 admin이 아니면 `forbidden`. 주문 행을 잠그고 상태 변경과 `order_events` 기록을 한 트랜잭션으로 쓴다.
 - `admin_confirm_manual_payment(p_order_id, p_actor_id)`: DB의 주문 금액으로 `confirm_order_payment(manual)`을 호출. `paid`일 때만 기록. 결과: paid, already_paid, not_payable, not_found, forbidden, invalid.
@@ -256,7 +277,7 @@
 ## 5. 미커밋·미push
 
 - **2026-10-22**: `f944fb9`(통신판매업 신고번호) push(`8a7386a..f944fb9`, 인증 창 없음). push 전 lint·tsc·build·`npm run test:saju`(29개) 통과. Vercel 프로덕션 배포 Ready, `https://sajuboss.com` 푸터에 `2024-부산해운대-0205` 표시, www 308. 배포의 커밋 해시는 CLI로 직접 읽지 못했고, 배포 시각과 푸터 값으로 확인함.
-- **8-B1 커밋 2개(`cf1af88`, 판정표·보정 기본값 확정 = 이 문서와 같은 커밋)는 로컬에만 있음.** push는 사장님 지시 후.
+- **8-B1 push·배포 완료(06fcf65, 2026-10-22)**: `f944fb9..06fcf65`(`cf1af88`, `06fcf65`). push 전 lint·tsc·build·`npm run test:saju`(44개) 통과. Vercel 프로덕션 배포 Ready(`dpl_ARgFhYbweeP2RkS7vnuqzFoDWnrN`, 15:21 생성). `/`, `/report/2027`, `/login`, `/apply/date` 200, `/my`, `/admin/orders` 307, www 308, 신청 폼 3종 "오픈 준비 중"·제출 버튼 0, noindex 유지. 페이지 6개·JS·CSS 15개에서 service_role·`sb_secret_`·사주 라이브러리 흔적 0건. 배포 커밋 해시는 CLI로 직접 읽지 못함(배포 시각으로 판단).
 
 - 2026-10-15 사장님 지시로 `8d9c195`, `4444568`(8-A), 서비스명 변경 커밋을 함께 push. push 전 검증: lint·tsc·build·`npm run test:saju`(29개) 통과, 반응형 quick 20개 경로 160회 통과(헤더 "사주보스" 한 줄 유지). `cb27a77..fb5d827` push 성공, 인증 계정 `tenpang24`(원격 URL의 사용자 이름, 인증 창 없음). 이 문서 갱신 커밋은 로컬에만 있음.
 
@@ -319,6 +340,8 @@
 00000. 8-B1 결정(신년 리포트 판정).
 00000-1. (결정됨, 2026-10-22) **지장간 본기 표**(`sipsung.ts`의 `JIJANGGAN_BONGI`, 설계서 7장) 그대로 확정: 子癸 丑己 寅甲 卯乙 辰戊 巳丙 午丁 未己 申庚 酉辛 戌戊 亥壬.
 00000-2. (결정됨, 2026-10-22) **판정표**(`judgment-table.ts`, `confirmed: true`): 월 천간 십성 정재·편재·식신·정관 2, 상관·정인·편인·비견 1, 겁재·편관 0. 월지·일지 육합 +1, 육충 -1, 형(子卯) -1, 형(부분) 0, 자형 0(삼형 세 글자 모두는 두 지지로 생기지 않음). 2 이상 길, 1 중, 0 이하 흉.
+00000-4. **음력 2월 30일 입력**(8-B2에서 발견): 지금은 입력도 저장도 안 된다(7번 참고). 받으려면 생년월일을 문자열로 받고 `saju_profiles.birth_date`를 text로 바꾸거나 음력 날짜를 따로 저장해야 한다. 받을지와 방식 결정 필요.
+00000-5. **리포트 문구 확정**: 월별 90개, 세운 총평 10개(그 밖의 묶음은 쓸지 결정). 확정되면 `PHRASES_CONFIRMED = true`, `PHRASE_VERSION` 올림.
 00000-3. (결정됨, 2026-10-22) **점수에 넣는 것**: 월 천간 십성 + 월지·일지 관계만. 월 지지 십성, 월지·연지 관계, 세운과 원국 관계는 결과에 담기만 함.
 0000-7. **1954년 표준시 변경 시각**: IANA는 3월 21일 00:00, 국가기록원 자료는 "오전 0시 30분부터". 그날 0~1시 출생만 영향. 1961-08-10 복귀는 IANA로만 확인.
 
@@ -334,7 +357,8 @@
 00-2. (결정됨, 2026-10-13) **manual 모드는 7단계 관리자 확인 화면이 생기기 전에는 켜지 않는다.** 켜기 전에 `BANK_NAME`, `BANK_HOLDER`, `BANK_ACCOUNT`를 Vercel에 넣어야 하고, manual·pg 모드 화면의 반응형을 다시 검사해야 함.
 00-3. **manual 모드의 입금 안내 문구**("입금자명 뒤에 신청 번호를 함께 적어 주세요")는 Claude가 쓴 문구. 사장님이 별도로 확인하기로 함(2026-10-13).
 00-4. **off 모드 결제 화면의 버튼**: "결제하기 (준비 중)" 비활성 + "신청만 먼저 접수하기"(→ `/my?notice=requested`). 결제 안내 방식은 `[안내 방식 확정 후 기재]`.
-00-5. **환불 규정, 영수증·현금영수증, 결과 전달 방법·시기, 입금 확인 소요 시간**: 모두 `[확정 후 기재]`.
+00-5. **환불 규정, 영수증·현금영수증, 결과 전달 시기, 입금 확인 소요 시간**: 모두 `[확정 후 기재]`.
+00-6. (결정됨, 2026-10-22) **신년 리포트 결과 전달 방법**: "내 신청에서 보기 + 메일 링크". **결제 전 미리보기**: "사주표 + 총평 1문장".
 00-6. (결정됨, 2026-10-13) **신년 리포트 사전신청 완료 후 이동은 `/my?notice=preorder-done` 유지.**
 
 0. **5단계 승인**과 아래 5단계 결정 사항.
@@ -359,6 +383,8 @@
 
 ## 7. 알려진 문제와 임시 처리(TODO)
 
+- **신년 리포트(8-B2)**: 고객이 리포트를 보는 화면, `mark_report_viewed` 호출, 메일 링크 발송, 미리보기 화면 연결은 아직 없음. 문구는 모두 자리표시이고 `PHRASES_CONFIRMED = false`라 운영에서는 생성되지 않는다(결제 확인 뒤 paid로 남음 → 문구 확정 후 관리자 "리포트 만들기"). 세운 총평 외의 묶음(일간 기질, 오행 과부족, 충합 보조, 반기 제안)은 리포트에 아직 넣지 않음.
+- **음력 2월 30일 입력 불가(기존 설계)**: 생년월일 형식 검사(`parseBirthDate`)가 양력 달력 기준이고 `saju_profiles.birth_date`가 `date` 타입이라, 실제로 있는 음력 2월 30일(양력 평년이면 음력 2월 29일도)은 "생년월일을 다시 확인해 주세요"로 거부된다. 고치려면 날짜 저장 형식(DB) 결정이 필요(6번 00000-4).
 - 사주 엔진(8-A)은 화면에 연결되지 않음. 메인 "오늘의 사업운"은 여전히 준비 중 안내.
 - 신년 리포트 계산(8-B1)도 화면에 연결되지 않음. 리포트 해는 2027 고정(`REPORT_YEAR`). 달 경계는 라이브러리 절입 시각이라 한국천문연구원 표와 0~3분 차이(2027년분은 1분 안팎).
 - 사주 엔진의 오행 개수는 천간·지지 겉글자만 센다(지장간 없음, 원본과 같음). 시주 경계(홀수 시 정각) 근처 위험은 알리지 않음.
@@ -415,13 +441,14 @@ npx tsc --noEmit
 npm run lint
 npm run build
 npm run test:saju                  # 사주 엔진 테스트(인터넷 필요 없음, 15초 안팎)
+npm run test:report                # 신년 리포트 생성·음력 날짜 검사 테스트(DB 없음)
 npm run check:responsive:quick     # 평소. push 직전·9단계 QA는 npm run check:responsive (처음이면 먼저: npx playwright install chromium webkit)
 ```
 
 1. 이 문서와 `docs/RESPONSIVE.md`를 읽고 현재 상태를 요약한다.
 2. 6번 목록에서 사장님 답이 온 항목을 처리한다(특히 5단계 승인, "push 진행").
 3. `lib/products.ts`의 `APPLY_FORMS_OPEN`이 false, `PAYMENT_MODE`가 `off`, `PAYMENT_PG_PROVIDER`가 `none`인지 먼저 확인한다. 검증할 때만 로컬에서 바꾸고, 커밋 전에 되돌린다.
-4. DB를 바꾸는 작업이 생기면 SQL 전문을 보여주고 승인 → 사장님이 SQL Editor에서 실행 → REST 검증 순서(임시 계정은 무작위 `@example.com`, `email_confirm: true`, 끝나면 order_events → payments → orders → saju_profiles → 계정 순서로 삭제하고 잔여 행 확인. 거부는 기대 오류 코드로 판정, `PGRST205`/`PGRST202`는 실패. 사전 점검에서 이 코드가 나오면 멈추고 보고).
+4. DB를 바꾸는 작업이 생기면 SQL 전문을 보여주고 승인 → 사장님이 SQL Editor에서 실행 → REST 검증 순서(임시 계정은 무작위 `@example.com`, `email_confirm: true`, 끝나면 order_events → order_reports → payments → orders → saju_profiles → 계정 순서로 삭제하고 잔여 행 확인. 거부는 기대 오류 코드로 판정, `PGRST205`/`PGRST202`는 실패. 사전 점검에서 이 코드가 나오면 멈추고 보고).
 5. 새 화면은 `design/v2/`의 해당 시안과 `app/site.css` 클래스를 쓰고, 금액 + 버튼이 있는 화면에는 `MobileBar`를 넣는다.
 6. 단계 보고 직전에 이 문서를 갱신해 같은 커밋에 넣고, 보고 끝에 "HANDOFF.md 갱신됨(변경 요약 3줄)"을 붙인다.
 

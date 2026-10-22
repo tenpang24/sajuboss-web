@@ -6,6 +6,7 @@ import {
   ConfirmPaymentControl,
   NoteForm,
   RefundControl,
+  RegenerateReportControl,
   StatusMoveControl,
 } from "@/components/admin/AdminActions";
 import { Badge } from "@/components/ui/Badge";
@@ -30,6 +31,42 @@ import { orderNumber, statusLabels, type OrderStatus } from "@/lib/products";
 export const metadata: Metadata = { title: "신청 상세" };
 
 const REFUNDABLE: OrderStatus[] = ["paid", "in_progress", "delivered"];
+// 신년 리포트를 만들 수 있는 상태(DB 함수 save_order_report와 같은 조건)
+const REPORTABLE: OrderStatus[] = ["paid", "in_progress", "delivered"];
+
+// 신년 리포트 상태와 만들기·다시 만들기 버튼. 리포트 내용은 보여 주지 않습니다(고객 화면은 다음 단계).
+function ReportCard({ order }: { order: AdminOrderDetail }) {
+  const report = order.report;
+  const canMake =
+    order.deletedAt === null &&
+    REPORTABLE.includes(order.status) &&
+    (report === null ? order.status !== "delivered" : report.firstViewedAt === null);
+  return (
+    <Card className="my-card">
+      <strong className="my-card-title">리포트 상태</strong>
+      {report === null ? (
+        <p className="muted">없음</p>
+      ) : (
+        <>
+          <div className="sum-row">
+            <span>생성됨</span>
+            <span>
+              {formatDayTime(report.createdAt)} · {report.byAdmin ? "관리자" : "자동"}
+            </span>
+          </div>
+          <div className="sum-row">
+            <span>처음 열어 본 시각</span>
+            <span>{report.firstViewedAt ? formatDayTime(report.firstViewedAt) : "아직 열어 보지 않음"}</span>
+          </div>
+          <p className="muted small admin-text">
+            {report.engineVersion} · {report.phraseVersion}
+          </p>
+        </>
+      )}
+      {canMake && <RegenerateReportControl orderId={order.id} exists={report !== null} />}
+    </Card>
+  );
+}
 
 const moveNotes: Record<string, string> = {
   "paid>in_progress": "풀이·후보 작성을 시작한 신청으로 표시합니다.",
@@ -239,6 +276,7 @@ async function DetailContent({ params }: Pick<PageProps<"/admin/orders/[orderId]
 
       <aside className="split-side my-side" aria-label="처리">
         <Controls order={order} />
+        {order.product === "report_2027" && <ReportCard order={order} />}
         <Card className="my-card">
           <NoteForm
             orderId={order.id}

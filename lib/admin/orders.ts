@@ -1,6 +1,7 @@
 import "server-only";
 import { sajuKey } from "@/lib/admin/payload";
 import { getUser, isAdmin } from "@/lib/auth";
+import { generateAfterPayment, generateOrderReport } from "@/lib/report/generate";
 import {
   ORDER_STATUSES,
   PACKAGES,
@@ -225,6 +226,15 @@ export type SameSajuOrder = {
   sameAccount: boolean;
 };
 
+// 신년 리포트(order_reports). 리포트 내용과 계산 입력은 읽지 않습니다.
+export type AdminReport = {
+  createdAt: string;
+  byAdmin: boolean; // 관리자가 만들었는지(자동 생성이면 false)
+  firstViewedAt: string | null;
+  engineVersion: string;
+  phraseVersion: string;
+};
+
 export type AdminOrderDetail = {
   id: string;
   product: Product;
@@ -244,6 +254,7 @@ export type AdminOrderDetail = {
   events: AdminEvent[];
   hasSaju: boolean; // 사주 값이 있어 같은 사주 비교를 했는지
   sameSaju: SameSajuOrder[];
+  report: AdminReport | null; // 신년 리포트 주문에서만 읽습니다.
 };
 
 export async function getAdminOrder(orderId: unknown): Promise<AdminOrderDetail | null> {
@@ -299,6 +310,25 @@ export async function getAdminOrder(orderId: unknown): Promise<AdminOrderDetail 
     .order("created_at", { ascending: false })
     .limit(100);
   if (events.error) console.error("getAdminOrder events failed", events.error.code);
+
+  let report: AdminReport | null = null;
+  if (order.product === "report_2027") {
+    const saved = await admin
+      .from("order_reports")
+      .select("created_at, created_by, first_viewed_at, engine_version, phrase_version")
+      .eq("order_id", order.id)
+      .maybeSingle();
+    if (saved.error) console.error("getAdminOrder report failed", saved.error.code);
+    if (saved.data) {
+      report = {
+        createdAt: saved.data.created_at as string,
+        byAdmin: saved.data.created_by !== null,
+        firstViewedAt: saved.data.first_viewed_at as string | null,
+        engineVersion: saved.data.engine_version as string,
+        phraseVersion: saved.data.phrase_version as string,
+      };
+    }
+  }
 
   // 같은 사주: 생년월일이 같은 주문의 사주 값만 읽어 서버에서 비교합니다.
   const payload = order.payload;
@@ -374,6 +404,7 @@ export async function getAdminOrder(orderId: unknown): Promise<AdminOrderDetail 
     })),
     hasSaju: mine !== null,
     sameSaju,
+    report,
   };
 }
 
@@ -431,7 +462,14 @@ export async function adminConfirmPayment(orderId: unknown, checked: boolean): P
   if (!checked) return fail("주문 금액 전액이 입금된 것을 확인하고 체크해 주세요.");
   const outcome = await callAdminFunction("admin_confirm_manual_payment", orderId);
   if (outcome === null || outcome === "not_found" || outcome === "forbidden") return fail(NOT_FOUND);
-  if (outcome === "paid") return done("입금을 확인했습니다. 상태가 결제 확인으로 바뀌었습니다.");
+  if (outcome === "paid") {
+    // 신년 리포트는 입금 확인 직후 자동으로 만듭니다(다른 상품은 아무것도 하지 않음).
+    // 실패해도 입금 확인은 그대로이고 주문은 결제 확인(paid)으로 남습니다. 결과는 화면의 리포트 상태로 확인합니다.
+    const report = isUuid(orderId) ? await generateAfterPayment(orderId) : "not_report";
+    if (report === "not_report") return done("입금을 확인했습니다. 상태가 결제 확인으로 바뀌었습니다.");
+    if (report === "saved") return done("입금을 확인했고 신년 리포트를 만들었습니다. 상태가 전달 완료로 바뀌었습니다.");
+    return done("입금을 확인했습니다. 신년 리포트는 만들지 못해 결제 확인 상태로 남았습니다. 리포트 상태에서 다시 만들어 주세요.");
+  }
   if (outcome === "already_paid") return fail("이미 결제가 확인된 신청입니다.");
   if (outcome === "not_payable") return fail("결제 확인 대기 상태의 신청만 입금 확인할 수 있습니다.");
   return fail(FAILED);
@@ -469,6 +507,26 @@ export async function adminChangeStatus(
   }
   if (outcome === "conflict") return fail(CHANGED);
   if (outcome === "invalid") return fail("할 수 없는 상태 변경입니다.");
+  return fail(FAILED);
+}
+
+// 신년 리포트 만들기·다시 만들기. 사용자가 처음 열어 보기 전까지만 다시 만들 수 있습니다(DB 함수가 확인).
+export async function adminRegenerateReport(orderId: unknown): Promise<AdminActionResult> {
+  const actor = await adminActor();
+  if (!actor || !isUuid(orderId)) return fail(NOT_FOUND);
+  const outcome = await generateOrderReport(orderId, actor);
+  if (outcome === "saved") return done("리포트를 만들었습니다. 상태가 전달 완료로 바뀌었습니다.");
+  if (outcome === "regenerated") return done("리포트를 다시 만들었습니다.");
+  if (outcome === "viewed_locked") return fail("고객이 이미 열어 본 리포트는 다시 만들 수 없습니다.");
+  if (outcome === "not_payable") {
+    return fail("결제가 확인된 신년 리포트 신청만 리포트를 만들 수 있습니다(환불·취소된 신청 제외).");
+  }
+  if (outcome === "phrases_unconfirmed") {
+    return fail("리포트 문구가 확정되기 전이라 운영 환경에서는 리포트를 만들 수 없습니다.");
+  }
+  if (outcome === "invalid_input") return fail("신청 내용의 사주 정보로 계산하지 못했습니다. 신청 내용을 확인해 주세요.");
+  if (outcome === "not_report") return fail("신년 리포트 신청이 아닙니다.");
+  if (outcome === "not_found" || outcome === "forbidden") return fail(NOT_FOUND);
   return fail(FAILED);
 }
 

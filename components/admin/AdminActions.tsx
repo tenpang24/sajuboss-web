@@ -5,6 +5,7 @@ import {
   changeStatusAction,
   confirmPaymentAction,
   refundAction,
+  regenerateReportAction,
   saveNoteAction,
   type AdminFormState,
 } from "@/app/admin/orders/actions";
@@ -181,6 +182,27 @@ export function StatusMoveControl({
       danger={danger}
     >
       <p>{note}</p>
+    </GuardedAction>
+  );
+}
+
+// 신년 리포트 만들기·다시 만들기. 고객이 처음 열어 보기 전까지만 보입니다(서버도 같은 조건을 확인합니다).
+export function RegenerateReportControl({ orderId, exists }: { orderId: string; exists: boolean }) {
+  const label = exists ? "리포트 다시 만들기" : "리포트 만들기";
+  return (
+    <GuardedAction
+      action={regenerateReportAction}
+      orderId={orderId}
+      label={label}
+      submitLabel={label}
+      title={label}
+      danger={exists}
+    >
+      <p>
+        {exists
+          ? "지금 엔진과 문구로 리포트를 새로 계산해 덮어씁니다. 고객이 열어 본 뒤에는 다시 만들 수 없습니다."
+          : "신청 내용의 사주로 리포트를 계산해 저장하고, 상태를 전달 완료로 바꿉니다. 메일은 보내지 않습니다."}
+      </p>
     </GuardedAction>
   );
 }
