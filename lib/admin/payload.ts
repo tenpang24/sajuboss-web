@@ -9,7 +9,13 @@ import {
   weekdayPrefNames,
 } from "@/lib/apply/options";
 import type { Product } from "@/lib/products";
-import { GENDER_UNKNOWN, calendarNames, genderNames, genderUnknownName } from "@/lib/validation";
+import {
+  GENDER_UNKNOWN,
+  calendarNames,
+  formatLunarInput,
+  genderNames,
+  genderUnknownName,
+} from "@/lib/validation";
 
 // 관리자 화면에서 신청 내용(payload)을 보여 주기 위한 변환.
 // 결과는 이름표와 글자(문자열)뿐입니다. 화면은 이 글자를 텍스트로만 출력합니다
@@ -77,6 +83,16 @@ export function describeSaju(value: unknown): string {
     );
   }
   if (typeof value.label === "string" && value.label) parts.push(`이름표: ${value.label}`);
+  // 음력 2월 29·30일 등을 양력으로 바꿔 넣은 신청: 고객이 처음 넣은 음력 날짜
+  const original = value.original_lunar_input;
+  if (
+    isRecord(original) &&
+    (original.calendar === "lunar" || original.calendar === "lunar_leap") &&
+    typeof original.date === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(original.date)
+  ) {
+    parts.push(`원래 입력: ${formatLunarInput({ calendar: original.calendar, date: original.date })}`);
+  }
   return parts.join(" · ");
 }
 

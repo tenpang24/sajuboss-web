@@ -1,0 +1,495 @@
+{
+ "input": {
+  "birth_date": "1975-03-20",
+  "calendar": "solar",
+  "birth_time": "09:00",
+  "gender": "female"
+ },
+ "report": {
+  "schemaVersion": 1,
+  "engineVersion": "saju-engine 8-B1 (lunar-javascript 1.7.7)",
+  "phraseVersion": "phrases-2027 draft-1",
+  "phrasesConfirmed": false,
+  "calc": {
+   "ok": true,
+   "year": 2027,
+   "natal": {
+    "year": "乙卯",
+    "month": "己卯",
+    "day": "乙丑",
+    "hour": "辛巳"
+   },
+   "dayGan": "乙",
+   "seun": {
+    "pillar": "丁未",
+    "ganSipsung": "식신",
+    "zhiSipsung": "편재",
+    "relations": [
+     {
+      "position": "year",
+      "branch": "卯",
+      "relations": []
+     },
+     {
+      "position": "month",
+      "branch": "卯",
+      "relations": []
+     },
+     {
+      "position": "day",
+      "branch": "丑",
+      "relations": [
+       "충",
+       "형(부분)"
+      ]
+     },
+     {
+      "position": "hour",
+      "branch": "巳",
+      "relations": []
+     }
+    ]
+   },
+   "months": [
+    {
+     "index": 1,
+     "term": "입춘",
+     "startKst": "2027-02-04 10:46:18",
+     "endKst": "2027-03-06 04:39:33",
+     "startLabel": "2월 4일경",
+     "pillar": "壬寅",
+     "ganSipsung": "정인",
+     "zhiSipsung": "겁재",
+     "withDayBranch": [],
+     "withYearBranch": [],
+     "score": 1,
+     "grade": "중"
+    },
+    {
+     "index": 2,
+     "term": "경칩",
+     "startKst": "2027-03-06 04:39:33",
+     "endKst": "2027-04-05 09:17:31",
+     "startLabel": "3월 6일경",
+     "pillar": "癸卯",
+     "ganSipsung": "편인",
+     "zhiSipsung": "비견",
+     "withDayBranch": [],
+     "withYearBranch": [],
+     "score": 1,
+     "grade": "중"
+    },
+    {
+     "index": 3,
+     "term": "청명",
+     "startKst": "2027-04-05 09:17:31",
+     "endKst": "2027-05-06 02:25:12",
+     "startLabel": "4월 5일경",
+     "pillar": "甲辰",
+     "ganSipsung": "겁재",
+     "zhiSipsung": "정재",
+     "withDayBranch": [],
+     "withYearBranch": [],
+     "score": 0,
+     "grade": "흉"
+    },
+    {
+     "index": 4,
+     "term": "입하",
+     "startKst": "2027-05-06 02:25:12",
+     "endKst": "2027-06-06 06:25:48",
+     "startLabel": "5월 6일경",
+     "pillar": "乙巳",
+     "ganSipsung": "비견",
+     "zhiSipsung": "상관",
+     "withDayBranch": [],
+     "withYearBranch": [],
+     "score": 1,
+     "grade": "중"
+    },
+    {
+     "index": 5,
+     "term": "망종",
+     "startKst": "2027-06-06 06:25:48",
+     "endKst": "2027-07-07 16:37:03",
+     "startLabel": "6월 6일경",
+     "pillar": "丙午",
+     "ganSipsung": "상관",
+     "zhiSipsung": "식신",
+     "withDayBranch": [],
+     "withYearBranch": [],
+     "score": 1,
+     "grade": "중"
+    },
+    {
+     "index": 6,
+     "term": "소서",
+     "startKst": "2027-07-07 16:37:03",
+     "endKst": "2027-08-08 02:26:46",
+     "startLabel": "7월 7일경",
+     "pillar": "丁未",
+     "ganSipsung": "식신",
+     "zhiSipsung": "편재",
+     "withDayBranch": [
+      "충",
+      "형(부분)"
+     ],
+     "withYearBranch": [],
+     "score": 1,
+     "grade": "중"
+    },
+    {
+     "index": 7,
+     "term": "입추",
+     "startKst": "2027-08-08 02:26:46",
+     "endKst": "2027-09-08 05:28:28",
+     "startLabel": "8월 8일경",
+     "pillar": "戊申",
+     "ganSipsung": "정재",
+     "zhiSipsung": "정관",
+     "withDayBranch": [],
+     "withYearBranch": [],
+     "score": 2,
+     "grade": "길"
+    },
+    {
+     "index": 8,
+     "term": "백로",
+     "startKst": "2027-09-08 05:28:28",
+     "endKst": "2027-10-08 21:17:06",
+     "startLabel": "9월 8일경",
+     "pillar": "己酉",
+     "ganSipsung": "편재",
+     "zhiSipsung": "편관",
+     "withDayBranch": [],
+     "withYearBranch": [
+      "충"
+     ],
+     "score": 2,
+     "grade": "길"
+    },
+    {
+     "index": 9,
+     "term": "한로",
+     "startKst": "2027-10-08 21:17:06",
+     "endKst": "2027-11-08 00:38:35",
+     "startLabel": "10월 8일경",
+     "pillar": "庚戌",
+     "ganSipsung": "정관",
+     "zhiSipsung": "정재",
+     "withDayBranch": [
+      "형(부분)"
+     ],
+     "withYearBranch": [
+      "합"
+     ],
+     "score": 2,
+     "grade": "길"
+    },
+    {
+     "index": 10,
+     "term": "입동",
+     "startKst": "2027-11-08 00:38:35",
+     "endKst": "2027-12-07 17:37:41",
+     "startLabel": "11월 8일경",
+     "pillar": "辛亥",
+     "ganSipsung": "편관",
+     "zhiSipsung": "정인",
+     "withDayBranch": [],
+     "withYearBranch": [],
+     "score": 0,
+     "grade": "흉"
+    },
+    {
+     "index": 11,
+     "term": "대설",
+     "startKst": "2027-12-07 17:37:41",
+     "endKst": "2028-01-06 04:54:39",
+     "startLabel": "12월 7일경",
+     "pillar": "壬子",
+     "ganSipsung": "정인",
+     "zhiSipsung": "편인",
+     "withDayBranch": [
+      "합"
+     ],
+     "withYearBranch": [
+      "형"
+     ],
+     "score": 2,
+     "grade": "길"
+    },
+    {
+     "index": 12,
+     "term": "소한",
+     "startKst": "2028-01-06 04:54:39",
+     "endKst": "2028-02-04 16:31:13",
+     "startLabel": "1월 6일경",
+     "pillar": "癸丑",
+     "ganSipsung": "편인",
+     "zhiSipsung": "편재",
+     "withDayBranch": [],
+     "withYearBranch": [],
+     "score": 1,
+     "grade": "중"
+    }
+   ],
+   "bestMonths": {
+    "indexes": [
+     7,
+     8,
+     9
+    ],
+    "provisional": false
+   },
+   "cautionMonths": {
+    "indexes": [
+     3,
+     10,
+     1
+    ],
+    "provisional": false
+   },
+   "judgmentConfirmed": true,
+   "timeUncertain": false,
+   "boundaryRisk": false,
+   "boundaryRisks": [],
+   "corrections": {
+    "options": {
+     "trueSolarTime": {
+      "enabled": false,
+      "minutes": 0
+     },
+     "summerTime": true,
+     "standardTimeHistory": true,
+     "ziHour": "midnight"
+    },
+    "applied": {
+     "trueSolarTimeMinutes": null,
+     "summerTimeHourRemoved": false,
+     "standardOffset": "+09:00",
+     "ziHour": "midnight"
+    },
+    "clock": "1975-03-20 09:00:00",
+    "instantUtc": "1975-03-20T00:00:00.000Z",
+    "calcLocal": "1975-03-20 09:00:00",
+    "clockIssue": null,
+    "periodNotes": []
+   },
+   "engine": "saju-engine 8-B1 (lunar-javascript 1.7.7)"
+  },
+  "seunSummary": {
+   "id": "세운-식신-1",
+   "text": "[문구 확정 전]"
+  },
+  "dayGanPhrase": {
+   "id": "일간-乙-1",
+   "text": "[문구 확정 전]"
+  },
+  "halves": {
+   "first": {
+    "grade": "중",
+    "phrase": {
+     "id": "반기-상-중",
+     "text": "[문구 확정 전]"
+    }
+   },
+   "second": {
+    "grade": "길",
+    "phrase": {
+     "id": "반기-하-길",
+     "text": "[문구 확정 전]"
+    }
+   }
+  },
+  "months": [
+   {
+    "index": 1,
+    "B": {
+     "id": "정인-B3",
+     "text": "[문구 확정 전]"
+    },
+    "S": {
+     "id": "정인-S2",
+     "text": "[문구 확정 전]"
+    },
+    "D": {
+     "id": "정인-D3",
+     "text": "[문구 확정 전]"
+    }
+   },
+   {
+    "index": 2,
+    "B": {
+     "id": "편인-B3",
+     "text": "[문구 확정 전]"
+    },
+    "S": {
+     "id": "편인-S3",
+     "text": "[문구 확정 전]"
+    },
+    "D": {
+     "id": "편인-D2",
+     "text": "[문구 확정 전]"
+    }
+   },
+   {
+    "index": 3,
+    "B": {
+     "id": "겁재-B3",
+     "text": "[문구 확정 전]"
+    },
+    "S": {
+     "id": "겁재-S3",
+     "text": "[문구 확정 전]"
+    },
+    "D": {
+     "id": "겁재-D3",
+     "text": "[문구 확정 전]"
+    }
+   },
+   {
+    "index": 4,
+    "B": {
+     "id": "비견-B1",
+     "text": "[문구 확정 전]"
+    },
+    "S": {
+     "id": "비견-S3",
+     "text": "[문구 확정 전]"
+    },
+    "D": {
+     "id": "비견-D2",
+     "text": "[문구 확정 전]"
+    }
+   },
+   {
+    "index": 5,
+    "B": {
+     "id": "상관-B3",
+     "text": "[문구 확정 전]"
+    },
+    "S": {
+     "id": "상관-S3",
+     "text": "[문구 확정 전]"
+    },
+    "D": {
+     "id": "상관-D3",
+     "text": "[문구 확정 전]"
+    }
+   },
+   {
+    "index": 6,
+    "B": {
+     "id": "식신-B2",
+     "text": "[문구 확정 전]"
+    },
+    "S": {
+     "id": "식신-S2",
+     "text": "[문구 확정 전]"
+    },
+    "D": {
+     "id": "식신-D1",
+     "text": "[문구 확정 전]"
+    },
+    "relation": {
+     "id": "관계-충-1",
+     "text": "[문구 확정 전]"
+    }
+   },
+   {
+    "index": 7,
+    "B": {
+     "id": "정재-B1",
+     "text": "[문구 확정 전]"
+    },
+    "S": {
+     "id": "정재-S3",
+     "text": "[문구 확정 전]"
+    },
+    "D": {
+     "id": "정재-D2",
+     "text": "[문구 확정 전]"
+    }
+   },
+   {
+    "index": 8,
+    "B": {
+     "id": "편재-B2",
+     "text": "[문구 확정 전]"
+    },
+    "S": {
+     "id": "편재-S2",
+     "text": "[문구 확정 전]"
+    },
+    "D": {
+     "id": "편재-D2",
+     "text": "[문구 확정 전]"
+    }
+   },
+   {
+    "index": 9,
+    "B": {
+     "id": "정관-B1",
+     "text": "[문구 확정 전]"
+    },
+    "S": {
+     "id": "정관-S1",
+     "text": "[문구 확정 전]"
+    },
+    "D": {
+     "id": "정관-D1",
+     "text": "[문구 확정 전]"
+    }
+   },
+   {
+    "index": 10,
+    "B": {
+     "id": "편관-B2",
+     "text": "[문구 확정 전]"
+    },
+    "S": {
+     "id": "편관-S1",
+     "text": "[문구 확정 전]"
+    },
+    "D": {
+     "id": "편관-D3",
+     "text": "[문구 확정 전]"
+    }
+   },
+   {
+    "index": 11,
+    "B": {
+     "id": "정인-B1",
+     "text": "[문구 확정 전]"
+    },
+    "S": {
+     "id": "정인-S3",
+     "text": "[문구 확정 전]"
+    },
+    "D": {
+     "id": "정인-D1",
+     "text": "[문구 확정 전]"
+    },
+    "relation": {
+     "id": "관계-합-1",
+     "text": "[문구 확정 전]"
+    }
+   },
+   {
+    "index": 12,
+    "B": {
+     "id": "편인-B1",
+     "text": "[문구 확정 전]"
+    },
+    "S": {
+     "id": "편인-S1",
+     "text": "[문구 확정 전]"
+    },
+    "D": {
+     "id": "편인-D1",
+     "text": "[문구 확정 전]"
+    }
+   }
+  ]
+ }
+}

@@ -4,11 +4,18 @@ import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { createOrder } from "@/lib/orders";
 import { getSelfSaju, lunarDateError, readSajuForm, type SajuInput } from "@/lib/saju";
+import type { LunarSuggestion } from "@/lib/validation";
 
 // 신년 리포트 사전신청. 저장·검증·금액 계산은 lib/orders.ts의 createOrder가 맡고,
 // 여기서는 이 폼의 입력(풀이할 사주)만 검증해 payload를 만듭니다.
 
-export type PreorderState = { error?: string; needsConsent?: boolean; needsSaju?: boolean };
+export type PreorderState = {
+  error?: string;
+  field?: string;
+  needsConsent?: boolean;
+  needsSaju?: boolean;
+  lunar?: LunarSuggestion; // 음력 날짜를 양력으로 바꿔 넣으라는 안내
+};
 
 export async function submitReportPreorder(
   _prev: PreorderState,
@@ -46,7 +53,7 @@ export async function submitReportPreorder(
   } else if (target === "other") {
     const parsed = readSajuForm(formData);
     if (!parsed.ok) {
-      return { error: parsed.error };
+      return { error: parsed.error, field: parsed.field, lunar: parsed.lunar };
     }
     saju = parsed.value;
   } else {

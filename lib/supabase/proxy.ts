@@ -64,6 +64,28 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
+  // 신년 리포트 화면은 본인 주문이고 전달 완료된 리포트가 있을 때만 엽니다. order_reports의 RLS가
+  // "본인 주문 + 삭제 안 됨 + delivered"만 돌려주므로, 그 밖(남의 주문, 전달 전, 환불, 리포트 없음)은 화면을 그리기 전에 404입니다.
+  const reportPage = /^\/my\/orders\/([^/]+)\/?$/.exec(pathname);
+  if (reportPage) {
+    let visible = false;
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(reportPage[1])) {
+      try {
+        const { data, error } = await supabase
+          .from("order_reports")
+          .select("order_id")
+          .eq("order_id", reportPage[1])
+          .maybeSingle();
+        visible = !error && Boolean(data);
+      } catch {
+        visible = false;
+      }
+    }
+    if (!visible) {
+      return new NextResponse("Not Found", { status: 404 });
+    }
+  }
+
   // 관리자 경로는 화면을 그리기 전에 막습니다. 오류나 판별 실패도 차단합니다(fail closed).
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     let admin = false;

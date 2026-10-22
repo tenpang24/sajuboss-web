@@ -19,7 +19,7 @@ import { MobileBar } from "@/components/ui/MobileBar";
 import { APPLY_CLOSED_MESSAGE, LIMITS, type ApplyState } from "@/lib/apply/options";
 import { formatKrw } from "@/lib/pricing";
 import { packageNames, type Package } from "@/lib/products";
-import { calendarNames, genderNames, type Calendar, type Gender } from "@/lib/validation";
+import { calendarNames, genderNames, type Calendar, type Gender, type LunarSuggestion } from "@/lib/validation";
 
 // 신청 폼 3종(개업택일, 상호·브랜드 작명, 개인·개명 작명)이 함께 쓰는 화면 조각.
 
@@ -373,7 +373,7 @@ export function SajuSource({
   allowSelf?: boolean;
   allowUnknownGender?: boolean;
   errorOf: (name: string) => string | undefined;
-  fieldError: { error?: string; field?: string };
+  fieldError: { error?: string; field?: string; lunar?: LunarSuggestion };
   birthLabel?: string;
   birthPlaceholder?: string;
   timePlaceholder?: string;
@@ -433,6 +433,7 @@ export function SajuSource({
           allowUnknownGender={allowUnknownGender}
           error={fieldError.error}
           errorField={fieldError.field}
+          lunar={fieldError.lunar}
         />
       )}
     </>

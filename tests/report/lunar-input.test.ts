@@ -12,7 +12,7 @@ import { kasiLunarMonths } from "../saju-engine/kasi.ts";
 const USER = "00000000-0000-4000-8000-000000000001";
 
 // 한국천문연구원 자료에서 29일까지만 있는 평달 하나(2월 제외)와, 윤달이 없는 해 하나.
-// 2월은 날짜 형식 검사(parseBirthDate)가 양력 달력 기준이라 30일이 음력 검사 전에 거부된다(HANDOFF 7번 알려진 문제).
+// 2월 29·30일(양력 달력에 없는 날짜)은 tests/report/lunar-convert.test.ts에서 따로 확인한다.
 const months = kasiLunarMonths();
 const short = months.find((m) => !m.leap && m.length === 29 && m.month !== 2 && m.year >= 1980 && m.year <= 2000)!;
 const pad = (n: number) => String(n).padStart(2, "0");

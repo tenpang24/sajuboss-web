@@ -68,7 +68,7 @@ export function readDateForm(formData: FormData, userId: string) {
     if (partner) {
       const parsed = readBirthForm(formData, { prefix: "partner_" });
       if (!parsed.ok) {
-        throw new InputError(`동업자 ${parsed.error}`, parsed.field);
+        throw new InputError(`동업자 ${parsed.error}`, parsed.field, parsed.lunar);
       }
       partnerSaju = parsed.value;
     }

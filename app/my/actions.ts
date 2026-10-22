@@ -5,11 +5,12 @@ import { getUser } from "@/lib/auth";
 import { hasRequiredConsents, readSignupConsents, recordSignupConsents } from "@/lib/consents";
 import { requestOrderDeletion } from "@/lib/orders";
 import { deleteSaju, readSajuForm, saveSelfSaju } from "@/lib/saju";
+import type { LunarSuggestion } from "@/lib/validation";
 
 // 내 신청 화면의 서버 액션. 모든 액션은 auth.getUser()로 확인한 사용자 id만 씁니다.
 // 폼이 보낸 user_id 같은 값은 읽지 않습니다.
 
-export type MyFormState = { error?: string; message?: string };
+export type MyFormState = { error?: string; message?: string; field?: string; lunar?: LunarSuggestion };
 
 const LOGIN_REQUIRED: MyFormState = { error: "로그인 후 이용해 주세요." };
 
@@ -38,9 +39,9 @@ export async function saveMySaju(_prev: MyFormState, formData: FormData): Promis
 
   const parsed = readSajuForm(formData);
   if (!parsed.ok) {
-    return { error: parsed.error };
+    return { error: parsed.error, field: parsed.field, lunar: parsed.lunar };
   }
-  // 본인 사주는 이름표를 따로 받지 않습니다.
+  // 본인 사주는 이름표를 따로 받지 않습니다. 양력으로 바꿔 넣은 원래 음력 입력은 저장하지 않습니다(saveSelfSaju가 정한 칸만 저장).
   const result = await saveSelfSaju(user.id, { ...parsed.value, label: "본인" });
   if (!result.ok) {
     return { error: result.error };

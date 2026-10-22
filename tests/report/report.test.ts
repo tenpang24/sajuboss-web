@@ -73,6 +73,19 @@ test("달마다 그 달 천간 십성의 B·S·D 문장을 고름", () => {
   assert.equal(report.phrasesConfirmed, false);
 });
 
+test("사업 기질·반기 제안·충합 보조 문장 ID(1975-03-20 09:00 예시)", () => {
+  const report = build(ORDER);
+  assert.deepEqual(report.dayGanPhrase, { id: "일간-乙-1", text: PENDING });
+  // 상반기 중·중·흉·중·중·중 → 중, 하반기 길·길·길·흉·길·중 → 길
+  assert.deepEqual(report.halves.first, { grade: "중", phrase: { id: "반기-상-중", text: PENDING } });
+  assert.deepEqual(report.halves.second, { grade: "길", phrase: { id: "반기-하-길", text: PENDING } });
+  // 6번째 달 丁未: 일지 丑과 충+형(부분) → 충 문장, 9번째 庚戌: 형(부분)만(문장 없음), 11번째 壬子: 합
+  assert.equal(report.months[5].relation?.id, "관계-충-1");
+  assert.equal(report.months[8].relation, undefined);
+  assert.equal(report.months[10].relation?.id, "관계-합-1");
+  assert.equal(report.months.filter((m) => m.relation).length, 2);
+});
+
 test("주문 id가 다르면 문장 선택이 달라질 수 있음(해시 분산)", () => {
   const seen = new Set(Array.from({ length: 20 }, (_, n) => phraseIds(build(fakeOrderId(n))).join(",")));
   assert.ok(seen.size > 1);

@@ -1,12 +1,15 @@
 // 신청 폼 3종의 선택 항목과 길이 제한. 화면(선택 칩)과 서버 검증(허용값 목록)이 같은 값을 씁니다.
 // 여기 없는 값은 서버가 받지 않습니다.
 
+import type { LunarSuggestion } from "@/lib/validation";
+
 // 폼 서버 액션이 돌려주는 상태. field는 틀린 입력의 name입니다(화면이 그 칸 아래에 오류를 보여 줍니다).
 export type ApplyState = {
   error?: string;
   field?: string;
   closed?: boolean;
   needsConsent?: boolean; // 가입 약관 동의가 없는 계정
+  lunar?: LunarSuggestion; // 음력 날짜를 양력으로 바꿔 넣으라는 안내
 };
 
 export const APPLY_CLOSED_MESSAGE =

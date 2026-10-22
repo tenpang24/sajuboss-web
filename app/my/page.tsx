@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { signOut } from "@/app/login/actions";
 import { ConsentForm, OrderDeleteControl, SajuPanel, type SavedSaju } from "@/components/my/MyClient";
+import { PreviewBody } from "@/components/report/ReportPreviewCard";
 import { Badge } from "@/components/ui/Badge";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { requireUser } from "@/lib/auth";
 import { formatKrw } from "@/lib/pricing";
+import { previewReport } from "@/lib/report/preview";
 import {
   ORDER_STATUSES,
   PACKAGES,
@@ -84,7 +86,8 @@ async function OrderSection() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("orders")
-    .select("id, product, package, status, amount_krw, created_at")
+    // 사전신청 신년 리포트의 사주표 미리보기에 쓰려고 사주 값만 함께 읽습니다(payload 전체는 읽지 않음).
+    .select("id, product, package, status, amount_krw, created_at, saju:payload->saju")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -122,6 +125,9 @@ async function OrderSection() {
         const status = isOneOf(order.status, ORDER_STATUSES) ? order.status : null;
         const product = isOneOf(order.product, PRODUCTS) ? productNames[order.product] : "신청";
         const pkg = isOneOf(order.package, PACKAGES) ? ` (${packageNames[order.package]})` : "";
+        const isReport = order.product === "report_2027";
+        // 사전신청 신년 리포트: 계산만 하고 저장하지 않는 미리보기(사주표 + 총평 1문장)
+        const preview = isReport && status === "preorder" ? previewReport(order.saju) : null;
         return (
           <Card key={order.id} className="order">
             <div className="order-info">
@@ -138,8 +144,21 @@ async function OrderSection() {
               <span className="muted">
                 {dateFormat.format(new Date(order.created_at))} 신청 · {formatKrw(order.amount_krw)}
               </span>
+              {preview?.ok && (
+                <details className="order-preview">
+                  <summary>내 사주표 미리보기</summary>
+                  <div className="order-preview-body">
+                    <PreviewBody preview={preview} />
+                  </div>
+                </details>
+              )}
             </div>
             <div className="order-actions">
+              {isReport && status === "delivered" && (
+                <ButtonLink href={`/my/orders/${order.id}`} size="sm">
+                  리포트 보기
+                </ButtonLink>
+              )}
               {status === "requested" && (
                 <ButtonLink href={`/pay/${order.id}`} size="sm">
                   결제하기

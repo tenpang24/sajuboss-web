@@ -20,6 +20,7 @@ export function PayView({
   waitingDeposit,
   bankReady,
   rows,
+  preview,
   children,
 }: {
   orderId: string;
@@ -28,6 +29,7 @@ export function PayView({
   waitingDeposit: boolean; // 입금 확인을 이미 요청한 주문
   bankReady: boolean; // 입금 계좌가 등록돼 있는지(manual 모드)
   rows: { label: string; value: string }[];
+  preview?: ReactNode; // 신년 리포트 미리보기(결제 요약과 버튼 위)
   children: ReactNode;
 }) {
   const [state, dispatch, pending] = useActionState(submitPayment, initialState);
@@ -114,6 +116,7 @@ export function PayView({
           </div>
 
           <aside className="split-side" aria-label="결제 요약">
+            {preview}
             <div className="sum">
               <strong className="sum-title">결제 요약</strong>
               {rows.map((row) => (

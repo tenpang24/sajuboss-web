@@ -171,6 +171,7 @@ export function DateForm({ viewer }: { viewer: ApplyViewer }) {
                     timePlaceholder="예: 09:00"
                     error={state.error}
                     errorField={state.field}
+                    lunar={state.lunar}
                   />
                 </div>
               )}

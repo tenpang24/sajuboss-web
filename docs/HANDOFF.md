@@ -2,11 +2,12 @@
 
 다음 세션이 이 문서만 읽고 이어서 작업할 수 있게 유지합니다. 키와 비밀번호는 쓰지 않습니다.
 
-최종 갱신: 2026-10-22 (8-B2 신년 리포트 생성·저장 로컬 커밋, SQL 적용됨)
+최종 갱신: 2026-10-22 (리포트 화면·미리보기, 음력 2월 30일 안내 로컬 커밋. 8-B2도 미push)
 
 ## 1. 현재 단계
 
-- **8-B2 신년 리포트 생성·저장(2026-10-22), 로컬 커밋만(push 안 함)**: SQL `20261022120000_order_reports.sql` 적용됨(사장님 실행). 리포트 저장 테이블 `order_reports`와 함수 `save_order_report`, `mark_report_viewed`. 결제 확인 직후(PG `confirmPayment`, 관리자 입금 확인) 신년 리포트 자동 생성 → 상태 delivered. 실패해도 결제 확인은 그대로(paid). 관리자 상세에 "리포트 상태" 카드와 "리포트 만들기/다시 만들기"(처음 열어 보기 전까지, 두 단계 확인). 문구는 자리표시(`[문구 확정 전]`)라 `PHRASES_CONFIRMED = false`이고, 운영(production)에서는 생성을 거부한다. 미리보기 계산 `lib/report/preview.ts`(화면 연결 전). 음력·윤달 입력은 한국 음력에 있는 날짜인지 서버에서 확인. **고객이 리포트를 보는 화면과 메일 발송은 아직 없음.** 검증: 단위 테스트 14개(`npm run test:report`), DB 검증 39/39, 반응형 quick 15개 경로 120회 통과.
+- **리포트 화면·미리보기, 음력 2월 30일 안내(2026-10-22), 로컬 커밋만(push 안 함)**: 고객용 신년 리포트 `/my/orders/[orderId]`(본인 + 전달 완료만, 그 밖은 proxy에서 404). 처음 열 때 "리포트를 열면 환불이 제한됩니다" 안내 → "리포트 열기"를 누르면 `mark_report_viewed` 기록 후 내용. 내용 순서: 표지(신청 번호·사주표·계산 기준) → 2027년 한눈에 보기 → 나의 사업 기질 → 월별 12개월(절기 기간, 길·중·흉, 사업운·매출운·거래운) → 움직일 달·조심할 달 → 상반기·하반기 제안 → 계산 기준과 유의. 자리표시 문장은 개발 환경에서만 보이고 운영에서는 숨김(문장이 없는 섹션은 통째로). 인쇄하면 헤더·푸터·버튼이 빠짐. 내 신청에 "리포트 보기"(전달 완료 신년 리포트), 사전신청 신년 리포트에 접어 둔 "내 사주표 미리보기", 결제 화면(신년 리포트)에 "미리보기" 카드(사주표 + 세운 총평 1문장, 저장 안 함). 음력·윤달로 고른 2월 29·30일처럼 양력 달력에 없는 날짜는 한국 음력에 있으면 "음력 ○년 2월 30일은 양력 ○년 ○월 ○일입니다. 사주 계산 결과는 같습니다." 안내와 "양력으로 바꿔 넣기" 버튼(누르면 날짜·양력 선택만 바꾸고 자동 저장하지 않음), 없으면 "음력에 없는 날짜입니다". 바꿔 넣어 신청한 주문은 payload의 사주에 `original_lunar_input`이 남고 관리자 상세에 "원래 입력: 음력 ○년 2월 30일"로 보임(saju_profiles에는 남기지 않음). DB 구조 변경 없음. 검증: 단위 테스트 22개, E2E 47개(46 통과 + 1개는 jsonb 키 순서만 달라 같은 값), 반응형 quick 23개 경로 184회 통과.
+- **8-B2 신년 리포트 생성·저장(2026-10-22), 로컬 커밋만(push 안 함)**: SQL `20261022120000_order_reports.sql` 적용됨(사장님 실행). 리포트 저장 테이블 `order_reports`와 함수 `save_order_report`, `mark_report_viewed`. 결제 확인 직후(PG `confirmPayment`, 관리자 입금 확인) 신년 리포트 자동 생성 → 상태 delivered. 실패해도 결제 확인은 그대로(paid). 관리자 상세에 "리포트 상태" 카드와 "리포트 만들기/다시 만들기"(처음 열어 보기 전까지, 두 단계 확인). 문구는 자리표시(`[문구 확정 전]`)라 `PHRASES_CONFIRMED = false`이고, 운영(production)에서는 생성을 거부한다. 미리보기 계산 `lib/report/preview.ts`(화면 연결 전). 음력·윤달 입력은 한국 음력에 있는 날짜인지 서버에서 확인. (고객 화면은 위 항목에서 추가. 메일 발송은 아직 없음.) 검증: 단위 테스트 14개(`npm run test:report`), DB 검증 39/39, 반응형 quick 15개 경로 120회 통과.
 - **8-B1 판정표·보정 기본값 확정(2026-10-22), push·배포 완료(06fcf65, 2026-10-22)**: 판정표 `confirmed: true`(정재·편재·식신·정관 2, 상관·정인·편인·비견 1, 겁재·편관 0, 월지·일지 합 +1·충 -1·형(子卯) -1·형(부분)·자형 0, 2 이상 길·1 중·0 이하 흉), 지장간 본기 그대로 확정, `DEFAULT_CORRECTIONS` = 서머타임·표준시 이력 켜짐(진태양시 꺼짐, 자시 00:00). 한국천문연구원 표와 비교하는 기존 테스트는 "보정 모두 꺼짐"(`tests/saju-engine/kasi.ts`의 `ALL_OFF`)을 명시해 넘기고 기대값은 그대로. 테스트 44개 통과.
 - **8-B1 구현·검증 완료(2026-10-22), push·배포 완료(06fcf65, 2026-10-22)**: 십성(`sipsung.ts`), 지지 육충·육합·형(`branch-relations.ts`), 판정표(`judgment-table.ts`, 데이터만), 2027 신년 리포트 계산(`annual-report.ts`의 `calcAnnualReport`). 세운 丁未와 12개월 월주(壬寅~癸丑)는 엔진 절입 시각으로 구함. (처음 커밋 때는 판정표 확정 전이라 모든 달이 "중"이었고, 같은 날 확정값으로 바꿈.) `ENGINE_VERSION`은 `saju-engine 8-B1 (lunar-javascript 1.7.7)`. 화면·DB·문구·스위치 변경 없음.
 - **통신판매업 신고번호 반영(2026-10-22, `f944fb9`, push됨)**: `lib/brand.ts`의 `mailOrderNumber` = `2024-부산해운대-0205`. 프로덕션 푸터에 표시 확인.
@@ -36,8 +37,9 @@
 | - | 통신판매업 신고번호 반영 | push됨(2026-10-22) | `f944fb9` |
 | 8-B1 | 신년 사업운 리포트 계산 데이터(십성, 지지 관계, 2027 세운·월운, 판정표 틀) | push됨(2026-10-22) | `cf1af88` |
 | 8-B1 | 판정표·보정 기본값 확정 | push됨(2026-10-22) | `06fcf65` |
-| 8-B2 | 신년 리포트 생성·저장(order_reports, 결제 직후 생성, 관리자 다시 만들기, 미리보기 계산, 음력 날짜 검사) | SQL 적용됨, 로컬 커밋, 미push | 이 문서와 같은 커밋 |
-| 8 | 풀이 연결(나머지: 리포트 고객 화면·메일, 대운·택일·작명·문구) | 시작 전 | |
+| 8-B2 | 신년 리포트 생성·저장(order_reports, 결제 직후 생성, 관리자 다시 만들기, 미리보기 계산, 음력 날짜 검사) | SQL 적용됨, 로컬 커밋, 미push | `efa7471` |
+| 8-B3 | 리포트 고객 화면·결제 전 미리보기·음력 2월 29·30일 안내 | 로컬 커밋, 미push | 이 문서와 같은 커밋 |
+| 8 | 풀이 연결(나머지: 리포트 메일, 대운·택일·작명·문구) | 시작 전 | |
 | 9 | QA, 오픈 전 점검 | 시작 전 | |
 
 **보관 브랜치 `wip/stage3-old-design`** (`f45980a`, 로컬에만 있음): 구 시안으로 만든 3단계 코드. 참고용이며 main에 합치지 않습니다.
@@ -158,6 +160,15 @@
 - `lib/saju.ts`: `lunarDateError`, `LUNAR_DATE_ERROR`("음력에 없는 날짜입니다. 다시 확인해 주세요."). `readBirthForm`이 음력·윤달이면 엔진의 한국 음력 변환으로 확인(사주 저장, 신년 리포트 사전신청 직접 입력, 신청 폼 3종과 동업자 모두 이 함수를 거침). 저장된 내 사주를 고르는 경로(`app/report/2027/actions.ts`, `lib/apply/shared.ts`의 `resolveSaju`)도 다시 확인. `lib/apply/name-person.ts`: 아기 이름의 생년월일 안내 문구가 음력 오류 문구를 덮지 않게.
 - 테스트: `tests/report/report.test.ts`(문구 90개, 같은 주문 같은 결과, 한 리포트 안 중복 없음(주문 300개), production 거부, 미리보기), `tests/report/lunar-input.test.ts`(세 곳 + 동업자 + 아기). `tests/support/alias.mjs`·`alias-hooks.mjs`: 테스트에서 `@/` 경로와 확장자 없는 import를 풀고 `server-only`를 빈 모듈로. `package.json`: `test:report`(`--experimental-transform-types`, react-server 조건 없이).
 - `scripts/check-responsive.mjs`: 리포트가 있는 신년 리포트 신청의 관리자 상세(`/admin/orders/[orderId] (신년 리포트)`)를 함께 검사, 정리 순서에 `order_reports` 추가.
+
+**8-B3(리포트 화면·미리보기, 음력 2월 29·30일 안내, 2026-10-22)**
+- `app/my/orders/[orderId]/page.tsx`·`actions.ts`(신규): 리포트 화면과 "리포트 열기" 서버 액션(세션 사용자 id로 `mark_report_viewed`, 성공하면 `refresh()`). `lib/report/view.ts`(신규): 세션 클라이언트(RLS)로 주문·`order_reports`를 컬럼 지정 조회, `visibleText`(운영에서 자리표시 숨김), `markReportViewed`, `loadOwnPreview`.
+- `components/report/`: `ReportView.tsx`(본문 7개 섹션), `ReportGate.tsx`(처음 열기 안내), `PillarTable.tsx`(사주표, 시각 모르면 시주 칸 비움), `ReportPreviewCard.tsx`(미리보기 카드·본문), `PrintButton.tsx`. `PreorderForm.tsx`: 서버 안내를 사주 칸 아래에 보이고, **폼 자동 초기화 없이 제출**(전에는 오류가 한 번 나면 "풀이할 사주" 선택이 화면에서만 "내 사주"로 돌아가 다음 제출이 엉뚱하게 처리됐음).
+- `lib/report/build.ts`: 리포트 JSON에 `dayGanPhrase`(일간 기질), `halves`(상·하반기에 가장 많은 등급, 같으면 중), 달마다 `relation`(월지·일지 충 → 합 → 형 중 첫 관계 문장) 추가. 앞서 저장된 리포트에는 없을 수 있어 화면은 없으면 그 섹션을 숨긴다.
+- `lib/supabase/proxy.ts`: `/my/orders/[id]`는 세션 클라이언트로 `order_reports`를 읽어 보이지 않으면 화면을 그리기 전에 404(남의 주문, 전달 전, 환불, 없는 주문).
+- 음력 2월 29·30일: `lib/validation.ts`(`LunarSuggestion`, `OriginalLunarInput`, `formatLunarInput`), `lib/saju.ts`의 `readBirthForm`(양력 달력에 없는 날짜를 음력 기준으로 다시 보고 안내, 숨은 칸 `originalLunar`는 다시 계산해 지금 양력 날짜와 맞을 때만 `original_lunar_input`으로), `lib/apply/shared.ts`(`InputError`·`runForm`이 안내를 나름, `toOrderSaju`가 원래 입력을 payload에), `lib/apply/options.ts`·각 서버 액션·`app/my/actions.ts`·`app/report/2027/actions.ts`가 `lunar`를 돌려줌, `components/saju/SajuFields.tsx`("양력으로 바꿔 넣기" 버튼, 양력·음력 선택을 상태로), `lib/admin/payload.ts`("원래 입력: …").
+- `app/my/page.tsx`(리포트 보기, 사전신청 미리보기. 목록 조회에 사주 값만 추가), `app/pay/[orderId]/page.tsx`·`components/pay/PayView.tsx`(미리보기 카드, 결제 요약·버튼 위), `app/admin/orders/[orderId]/page.tsx`(열어 본 리포트는 "리포트 다시 만들기" 비활성 버튼 + 안내), `app/pages.css`(사주표, 미리보기, 리포트 화면, 인쇄).
+- 테스트: `tests/report/lunar-convert.test.ts`(신규 7개: 있는 2월 30일·없는 2월 30일·평년 2월 29일, 세 경로, 원래 입력 payload, 관리자 표시), `report.test.ts`에 사업 기질·반기·충합 보조. `scripts/fixtures/report-2027-sample.json`(1975-03-20 09:00 예시 리포트), `scripts/check-responsive.mjs`(리포트 화면·신년 리포트 결제 화면 추가, 사전신청 시드에 사주).
 
 ## 3. DB 상태 (Supabase 프로젝트 ref `jmolzaubbseytkdaadgf`)
 
@@ -340,7 +351,7 @@
 00000. 8-B1 결정(신년 리포트 판정).
 00000-1. (결정됨, 2026-10-22) **지장간 본기 표**(`sipsung.ts`의 `JIJANGGAN_BONGI`, 설계서 7장) 그대로 확정: 子癸 丑己 寅甲 卯乙 辰戊 巳丙 午丁 未己 申庚 酉辛 戌戊 亥壬.
 00000-2. (결정됨, 2026-10-22) **판정표**(`judgment-table.ts`, `confirmed: true`): 월 천간 십성 정재·편재·식신·정관 2, 상관·정인·편인·비견 1, 겁재·편관 0. 월지·일지 육합 +1, 육충 -1, 형(子卯) -1, 형(부분) 0, 자형 0(삼형 세 글자 모두는 두 지지로 생기지 않음). 2 이상 길, 1 중, 0 이하 흉.
-00000-4. **음력 2월 30일 입력**(8-B2에서 발견): 지금은 입력도 저장도 안 된다(7번 참고). 받으려면 생년월일을 문자열로 받고 `saju_profiles.birth_date`를 text로 바꾸거나 음력 날짜를 따로 저장해야 한다. 받을지와 방식 결정 필요.
+00000-4. (결정됨, 2026-10-22) **음력 2월 29·30일**: 양력으로 바꿔 저장. 안내와 "양력으로 바꿔 넣기" 버튼으로 반영(DB 변경 없음). 원래 입력은 신청 내용(payload)에만 남김.
 00000-5. **리포트 문구 확정**: 월별 90개, 세운 총평 10개(그 밖의 묶음은 쓸지 결정). 확정되면 `PHRASES_CONFIRMED = true`, `PHRASE_VERSION` 올림.
 00000-3. (결정됨, 2026-10-22) **점수에 넣는 것**: 월 천간 십성 + 월지·일지 관계만. 월 지지 십성, 월지·연지 관계, 세운과 원국 관계는 결과에 담기만 함.
 0000-7. **1954년 표준시 변경 시각**: IANA는 3월 21일 00:00, 국가기록원 자료는 "오전 0시 30분부터". 그날 0~1시 출생만 영향. 1961-08-10 복귀는 IANA로만 확인.
@@ -383,8 +394,9 @@
 
 ## 7. 알려진 문제와 임시 처리(TODO)
 
-- **신년 리포트(8-B2)**: 고객이 리포트를 보는 화면, `mark_report_viewed` 호출, 메일 링크 발송, 미리보기 화면 연결은 아직 없음. 문구는 모두 자리표시이고 `PHRASES_CONFIRMED = false`라 운영에서는 생성되지 않는다(결제 확인 뒤 paid로 남음 → 문구 확정 후 관리자 "리포트 만들기"). 세운 총평 외의 묶음(일간 기질, 오행 과부족, 충합 보조, 반기 제안)은 리포트에 아직 넣지 않음.
-- **음력 2월 30일 입력 불가(기존 설계)**: 생년월일 형식 검사(`parseBirthDate`)가 양력 달력 기준이고 `saju_profiles.birth_date`가 `date` 타입이라, 실제로 있는 음력 2월 30일(양력 평년이면 음력 2월 29일도)은 "생년월일을 다시 확인해 주세요"로 거부된다. 고치려면 날짜 저장 형식(DB) 결정이 필요(6번 00000-4).
+- **신년 리포트**: 메일 링크 발송은 아직 없음. 문구는 모두 자리표시이고 `PHRASES_CONFIRMED = false`라 운영에서는 생성되지 않는다(결제 확인 뒤 paid로 남음 → 문구 확정 후 관리자 "리포트 만들기"). 오행 과부족 묶음은 리포트에 넣지 않음. 충합 보조 문장은 같은 관계의 달마다 같은 문장이 나온다(달별 사업운·매출운·거래운 문장만 리포트 안 중복 없음). 리포트 화면의 "환불 정책"은 `[확정 후 기재]`.
+- **개발 서버(Turbopack) 다시 불러오기 반복**(이 PC, 2026-10-22 확인, 이번 변경 전 커밋에서도 같음): `next dev`로 띄우면 화면이 1초에 여러 번 다시 불러와져 폼을 입력할 수 없다. `next dev --webpack`은 정상. 운영 빌드(`next start`)와 반응형 검사(`next start` 사용)는 영향 없음. 원인은 찾지 못함(proxy matcher에서 HMR 경로를 빼도 같음).
+- 신청 폼 3종·내 사주 저장 폼은 서버 오류 뒤 폼 자동 초기화로 성별 선택(비제어 select)이 기본값으로 돌아갈 수 있다(기존 동작, 사전신청 폼만 이번에 고침).
 - 사주 엔진(8-A)은 화면에 연결되지 않음. 메인 "오늘의 사업운"은 여전히 준비 중 안내.
 - 신년 리포트 계산(8-B1)도 화면에 연결되지 않음. 리포트 해는 2027 고정(`REPORT_YEAR`). 달 경계는 라이브러리 절입 시각이라 한국천문연구원 표와 0~3분 차이(2027년분은 1분 안팎).
 - 사주 엔진의 오행 개수는 천간·지지 겉글자만 센다(지장간 없음, 원본과 같음). 시주 경계(홀수 시 정각) 근처 위험은 알리지 않음.
@@ -441,7 +453,8 @@ npx tsc --noEmit
 npm run lint
 npm run build
 npm run test:saju                  # 사주 엔진 테스트(인터넷 필요 없음, 15초 안팎)
-npm run test:report                # 신년 리포트 생성·음력 날짜 검사 테스트(DB 없음)
+npm run test:report                # 신년 리포트 생성·음력 날짜 검사·음력 2월 29·30일 안내 테스트(DB 없음)
+# 개발 서버로 화면을 확인할 때는 npx next dev --webpack (Turbopack 개발 서버는 이 PC에서 다시 불러오기 반복, 7번)
 npm run check:responsive:quick     # 평소. push 직전·9단계 QA는 npm run check:responsive (처음이면 먼저: npx playwright install chromium webkit)
 ```
 

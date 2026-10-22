@@ -36,8 +36,14 @@ export function readNamePersonForm(formData: FormData, userId: string) {
       allowSelf: kind !== "baby",
       allowUnknownGender: kind === "baby",
     }).catch((error: unknown) => {
-      // 음력에 없는 날짜 안내는 그대로 보여 줍니다.
-      if (kind === "baby" && error instanceof InputError && error.field === "birth" && error.message !== LUNAR_DATE_ERROR) {
+      // 음력 날짜 안내(음력에 없는 날짜, 양력으로 바꿔 넣기)는 그대로 보여 줍니다.
+      if (
+        kind === "baby" &&
+        error instanceof InputError &&
+        error.field === "birth" &&
+        error.message !== LUNAR_DATE_ERROR &&
+        !error.lunar
+      ) {
         throw new InputError(
           "출생일 또는 출산 예정일을 다시 확인해 주세요. 예정일은 오늘부터 약 10개월 안으로 입력해 주세요.",
           "birth",

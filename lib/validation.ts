@@ -13,6 +13,22 @@ export const calendarNames: Record<Calendar, string> = {
 };
 export const genderNames: Record<Gender, string> = { female: "여성", male: "남성" };
 
+// 음력 2월 29·30일처럼 양력 달력에 없는 음력 날짜를 넣었을 때, 양력으로 바꿔 넣도록 안내하는 값(서버 → 화면).
+// 화면은 "양력으로 바꿔 넣기" 버튼을 보여 주고, 누르면 날짜·양력 선택을 바꾼 뒤 원래 입력을 숨은 칸(originalLunar)에 담습니다.
+export type LunarCalendar = Exclude<Calendar, "solar">;
+export type OriginalLunarInput = { calendar: LunarCalendar; date: string };
+export type LunarSuggestion = {
+  field: string; // 생년월일 입력의 name(동업자는 partner_birth)
+  solarDate: string; // 바꿔 넣을 양력 날짜
+  original: OriginalLunarInput;
+};
+
+// "음력 1960년 2월 30일", "음력(윤달) 2023년 2월 10일"
+export function formatLunarInput(original: OriginalLunarInput): string {
+  const [year, month, day] = original.date.split("-").map(Number);
+  return `${calendarNames[original.calendar]} ${year}년 ${month}월 ${day}일`;
+}
+
 // 아기 이름 신청에서만 받는 성별 값(태어나기 전이라 모르는 경우).
 // saju_profiles에는 저장하지 않고 신청 내용(orders.payload)에만 들어갑니다.
 export const GENDER_UNKNOWN = "unknown";

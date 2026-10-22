@@ -11,6 +11,7 @@ import {
   parseLongText,
   pickAllowed,
   type Gender,
+  type LunarSuggestion,
 } from "@/lib/validation";
 
 // 신청 폼 3종의 서버 검증에서 함께 쓰는 도구.
@@ -18,17 +19,20 @@ import {
 // 검증한 값으로 payload를 새로 만듭니다. formData 전체나 모르는 키를 payload에 옮기지 않습니다.
 // 입력값(업종, 이름, 생년월일 등)은 로그에 남기지 않습니다.
 
-// 입력 오류. field는 틀린 입력의 name입니다.
+// 입력 오류. field는 틀린 입력의 name입니다. lunar는 음력 날짜를 양력으로 바꿔 넣으라는 안내입니다.
 export class InputError extends Error {
   constructor(
     message: string,
     readonly field?: string,
+    readonly lunar?: LunarSuggestion,
   ) {
     super(message);
   }
 }
 
-export type FormResult<T> = { ok: true; value: T } | { ok: false; error: string; field?: string };
+export type FormResult<T> =
+  | { ok: true; value: T }
+  | { ok: false; error: string; field?: string; lunar?: LunarSuggestion };
 
 // 폼별 검증 함수를 실행하고, 입력 오류는 화면에 보여 줄 형태로 바꿉니다.
 export async function runForm<T>(read: () => T | Promise<T>): Promise<FormResult<T>> {
@@ -36,7 +40,7 @@ export async function runForm<T>(read: () => T | Promise<T>): Promise<FormResult
     return { ok: true, value: await read() };
   } catch (error) {
     if (error instanceof InputError) {
-      return { ok: false, error: error.message, field: error.field };
+      return { ok: false, error: error.message, field: error.field, ...(error.lunar ? { lunar: error.lunar } : {}) };
     }
     throw error;
   }
@@ -124,6 +128,7 @@ function toOrderSaju(saju: OrderSaju): OrderSaju {
     birth_time: saju.birth_time,
     time_unknown: saju.time_unknown,
     gender: saju.gender,
+    ...(saju.original_lunar_input ? { original_lunar_input: saju.original_lunar_input } : {}),
   };
 }
 
@@ -160,14 +165,14 @@ export async function resolveSaju(
   if (options.allowUnknownGender === true && formData.get("gender") === GENDER_UNKNOWN) {
     const birth = readBirthForm(formData, { maxFutureDays: options.maxFutureDays });
     if (!birth.ok) {
-      throw new InputError(birth.error, birth.field);
+      throw new InputError(birth.error, birth.field, birth.lunar);
     }
     return { source, saju: toOrderSaju({ ...birth.value, gender: GENDER_UNKNOWN }) };
   }
 
   const parsed = readSajuForm(formData, { maxFutureDays: options.maxFutureDays });
   if (!parsed.ok) {
-    throw new InputError(parsed.error, parsed.field);
+    throw new InputError(parsed.error, parsed.field, parsed.lunar);
   }
   return { source, saju: toOrderSaju(parsed.value) };
 }

@@ -134,8 +134,8 @@ function pickQuickRoutes() {
       add("/pay/[orderId]", "/done/[orderId]");
     } else if (file.startsWith("components/admin/") || file.startsWith("lib/admin/")) {
       add("/admin/orders", "/admin/orders/[orderId]");
-    } else if (file.startsWith("components/report/")) {
-      add("/report/2027");
+    } else if (file.startsWith("components/report/") || file.startsWith("lib/report/")) {
+      add("/report/2027", "/my/orders/[orderId]", "/pay/[orderId]", "/my");
     } else if (file.startsWith("components/my/")) {
       add("/my");
     } else if (file.startsWith("components/auth/")) {
@@ -193,6 +193,9 @@ function startServer() {
   return spawn(process.execPath, [nextBin, "start", "-p", String(PORT)], { cwd: root, stdio: "ignore" });
 }
 
+// 신년 리포트 화면·미리보기용 예시(1975-03-20 09:00 양력 여성). lib/report/build.ts의 buildReport 결과를 저장해 둔 것.
+const reportSample = JSON.parse(readFileSync(path.join(root, "scripts/fixtures/report-2027-sample.json"), "utf8"));
+
 // 임시 테스트 계정(관리자)을 만들고 앱과 같은 방식으로 세션 쿠키를 만든다.
 async function createTempSession(env) {
   const url = env.NEXT_PUBLIC_SUPABASE_URL;
@@ -242,7 +245,7 @@ async function createTempSession(env) {
       contact_email: email,
       consent_privacy_at: now,
       consent_disclaimer_at: now,
-      payload: { test: true },
+      payload: { target: "other", saju: reportSample.input },
     });
     const seededSaju = await admin.from("saju_profiles").insert({
       user_id: userId,
@@ -271,7 +274,7 @@ async function createTempSession(env) {
       })
       .select("id")
       .single();
-    // 관리자 상세의 "리포트 상태" 카드용: 리포트가 만들어진(전달 완료) 신년 리포트 신청 1건
+    // 관리자 상세의 "리포트 상태" 카드와 고객 리포트 화면용: 리포트가 만들어지고 이미 열어 본(전달 완료) 신년 리포트 신청 1건
     const reportOrder = await admin
       .from("orders")
       .insert({
@@ -283,7 +286,7 @@ async function createTempSession(env) {
         contact_email: email,
         consent_privacy_at: now,
         consent_disclaimer_at: now,
-        payload: { test: true },
+        payload: { target: "other", saju: reportSample.input },
       })
       .select("id")
       .single();
@@ -292,13 +295,35 @@ async function createTempSession(env) {
       : await admin.from("order_reports").insert({
           order_id: reportOrder.data.id,
           product: "report_2027",
-          engine_version: "saju-engine 8-B1 (lunar-javascript 1.7.7)",
-          phrase_version: "phrases-2027 draft-1",
-          input_snapshot: { test: true },
-          report: { test: true },
+          engine_version: reportSample.report.engineVersion,
+          phrase_version: reportSample.report.phraseVersion,
+          input_snapshot: reportSample.input,
+          report: reportSample.report,
+          first_viewed_at: now,
         });
+    // 결제 화면의 신년 리포트 미리보기용: 결제 대기(requested) 신년 리포트 신청 1건
+    const payReportOrder = await admin
+      .from("orders")
+      .insert({
+        user_id: userId,
+        product: "report_2027",
+        package: null,
+        status: "requested",
+        amount_krw: 3900,
+        contact_email: email,
+        consent_privacy_at: now,
+        consent_disclaimer_at: now,
+        payload: { target: "other", saju: reportSample.input },
+      })
+      .select("id")
+      .single();
     const seedError =
-      seededOrder.error ?? seededSaju.error ?? payOrder.error ?? reportOrder.error ?? seededReport?.error;
+      seededOrder.error ??
+      seededSaju.error ??
+      payOrder.error ??
+      reportOrder.error ??
+      seededReport?.error ??
+      payReportOrder.error;
     if (seedError) {
       throw new Error(`임시 데이터 준비 실패 (${seedError.code})`);
     }
@@ -314,7 +339,13 @@ async function createTempSession(env) {
     const signedIn = await client.auth.signInWithPassword({ email, password });
     if (signedIn.error) throw new Error(`임시 계정 로그인 실패 (${signedIn.error.code})`);
     const cookies = [...jar].map(([name, value]) => ({ name, value, url: baseUrl }));
-    return { cookies, cleanup, orderId: payOrder.data.id, reportOrderId: reportOrder.data.id };
+    return {
+      cookies,
+      cleanup,
+      orderId: payOrder.data.id,
+      reportOrderId: reportOrder.data.id,
+      payReportOrderId: payReportOrder.data.id,
+    };
   } catch (error) {
     await cleanup();
     throw error;
@@ -417,6 +448,20 @@ async function main() {
               route: `/admin/orders/${session.reportOrderId}`,
               name: "/admin/orders/[orderId] (신년 리포트)",
               match: "/admin/orders/[orderId]",
+              auth: true,
+            },
+            // 고객용 신년 리포트(이미 열어 본 리포트라 내용이 바로 보임)
+            {
+              route: `/my/orders/${session.reportOrderId}`,
+              name: "/my/orders/[orderId]",
+              match: "/my/orders/[orderId]",
+              auth: true,
+            },
+            // 결제 화면의 신년 리포트 미리보기
+            {
+              route: `/pay/${session.payReportOrderId}`,
+              name: "/pay/[orderId] (신년 리포트)",
+              match: "/pay/[orderId]",
               auth: true,
             },
           ]

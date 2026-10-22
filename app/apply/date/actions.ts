@@ -24,7 +24,7 @@ export async function submitDateOrder(_prev: ApplyState, formData: FormData): Pr
 
   const parsed = await readDateForm(formData, user.id);
   if (!parsed.ok) {
-    return { error: parsed.error, field: parsed.field };
+    return { error: parsed.error, field: parsed.field, lunar: parsed.lunar };
   }
 
   return submitOrder(PATH, formData, {

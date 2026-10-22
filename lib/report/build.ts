@@ -2,11 +2,15 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { calcAnnualReport, type AnnualReportResult } from "../saju-engine/annual-report.ts";
 import { ENGINE_VERSION, type SajuInput } from "../saju-engine/pillars.ts";
+import type { Grade } from "../saju-engine/judgment-table.ts";
 import {
+  HALF_PHRASES,
+  ILGAN_PHRASES,
   MONTHLY_PHRASES,
   PHRASE_FIELDS,
   PHRASE_VERSION,
   PHRASES_CONFIRMED,
+  RELATION_PHRASES,
   SEUN_PHRASES,
   type Phrase,
   type PhraseField,
@@ -21,7 +25,12 @@ export const REPORT_SCHEMA_VERSION = 1;
 /** 신청 내용(payload.saju) 중 계산에 쓰는 값. input_snapshot으로 저장한다. */
 export type ReportInput = SajuInput;
 
-export type ReportMonthPhrases = { index: number } & Record<PhraseField, Phrase>;
+export type ReportMonthPhrases = { index: number } & Record<PhraseField, Phrase> & {
+  /** 충·합 보조: 그 달 월지와 일지의 관계(합·충·형) 문장. 관계가 없으면 없음 */
+  relation?: Phrase;
+};
+
+export type ReportHalf = { grade: Grade; phrase: Phrase };
 
 export type ReportJson = {
   schemaVersion: typeof REPORT_SCHEMA_VERSION;
@@ -31,6 +40,10 @@ export type ReportJson = {
   calc: AnnualReportResult;
   /** 세운 총평 1문장 */
   seunSummary: Phrase;
+  /** 나의 사업 기질(일간) */
+  dayGanPhrase: Phrase;
+  /** 상반기(1~6번째 달)·하반기(7~12번째 달) 제안. 그 반기에 가장 많은 등급(같으면 중) */
+  halves: { first: ReportHalf; second: ReportHalf };
   /** 달마다 그 달 천간 십성의 사업운(B)·매출운(S)·거래운(D) 문장 */
   months: ReportMonthPhrases[];
 };
@@ -63,6 +76,22 @@ export function readReportInput(saju: unknown): ReportInput | null {
     birth_time: s.birth_time,
     gender: s.gender as ReportInput["gender"],
   };
+}
+
+const GRADES: readonly Grade[] = ["길", "중", "흉"];
+
+/** 가장 많은 등급. 가장 많은 등급이 둘 이상이면 "중" */
+function majorityGrade(grades: Grade[]): Grade {
+  const counts = GRADES.map((grade) => grades.filter((g) => g === grade).length);
+  const max = Math.max(...counts);
+  const top = GRADES.filter((_, i) => counts[i] === max);
+  return top.length === 1 ? top[0] : "중";
+}
+
+function halfOf(half: "상" | "하", grades: Grade[]): ReportHalf {
+  const grade = majorityGrade(grades);
+  const id = `반기-${half}-${grade}`;
+  return { grade, phrase: { id, text: HALF_PHRASES[id] } };
 }
 
 function hashIndex(key: string, size: number): number {
@@ -98,8 +127,16 @@ export function buildReport(orderId: string, saju: unknown): BuildResult {
         pickPhrase(MONTHLY_PHRASES[month.ganSipsung][field], `${orderId}|${month.index}|${field}`, used),
       ]),
     ) as Record<PhraseField, Phrase>;
-    return { index: month.index, ...phrases };
+    // 충·합 보조: 월지·일지 관계 중 문구가 있는 첫 관계(충 → 합 → 형 순서). 같은 관계의 달마다 같은 문장이다.
+    const relationId = month.withDayBranch.map((r) => `관계-${r}-1`).find((id) => id in RELATION_PHRASES);
+    return {
+      index: month.index,
+      ...phrases,
+      ...(relationId ? { relation: { id: relationId, text: RELATION_PHRASES[relationId] } } : {}),
+    };
   });
+  const grades = calc.months.map((month) => month.grade);
+  const dayGanId = `일간-${calc.dayGan}-1`;
 
   const seunId = `세운-${calc.seun.ganSipsung}-1`;
   return {
@@ -112,6 +149,8 @@ export function buildReport(orderId: string, saju: unknown): BuildResult {
       phrasesConfirmed: PHRASES_CONFIRMED,
       calc,
       seunSummary: { id: seunId, text: SEUN_PHRASES[seunId] },
+      dayGanPhrase: { id: dayGanId, text: ILGAN_PHRASES[dayGanId] },
+      halves: { first: halfOf("상", grades.slice(0, 6)), second: halfOf("하", grades.slice(6)) },
       months,
     },
   };

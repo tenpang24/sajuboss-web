@@ -27,7 +27,7 @@ export async function submitNamePersonOrder(
 
   const parsed = await readNamePersonForm(formData, user.id);
   if (!parsed.ok) {
-    return { error: parsed.error, field: parsed.field };
+    return { error: parsed.error, field: parsed.field, lunar: parsed.lunar };
   }
 
   return submitOrder(PATH, formData, {

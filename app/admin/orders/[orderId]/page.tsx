@@ -10,7 +10,7 @@ import {
   StatusMoveControl,
 } from "@/components/admin/AdminActions";
 import { Badge } from "@/components/ui/Badge";
-import { ButtonLink } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import {
   adminBadgeTone,
@@ -64,6 +64,14 @@ function ReportCard({ order }: { order: AdminOrderDetail }) {
         </>
       )}
       {canMake && <RegenerateReportControl orderId={order.id} exists={report !== null} />}
+      {report?.firstViewedAt && (
+        <>
+          <Button type="button" variant="g" block disabled>
+            리포트 다시 만들기
+          </Button>
+          <p className="muted small">고객이 리포트를 열어 봐서 다시 만들 수 없습니다.</p>
+        </>
+      )}
     </Card>
   );
 }

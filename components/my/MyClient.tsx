@@ -124,8 +124,12 @@ export function SajuPanel({ saju }: { saju: SavedSaju | null }) {
                   }
                 : undefined
             }
+            error={saveState.error}
+            errorField={saveState.field}
+            lunar={saveState.lunar}
           />
-          {saveState.error && <Notice state={saveState} />}
+          {/* 사주 입력 칸의 오류는 그 칸 아래에 보여 줍니다. */}
+          {saveState.error && !saveState.field && <Notice state={saveState} />}
           <div className="my-actions">
             <Button type="submit" size="sm" disabled={saving}>
               {saving ? "저장하는 중…" : "저장"}

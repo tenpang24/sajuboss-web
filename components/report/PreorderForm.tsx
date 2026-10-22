@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useState, type FormEvent } from "react";
 import { submitReportPreorder, type PreorderState } from "@/app/report/2027/actions";
 import { OrderConsents } from "@/components/order/OrderConsents";
 import { SajuFields } from "@/components/saju/SajuFields";
@@ -14,9 +14,16 @@ const initialState: PreorderState = {};
 export function PreorderForm() {
   const [state, action, pending] = useActionState(submitReportPreorder, initialState);
   const [target, setTarget] = useState("self");
+  // 서버가 오류·안내를 돌려줘도 입력이 지워지지 않게(풀이할 사주 선택, 동의 체크, 바꿔 넣은 날짜) 폼 자동 초기화 없이 제출합니다.
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (pending) return;
+    const formData = new FormData(event.currentTarget);
+    startTransition(() => action(formData));
+  };
 
   return (
-    <form id={PREORDER_FORM_ID} className="card preorder" action={action}>
+    <form id={PREORDER_FORM_ID} className="card preorder" action={action} onSubmit={onSubmit}>
       <div className="field">
         <label htmlFor="d-who">풀이할 사주</label>
         <select
@@ -31,14 +38,17 @@ export function PreorderForm() {
         </select>
       </div>
 
-      {target === "other" && <SajuFields idPrefix="d" withLabel />}
+      {target === "other" && (
+        <SajuFields idPrefix="d" withLabel error={state.error} errorField={state.field} lunar={state.lunar} />
+      )}
 
       <OrderConsents
         className="preorder-consents"
         disclaimer="결과는 전통 명리 원리에 따른 참고용 자료이며, 사업 성과를 보장하지 않는다는 점을 확인했습니다."
       />
 
-      {state.error && (
+      {/* 사주 입력 칸의 오류는 그 칸 아래에 보여 줍니다. */}
+      {state.error && !(target === "other" && state.field) && (
         <p className="notice notice-error" role="alert">
           {state.error}{" "}
           {(state.needsConsent || state.needsSaju) && <Link href="/my">내 신청으로 가기</Link>}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { PayView } from "@/components/pay/PayView";
+import { ReportPreviewCard } from "@/components/report/ReportPreviewCard";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { requireUser } from "@/lib/auth";
@@ -9,6 +10,7 @@ import { formatDay, formatPhone, loadOwnOrderView, type OrderView } from "@/lib/
 import { getBankInfo, getPaymentState } from "@/lib/payment";
 import { formatKrw } from "@/lib/pricing";
 import { PAYMENT_MODE, orderNumber, packageNames, productNames } from "@/lib/products";
+import { loadOwnPreview } from "@/lib/report/view";
 
 export const metadata: Metadata = { title: "결제하기" };
 
@@ -152,6 +154,8 @@ async function PayContent({ params }: Pick<PageProps<"/pay/[orderId]">, "params"
   if (order.status !== "requested") return <NotPayable order={order} />;
 
   const payment = await getPaymentState(order.id);
+  // 신년 리포트: 사주표 + 세운 총평 1문장 미리보기(저장하지 않음)
+  const preview = order.product === "report_2027" ? await loadOwnPreview(order.id) : null;
   const rows = [
     { label: "상품", value: productNames[order.product] },
     ...(order.package ? [{ label: "패키지", value: packageNames[order.package] }] : []),
@@ -167,6 +171,7 @@ async function PayContent({ params }: Pick<PageProps<"/pay/[orderId]">, "params"
       waitingDeposit={payment.waitingDeposit}
       bankReady={PAYMENT_MODE === "manual" ? getBankInfo().complete : false}
       rows={rows}
+      preview={preview ? <ReportPreviewCard preview={preview} /> : null}
     >
       <div className="step">
         <StepHead num={1} title="주문 상품" />

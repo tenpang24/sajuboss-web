@@ -8,6 +8,7 @@ import {
   calendarNames,
   genderNames,
   genderUnknownName,
+  type LunarSuggestion,
 } from "@/lib/validation";
 
 // 숫자 키패드에는 '-'와 ':'가 없어서, 숫자만 받고 구분 기호를 자동으로 넣습니다.
@@ -19,6 +20,12 @@ export function formatBirth(value: string) {
 export function formatTime(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 4);
   return [digits.slice(0, 2), digits.slice(2, 4)].filter(Boolean).join(":");
+}
+
+// 2026-03-25 → 2026년 3월 25일
+function koreanDate(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
+  return `${year}년 ${month}월 ${day}일`;
 }
 
 export type SajuDefaults = {
@@ -44,6 +51,7 @@ export function SajuFields({
   unknownNote,
   error,
   errorField,
+  lunar,
 }: {
   idPrefix: string;
   defaults?: SajuDefaults;
@@ -57,8 +65,13 @@ export function SajuFields({
   unknownNote?: string;
   error?: string; // 서버 검증 오류 문구
   errorField?: string; // 오류가 난 입력의 name
+  lunar?: LunarSuggestion; // 음력 2월 29·30일 등을 양력으로 바꿔 넣으라는 서버 안내
 }) {
   const [birth, setBirth] = useState(defaults?.birth ?? "");
+  // 양력·음력도 상태로 둡니다(서버 오류 뒤 폼이 초기화돼도 고른 값이 남고, "양력으로 바꿔 넣기"로 바꿀 수 있게).
+  const [calendar, setCalendar] = useState(defaults?.calendar ?? "solar");
+  // "양력으로 바꿔 넣기"를 누른 안내. 날짜나 양력·음력을 다시 고치면 지웁니다.
+  const [converted, setConverted] = useState<LunarSuggestion | null>(null);
   const [time, setTime] = useState(defaults?.time ?? "");
   const [timeUnknown, setTimeUnknown] = useState(defaults?.timeUnknown ?? false);
 
@@ -73,6 +86,16 @@ export function SajuFields({
     ownsError && errorField === name(key)
       ? ({ "aria-invalid": true, "aria-describedby": errorId } as const)
       : {};
+  // 이 입력 묶음의 생년월일에 대한 안내만 받습니다(동업자 칸과 구분).
+  const suggestion = lunar && lunar.field === name("birth") ? lunar : null;
+  // 바꿔 넣은 뒤 다른 이유로 다시 오류가 나도 원래 입력(숨은 칸)은 날짜를 고치기 전까지 남깁니다.
+  const isConverted = converted !== null;
+  const convertToSolar = () => {
+    if (!suggestion) return;
+    setBirth(suggestion.solarDate);
+    setCalendar("solar");
+    setConverted(suggestion);
+  };
 
   return (
     <div className="saju-fields">
@@ -104,7 +127,10 @@ export function SajuFields({
             placeholder={birthPlaceholder}
             maxLength={10}
             value={birth}
-            onChange={(event) => setBirth(formatBirth(event.target.value))}
+            onChange={(event) => {
+              setBirth(formatBirth(event.target.value));
+              setConverted(null);
+            }}
             required
             {...invalid("birth")}
           />
@@ -115,7 +141,11 @@ export function SajuFields({
             className="input"
             id={`${idPrefix}-cal`}
             name={name("calendar")}
-            defaultValue={defaults?.calendar ?? "solar"}
+            value={calendar}
+            onChange={(event) => {
+              setCalendar(event.target.value);
+              setConverted(null);
+            }}
             {...invalid("calendar")}
           >
             {CALENDARS.map((value) => (
@@ -186,10 +216,29 @@ export function SajuFields({
           태어난 시각을 몰라요{unknownNote && <span className="muted small"> {unknownNote}</span>}
         </span>
       </label>
-      {ownsError && (
-        <p className="field-error" id={errorId} role="alert">
-          {error}
-        </p>
+      {isConverted && converted && (
+        <>
+          <input
+            type="hidden"
+            name={name("originalLunar")}
+            value={`${converted.original.calendar}:${converted.original.date}`}
+          />
+          <p className="notice notice-ok saju-lunar" role="status">
+            생년월일을 양력 {koreanDate(converted.solarDate)}로 바꿔 넣었습니다. 확인한 뒤 저장·신청 버튼을 다시 눌러 주세요.
+          </p>
+        </>
+      )}
+      {ownsError && !(isConverted && converted === suggestion) && (
+        <div className="saju-lunar">
+          <p className="field-error" id={errorId} role="alert">
+            {error}
+          </p>
+          {suggestion && (
+            <button type="button" className="btn btn-o btn-sm" onClick={convertToSolar}>
+              양력으로 바꿔 넣기
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
