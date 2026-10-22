@@ -1,7 +1,7 @@
 import "server-only";
 
 // 출생 시각 보정 옵션과 근거 표.
-// 기본값은 모두 꺼짐(사장님 결정 전). 꺼져 있으면 적힌 시각을 지금의 한국 표준시(UTC+9)로 본다.
+// 기본값(사장님 확정 2026-10-22): 서머타임·표준시 이력 켜짐, 진태양시 꺼짐, 자시 00:00. 모두 끄면 적힌 시각을 지금의 한국 표준시(UTC+9)로 본다.
 // 한국천문연구원 24기 입기시각 표도 같은 가정(과거 표준자오선 변경·서머타임 미반영)이다.
 
 export type ZiHourRule =
@@ -20,8 +20,8 @@ export type CorrectionOptions = {
 
 export const DEFAULT_CORRECTIONS: CorrectionOptions = {
   trueSolarTime: { enabled: false, minutes: 0 },
-  summerTime: false,
-  standardTimeHistory: false,
+  summerTime: true,
+  standardTimeHistory: true,
   ziHour: "midnight",
 };
 

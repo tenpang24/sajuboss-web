@@ -2,6 +2,15 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import type { CorrectionOptions } from "../../lib/saju-engine/corrections.ts";
+
+/** 한국천문연구원 표와 같은 가정: 보정 모두 꺼짐(적힌 시각 = UTC+9, 서머타임·표준시 변경 미반영). 기본값(DEFAULT_CORRECTIONS)과 다르다. */
+export const ALL_OFF: CorrectionOptions = {
+  trueSolarTime: { enabled: false, minutes: 0 },
+  summerTime: false,
+  standardTimeHistory: false,
+  ziHour: "midnight",
+};
 
 const DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "fixtures");
 

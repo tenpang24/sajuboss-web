@@ -32,7 +32,7 @@ export function ganSipsung(dayGan: string, targetGan: string): Sipsung {
   return BY_DISTANCE[distance][isYang(dayGan) === isYang(targetGan) ? 0 : 1];
 }
 
-// 지장간 본기. 사장님 확정 대기(설계서 7장 초안).
+// 지장간 본기. 사장님 확정(2026-10-22, 설계서 7장).
 export const JIJANGGAN_BONGI: Readonly<Record<string, string>> = {
   子: "癸", 丑: "己", 寅: "甲", 卯: "乙", 辰: "戊", 巳: "丙",
   午: "丁", 未: "己", 申: "庚", 酉: "辛", 戌: "戊", 亥: "壬",

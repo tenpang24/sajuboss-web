@@ -17,7 +17,7 @@ import { GAN_OHAENG, ZHI_OHAENG, type Ohaeng } from "./relation.ts";
 //  - 년주·월주는 입춘·절입 "시각" 기준(...Exact). 원본은 "당일" 기준이었다.
 //  - 음력 입력은 한국천문연구원 기준 한국 음력으로 바꾼다(korean-lunar.ts). 원본은 중국 음력이었다.
 //  - 시각을 모르면 그 날 00:00~23:59 전체를 보고 경계 위험을 함께 돌려준다.
-//  - 보정(진태양시, 서머타임, 표준시 이력, 자시)은 corrections.ts의 옵션으로, 기본은 모두 꺼짐.
+//  - 보정(진태양시, 서머타임, 표준시 이력, 자시)은 corrections.ts의 옵션으로, 기본은 서머타임·표준시 이력만 켜짐.
 
 const { Solar } = lunarJs;
 

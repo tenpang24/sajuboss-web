@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { DEFAULT_CORRECTIONS, type CorrectionOptions } from "../../lib/saju-engine/corrections.ts";
 import { calcIljin } from "../../lib/saju-engine/iljin.ts";
 import { calcPillars, type PillarsResult, type SajuInput } from "../../lib/saju-engine/pillars.ts";
-import { kasiDaySamples, kasiLunarMonths, kasiTerms, kstParts } from "./kasi.ts";
+import { ALL_OFF, kasiDaySamples, kasiLunarMonths, kasiTerms, kstParts } from "./kasi.ts";
 
 const GAN = "甲乙丙丁戊己庚辛壬癸";
 const ZHI = "子丑寅卯辰巳午未申酉戌亥";
@@ -17,7 +17,8 @@ const next = (p: string) => {
   return GAN[i % 10] + ZHI[i % 12];
 };
 
-function calc(input: Partial<SajuInput> & { birth_date: string }, options?: CorrectionOptions): PillarsResult {
+// 기존 테스트는 한국천문연구원 표와 같은 가정(보정 모두 꺼짐)으로 계산한다. 기본값 계산은 맨 아래 테스트.
+function calc(input: Partial<SajuInput> & { birth_date: string }, options: CorrectionOptions = ALL_OFF): PillarsResult {
   const r = calcPillars({ calendar: "solar", birth_time: null, gender: "female", ...input }, options);
   assert.ok(r.ok, `${input.birth_date} ${input.birth_time}: ${r.ok ? "" : r.error}`);
   return r;
@@ -130,10 +131,10 @@ test("시각 모름: 다른 절입일은 jeolip, 보정으로 날짜가 넘어�
   const r = calc({ birth_date: gyeongchip.kst.slice(0, 10) });
   assert.ok(r.boundaryRisks.some((x) => x.kind === "jeolip" && x.term === "경칩"));
 
-  const solarTime = { ...DEFAULT_CORRECTIONS, trueSolarTime: { enabled: true, minutes: -32 } };
+  const solarTime = { ...ALL_OFF, trueSolarTime: { enabled: true, minutes: -32 } };
   const m = calc({ birth_date: "2024-02-10" }, solarTime);
   assert.ok(m.boundaryRisks.some((x) => x.kind === "midnight"));
-  const zi = calc({ birth_date: "2024-02-10" }, { ...DEFAULT_CORRECTIONS, ziHour: "day-changes-at-23" });
+  const zi = calc({ birth_date: "2024-02-10" }, { ...ALL_OFF, ziHour: "day-changes-at-23" });
   assert.ok(zi.boundaryRisks.some((x) => x.kind === "midnight"));
 });
 
@@ -157,7 +158,7 @@ test("자시: 기본은 00:00에 날짜 변경(23시 시주 천간은 다음 날
   assert.equal(midnight.pillars.hour![0], ziGan);
   assert.ok(midnight.boundaryRisks.some((x) => x.kind === "midnight" && x.minutesFromBoundary === -30));
 
-  const early = calc({ birth_date: "2024-02-10", birth_time: "23:30" }, { ...DEFAULT_CORRECTIONS, ziHour: "day-changes-at-23" });
+  const early = calc({ birth_date: "2024-02-10", birth_time: "23:30" }, { ...ALL_OFF, ziHour: "day-changes-at-23" });
   assert.equal(early.pillars.day, tomorrow);
   assert.equal(early.pillars.hour, midnight.pillars.hour);
   assert.equal(early.corrections.applied.ziHour, "day-changes-at-23");
@@ -168,7 +169,7 @@ test("자시: 기본은 00:00에 날짜 변경(23시 시주 천간은 다음 날
 });
 
 test("서머타임: 1987-07-15 00:30은 보정하면 전날 23:30으로 계산, 끄면 안내만", () => {
-  const on = calc({ birth_date: "1987-07-15", birth_time: "00:30" }, { ...DEFAULT_CORRECTIONS, summerTime: true });
+  const on = calc({ birth_date: "1987-07-15", birth_time: "00:30" }, { ...ALL_OFF, summerTime: true });
   assert.equal(on.corrections.applied.summerTimeHourRemoved, true);
   assert.equal(on.corrections.calcLocal, "1987-07-14 23:30:00");
   assert.equal(on.pillars.day, calcIljin(1987, 7, 14).pillar);
@@ -179,7 +180,7 @@ test("서머타임: 1987-07-15 00:30은 보정하면 전날 23:30으로 계산, 
 });
 
 test("표준시 이력: 1958-03-01 10:00은 켜면 UTC+8:30으로 출생 순간이 30분 늦어진다", () => {
-  const on = calc({ birth_date: "1958-03-01", birth_time: "10:00" }, { ...DEFAULT_CORRECTIONS, standardTimeHistory: true });
+  const on = calc({ birth_date: "1958-03-01", birth_time: "10:00" }, { ...ALL_OFF, standardTimeHistory: true });
   assert.equal(on.corrections.applied.standardOffset, "+08:30");
   assert.equal(on.corrections.instantUtc, "1958-03-01T01:30:00.000Z");
   assert.equal(on.corrections.calcLocal, "1958-03-01 10:00:00");
@@ -190,7 +191,7 @@ test("표준시 이력: 1958-03-01 10:00은 켜면 UTC+8:30으로 출생 순간�
 });
 
 test("진태양시 -32분: 2000-01-01 00:20 → 전날 일주", () => {
-  const r = calc({ birth_date: "2000-01-01", birth_time: "00:20" }, { ...DEFAULT_CORRECTIONS, trueSolarTime: { enabled: true, minutes: -32 } });
+  const r = calc({ birth_date: "2000-01-01", birth_time: "00:20" }, { ...ALL_OFF, trueSolarTime: { enabled: true, minutes: -32 } });
   assert.equal(r.corrections.applied.trueSolarTimeMinutes, -32);
   assert.equal(r.pillars.day, calcIljin(1999, 12, 31).pillar);
 });
@@ -222,4 +223,20 @@ test("범위 끝과 잘못된 입력", () => {
   assert.equal(calc({ birth_date: "1900-01-01" }).pillars.year, "己亥");
   // HH:MM:SS(DB time 형식)도 받는다
   assert.equal(calc({ birth_date: "2024-02-10", birth_time: "09:15:00" }).pillars.hour![1], "巳");
+});
+
+test("기본 보정(서머타임·표준시 이력 켜짐): 1987-07-15 10:30 → 계산 시각 09:30", () => {
+  const r = calc({ birth_date: "1987-07-15", birth_time: "10:30" }, DEFAULT_CORRECTIONS);
+  assert.equal(r.corrections.applied.summerTimeHourRemoved, true);
+  assert.equal(r.corrections.calcLocal, "1987-07-15 09:30:00");
+  assert.deepEqual(calcPillars({ birth_date: "1987-07-15", calendar: "solar", birth_time: "10:30", gender: "female" }), r);
+});
+
+test("기본 보정: 1958-08-10 00:40 → 계산 시각 전날 23:40(UTC+8:30 서머타임), 일주 戊午", () => {
+  const r = calc({ birth_date: "1958-08-10", birth_time: "00:40" }, DEFAULT_CORRECTIONS);
+  assert.equal(r.corrections.applied.standardOffset, "+08:30");
+  assert.equal(r.corrections.applied.summerTimeHourRemoved, true);
+  assert.equal(r.corrections.calcLocal, "1958-08-09 23:40:00");
+  assert.equal(r.pillars.day, "戊午");
+  assert.deepEqual(calcPillars({ birth_date: "1958-08-10", calendar: "solar", birth_time: "00:40", gender: "female" }), r);
 });

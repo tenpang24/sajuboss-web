@@ -99,17 +99,31 @@ test("12개월 시작·끝 = 한국천문연구원 12절(같은 날, 3분 이내
   assert.equal(r.months[0].startLabel, "2월 4일경");
 });
 
-test("판정은 표에서만: 지금은 모두 중, 움직일 달·조심할 달이 겹치지 않음", () => {
-  assert.equal(JUDGMENT_TABLE.confirmed, false);
+test("확정 판정표(2026-10-22): 1975-03-20 09:00 양력 여성의 12개월 등급과 움직일 달·조심할 달", () => {
+  assert.equal(JUDGMENT_TABLE.confirmed, true);
   const r = report({ birth_date: "1975-03-20", birth_time: "09:00" });
-  assert.equal(r.judgmentConfirmed, false);
-  for (const m of r.months) {
-    assert.equal(m.score, 1);
-    assert.equal(m.grade, "중");
-  }
-  assert.deepEqual(r.bestMonths, { indexes: [1, 2, 3], provisional: true });
-  assert.deepEqual(r.cautionMonths, { indexes: [4, 5, 6], provisional: true });
+  assert.equal(r.judgmentConfirmed, true);
+  assert.deepEqual(
+    r.months.map((m) => m.grade),
+    ["중", "중", "흉", "중", "중", "중", "길", "길", "길", "흉", "길", "중"],
+  );
+  assert.deepEqual(r.bestMonths, { indexes: [7, 8, 9], provisional: false });
+  assert.deepEqual(r.cautionMonths, { indexes: [3, 10, 1], provisional: false });
   assert.equal(r.bestMonths.indexes.filter((i) => r.cautionMonths.indexes.includes(i)).length, 0);
+});
+
+test("점수는 표에서만: 월 천간 십성 점수 + 월지·일지 보정(연지·지지 십성·세운은 점수에 없음)", () => {
+  const r = report({ birth_date: "1975-03-20", birth_time: "09:00" });
+  for (const m of r.months) {
+    const expected =
+      JUDGMENT_TABLE.monthGanSipsungScore[m.ganSipsung] +
+      m.withDayBranch.reduce((sum, rel) => sum + JUDGMENT_TABLE.monthDayBranchAdjust[rel], 0);
+    assert.equal(m.score, expected, `${m.index} ${m.pillar}`);
+  }
+  // 9월 庚戌: 연지 卯와 합이 있어도 점수에 넣지 않는다(정관 2 + 일지 丑과 형(부분) 0)
+  const sep = r.months[8];
+  assert.deepEqual(sep.withYearBranch, ["합"]);
+  assert.equal(sep.score, 2);
 });
 
 test("같은 입력 두 번 → 결과가 완전히 같음", () => {
