@@ -21,7 +21,7 @@ import { GAN_OHAENG, ZHI_OHAENG, type Ohaeng } from "./relation.ts";
 
 const { Solar } = lunarJs;
 
-export const ENGINE_VERSION = "saju-engine 8-B1 (lunar-javascript 1.7.7)";
+export const ENGINE_VERSION = "saju-engine 8-B2 (lunar-javascript 1.7.7)";
 
 /** 경계(절입, 날짜 변경)에서 이 시간(분) 안이면 위험으로 알린다. 서머타임·표준시 보정 여부에 따라 1시간까지 달라질 수 있어서. */
 export const BOUNDARY_RISK_MINUTES = 60;

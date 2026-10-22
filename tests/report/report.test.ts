@@ -69,7 +69,7 @@ test("달마다 그 달 천간 십성의 B·S·D 문장을 고름", () => {
     }
   });
   assert.deepEqual(report.seunSummary, { id: "세운-식신-1", text: PENDING });
-  assert.match(report.engineVersion, /8-B1/);
+  assert.match(report.engineVersion, /8-B2/);
   assert.equal(report.phrasesConfirmed, false);
 });
 
